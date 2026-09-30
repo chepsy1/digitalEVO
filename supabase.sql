@@ -155,3 +155,52 @@ select * from (values
 ('account',50000,1180000,999000,'','assets/akun-premium-product.png',4)
 ) as v(category,qty,original,price,sold,image_url,sort_order)
 where not exists (select 1 from public.products limit 1);
+
+
+-- ============================================================
+-- QRIS DANA dynamic payments
+-- Customer never writes directly to this table; Edge Functions
+-- use the Supabase service role for payment creation/webhook.
+-- ============================================================
+create table if not exists public.payments (
+  id uuid primary key default gen_random_uuid(),
+  partner_reference_no text not null unique,
+  dana_reference_no text,
+  category text not null check (category in ('followers','account')),
+  product_qty integer not null,
+  amount integer not null check (amount > 0),
+  customer_whatsapp text,
+  shopee_link text,
+  account_contact text,
+  status text not null default 'PENDING'
+    check (status in ('PENDING','PAID','EXPIRED','FAILED')),
+  qr_content text,
+  qr_image text,
+  qr_url text,
+  expires_at timestamptz not null,
+  paid_at timestamptz,
+  dana_payload jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists payments_status_idx on public.payments(status);
+create index if not exists payments_created_at_idx on public.payments(created_at);
+create index if not exists payments_dana_reference_idx on public.payments(dana_reference_no);
+
+alter table public.payments enable row level security;
+
+-- No public/browser access. Edge Functions use service_role.
+drop policy if exists "no public payment read" on public.payments;
+drop policy if exists "no public payment insert" on public.payments;
+drop policy if exists "admin read payments" on public.payments;
+
+create policy "admin read payments" on public.payments
+  for select to authenticated
+  using (public.is_admin());
+
+-- Optional admin visibility in Supabase dashboard; no client insert/update/delete.
+create policy "admin update payments" on public.payments
+  for update to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());

@@ -47,17 +47,148 @@ function renderSite(){
 
 const accountDescription=`<strong>Akun Shopee Premium</strong><ul><li>Akun sudah berisi followers Indonesia aktif.</li><li>Akun belum didaftarkan ke Toko Shopee, sehingga Anda bisa mendaftarkannya sendiri.</li><li>Usia akun bervariatif mulai dari 1 Bulan–8 Tahun (tergantung stock yang tersedia).</li><li>Setelah pembelian, Anda bisa langsung mengganti E-mail dan Password.</li><li>Akun belum tertaut oleh Nomor Handphone. Anda bisa melakukan verifikasi dengan nomor handphone.</li></ul>`;
 function bindCheckout(){
- const modal=document.getElementById('checkoutModal'),select=document.getElementById('packageSelect'); if(!modal||!select)return;
- const closeModal=()=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true');document.body.style.overflow=''};
- const setFields=isAccount=>{const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel'),s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact');a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;s.required=!isAccount;w.required=!isAccount;ac.required=isAccount};
- const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
- const update=qty=>{const p=products.find(x=>x.qty===Number(qty));if(!p)return;document.getElementById('orderTotal').textContent=rupiah(p.price);document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 1 Jam–48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</p>`};
- const openFollower=qty=>{setFields(false);document.getElementById('modalTitle').textContent='Order Followers Shopee';select.innerHTML=followerOptions;select.value=String(qty);document.getElementById('selectedProduct').value=qty;update(qty);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink').focus()};
- const openAccount=qty=>{setFields(true);document.getElementById('modalTitle').textContent=`Order Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`;select.innerHTML=accountProducts.map(p=>`<option value="account:${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');select.value=`account:${qty}`;document.getElementById('selectedProduct').value=`account:${qty}`;document.getElementById('checkoutDescription').innerHTML=accountDescription;const p=accountProducts.find(x=>x.qty===Number(qty));document.getElementById('orderTotal').textContent=rupiah(p?.price||0);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('accountContact').focus()};
- document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
- modal.querySelectorAll('[data-close]').forEach(el=>el.onclick=closeModal);
- select.onchange=()=>{const value=select.value;if(value.startsWith('account:')){setFields(true);const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;document.getElementById('checkoutDescription').innerHTML=accountDescription;document.getElementById('orderTotal').textContent=rupiah(p?.price||0)}else{setFields(false);document.getElementById('modalTitle').textContent='Order Followers Shopee';update(Number(value))}};
- const form=document.getElementById('checkoutForm');form.onsubmit=e=>{e.preventDefault();const value=select.value;let text='';if(value.startsWith('account:')){const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);const contact=document.getElementById('accountContact').value.trim();text=`Halo digitalEVO, saya ingin order Akun Shopee Premium.%0A%0APaket: AKUN Shopee ${p.qty} Followers%0ATotal: ${rupiah(p.price)}%0AE-Mail atau Nomor WhatsApp: ${encodeURIComponent(contact)}`}else{const wa=document.getElementById('customerWa').value.trim();const link=document.getElementById('shopeeLink').value.trim();const p=products.find(x=>x.qty===Number(value));text=`Halo digitalEVO, saya ingin order Followers Shopee.%0A%0APaket: ${p.qty} Followers%0ATotal: ${rupiah(p.price)}%0AWhatsApp: ${encodeURIComponent(wa)}%0ALink Shopee: ${encodeURIComponent(link)}`}window.open(`https://wa.me/6285185353434?text=${text}`,'_blank','noopener');closeModal()};
+  const modal=document.getElementById('checkoutModal');
+  const select=document.getElementById('packageSelect');
+  const paymentModal=document.getElementById('paymentModal');
+  if(!modal||!select)return;
+
+  const closeModal=()=>{
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+  };
+  const closePayment=()=>{
+    paymentModal?.classList.remove('show');
+    paymentModal?.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+  };
+  paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
+
+  const setFields=isAccount=>{
+    const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel');
+    const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact');
+    a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;
+    s.required=!isAccount;w.required=!isAccount;ac.required=isAccount;
+  };
+  const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
+  const update=qty=>{
+    const p=products.find(x=>x.qty===Number(qty)); if(!p)return;
+    document.getElementById('orderTotal').textContent=rupiah(p.price);
+    document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 1 Jam–48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</p>`;
+  };
+  const openFollower=qty=>{
+    setFields(false);
+    document.getElementById('modalTitle').textContent='Order Followers Shopee';
+    select.innerHTML=followerOptions;select.value=String(qty);
+    document.getElementById('selectedProduct').value=qty;update(qty);
+    modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+    document.getElementById('shopeeLink').focus();
+  };
+  const openAccount=qty=>{
+    setFields(true);
+    document.getElementById('modalTitle').textContent=`Order Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`;
+    select.innerHTML=accountProducts.map(p=>`<option value="account:${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
+    select.value=`account:${qty}`;document.getElementById('selectedProduct').value=`account:${qty}`;
+    document.getElementById('checkoutDescription').innerHTML=accountDescription;
+    const p=accountProducts.find(x=>x.qty===Number(qty));
+    document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
+    modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+    document.getElementById('accountContact').focus();
+  };
+  document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));
+  document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
+  modal.querySelectorAll('[data-close]').forEach(el=>el.onclick=closeModal);
+
+  select.onchange=()=>{
+    const value=select.value;
+    if(value.startsWith('account:')){
+      setFields(true);const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);
+      document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;
+      document.getElementById('checkoutDescription').innerHTML=accountDescription;
+      document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
+    }else{
+      setFields(false);document.getElementById('modalTitle').textContent='Order Followers Shopee';update(Number(value));
+    }
+  };
+
+  let currentPaymentId=null;
+  let paymentTimer=null;
+  const setPaymentStatus=(text,cls='')=>{
+    const el=document.getElementById('paymentStatus');
+    if(el){el.textContent=text;el.className=`payment-status ${cls}`.trim();}
+  };
+  const showPayment=async payment=>{
+    currentPaymentId=payment.paymentId;
+    closeModal();
+    document.getElementById('paymentInvoice').textContent=payment.partnerReferenceNo;
+    document.getElementById('paymentAmount').textContent=rupiah(payment.amount);
+    const img=document.getElementById('qrisImage'),canvas=document.getElementById('qrisCanvas');
+    img.hidden=true;canvas.hidden=false;
+    if(payment.qrImage){
+      img.src=payment.qrImage.startsWith('data:')?payment.qrImage:`data:image/png;base64,${payment.qrImage}`;
+      img.hidden=false;canvas.hidden=true;
+    }else if(payment.qrContent && window.QRCode){
+      await QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2});
+    }
+    const expires=new Date(payment.expiresAt);
+    document.getElementById('paymentExpiry').textContent=`Berlaku sampai ${expires.toLocaleString('id-ID')}`;
+    setPaymentStatus('Menunggu pembayaran...');
+    paymentModal.classList.add('show');paymentModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+    clearInterval(paymentTimer);
+    paymentTimer=setInterval(()=>checkPayment(false),5000);
+  };
+  const checkPayment=async(manual=true)=>{
+    if(!currentPaymentId)return;
+    try{
+      const {data,error}=await window.supabase.functions.invoke('check-qris',{body:{paymentId:currentPaymentId}});
+      if(error)throw error;
+      if(data?.status==='PAID'){
+        clearInterval(paymentTimer);setPaymentStatus('Pembayaran berhasil. Pesanan sedang diproses.','paid');
+        return;
+      }
+      if(data?.status==='EXPIRED'||data?.status==='FAILED'){
+        clearInterval(paymentTimer);setPaymentStatus('Pembayaran tidak dapat dilanjutkan. Silakan buat transaksi baru.','failed');
+        return;
+      }
+      if(manual)setPaymentStatus('Belum ada pembayaran yang terkonfirmasi.');
+    }catch(err){
+      if(manual)setPaymentStatus(err.message||'Gagal mengecek pembayaran.','failed');
+    }
+  };
+  document.getElementById('checkPaymentBtn')?.addEventListener('click',()=>checkPayment(true));
+  document.getElementById('copyInvoiceBtn')?.addEventListener('click',async()=>{
+    const value=document.getElementById('paymentInvoice').textContent;
+    try{await navigator.clipboard.writeText(value);document.getElementById('copyInvoiceBtn').textContent='Tersalin';setTimeout(()=>document.getElementById('copyInvoiceBtn').textContent='Salin Invoice',1200)}catch{}
+  });
+
+  const form=document.getElementById('checkoutForm');
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    const value=select.value;
+    const payload={};
+    if(value.startsWith('account:')){
+      payload.category='account';
+      payload.qty=Number(value.split(':')[1]);
+      payload.accountContact=document.getElementById('accountContact').value.trim();
+    }else{
+      payload.category='followers';
+      payload.qty=Number(value);
+      payload.customerWhatsapp=document.getElementById('customerWa').value.trim();
+      payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
+    }
+    const submit=e.submitter||form.querySelector('button[type=submit]');
+    if(submit){submit.disabled=true;submit.textContent='Membuat QRIS...';}
+    try{
+      const {data,error}=await window.supabase.functions.invoke('create-qris',{body:payload});
+      if(error)throw error;
+      if(!data?.paymentId)throw new Error(data?.message||'Gagal membuat pembayaran QRIS.');
+      await showPayment(data);
+    }catch(err){
+      alert(err?.message||'Gagal membuat pembayaran QRIS. Silakan coba lagi.');
+    }finally{
+      if(submit){submit.disabled=false;submit.textContent='Bayar dengan QRIS';}
+    }
+  };
 }
 
 async function loadRemote(){

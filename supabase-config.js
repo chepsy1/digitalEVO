@@ -1,6 +1,4 @@
-// Isi sekali dengan Project URL dan anon/publishable key dari Supabase.
-// JANGAN masukkan service_role key ke file ini.
 window.SUPABASE_CONFIG = {
-  url: '',
-  anonKey: ''
+  url: 'https://cpmfrystzzrdbpfcikwg.supabase.co',
+  anonKey: 'sb_publishable_nEOiV5pcYp1PqxSYtoj_5A_vE5IyyUm'
 };

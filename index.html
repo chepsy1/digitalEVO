@@ -85,12 +85,38 @@
         <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
         <label id="accountContactLabel" hidden>E-Mail atau Nomor WhatsApp<input id="accountContact" inputmode="email" placeholder="Masukkan E-Mail atau Nomor WhatsApp" /></label>
         <div class="order-total"><span>Total</span><strong id="orderTotal">Rp0</strong></div>
-        <button class="btn btn-primary full" type="submit">Lanjutkan Order</button>
+        <button class="btn btn-primary full" type="submit">Bayar dengan QRIS</button>
       </form>
-      <p class="modal-note">Pembayaran online akan diintegrasikan pada tahap berikutnya.</p>
+      <p class="modal-note">QRIS dinamis dibuat untuk nominal transaksi ini. Pesanan diproses setelah pembayaran terkonfirmasi.</p>
     </div>
   </div>
+
+  <div class="modal" id="paymentModal" aria-hidden="true">
+    <div class="modal-backdrop" data-payment-close></div>
+    <div class="modal-card payment-card" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+      <button class="modal-close" data-payment-close aria-label="Tutup">×</button>
+      <span class="eyebrow">PEMBAYARAN QRIS</span>
+      <h2 id="paymentTitle">Scan QRIS untuk membayar</h2>
+      <div class="payment-summary">
+        <div><span>Invoice</span><strong id="paymentInvoice">-</strong></div>
+        <div><span>Total</span><strong id="paymentAmount">Rp0</strong></div>
+      </div>
+      <div class="qr-box">
+        <img id="qrisImage" alt="QRIS pembayaran" hidden />
+        <canvas id="qrisCanvas" aria-label="QRIS pembayaran"></canvas>
+      </div>
+      <p id="paymentStatus" class="payment-status">Menunggu pembayaran...</p>
+      <p id="paymentExpiry" class="modal-note"></p>
+      <div class="payment-actions">
+        <button id="copyInvoiceBtn" class="btn btn-light" type="button">Salin Invoice</button>
+        <button id="checkPaymentBtn" class="btn btn-primary" type="button">Cek Pembayaran</button>
+      </div>
+      <p class="modal-note">Scan QR menggunakan DANA atau aplikasi pembayaran lain yang mendukung QRIS.</p>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="supabase-config.js"></script>
   <script src="script.js"></script>
 </body>
