@@ -148,9 +148,31 @@ function bindCheckout(){
           QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2}).catch(()=>{});
         }
       };
-    }else if(payment.qrContent && window.QRCode){
-      canvas.hidden=false;
-      await QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2});
+    }else if(payment.qrContent){
+      // The DANA response contains QRIS as raw QR payload (qrContent).
+      // Prefer the local QRCode library when available. If a browser/CDN
+      // blocks that library, use a remote QR image fallback so checkout
+      // remains usable instead of showing a blank QR area.
+      let rendered=false;
+      if(window.QRCode && typeof window.QRCode.toCanvas==='function'){
+        try{
+          canvas.hidden=false;
+          await QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2});
+          rendered=true;
+        }catch(err){
+          console.error('QR canvas generation failed:',err);
+          canvas.hidden=true;
+        }
+      }
+      if(!rendered){
+        const fallbackUrl='https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&data='+encodeURIComponent(payment.qrContent);
+        img.src=fallbackUrl;
+        img.hidden=false;
+        img.onerror=()=>{
+          img.hidden=true;
+          if(qrBox)qrBox.insertAdjacentHTML('beforeend','<p class="qr-error">QRIS gagal ditampilkan. Pastikan koneksi internet aktif lalu coba transaksi baru.</p>');
+        };
+      }
     }else{
       if(qrBox)qrBox.insertAdjacentHTML('beforeend','<p class="qr-error">QRIS belum tersedia dari server. Silakan buat transaksi baru.</p>');
     }
