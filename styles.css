@@ -5,3 +5,5 @@
 
 .payment-card{text-align:center}.payment-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.payment-summary>div{background:#fff8f2;border:1px solid #ffe0cc;border-radius:12px;padding:10px}.payment-summary span,.payment-summary strong{display:block}.payment-summary span{font-size:10px;color:#777}.payment-summary strong{font-size:13px;margin-top:2px}.qr-box{display:grid;place-items:center;min-height:300px;padding:10px;background:#fff;border:1px solid #eee;border-radius:16px}.qr-box canvas,.qr-box img{width:280px;max-width:100%;height:auto}.payment-status{font-weight:800;color:var(--orange);margin:12px 0 4px}.payment-status.paid{color:#168447}.payment-status.failed{color:#b42318}.payment-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}.payment-actions .btn{flex:1}
 @media(max-width:430px){.payment-summary{grid-template-columns:1fr}.payment-actions{flex-direction:column}}
+
+.qr-error{margin:0;padding:14px;text-align:center;color:#b42318;font-size:12px;font-weight:800}

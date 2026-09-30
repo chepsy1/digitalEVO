@@ -127,12 +127,32 @@ function bindCheckout(){
     document.getElementById('paymentInvoice').textContent=payment.partnerReferenceNo;
     document.getElementById('paymentAmount').textContent=rupiah(payment.amount);
     const img=document.getElementById('qrisImage'),canvas=document.getElementById('qrisCanvas');
-    img.hidden=true;canvas.hidden=false;
+    const qrBox=document.querySelector('.qr-box');
+    qrBox?.querySelector('.qr-error')?.remove();
+    img.hidden=true;canvas.hidden=true;img.removeAttribute('src');
+    const ctx=canvas.getContext?.('2d');
+    if(ctx)ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // DANA can return qrImage, qrUrl, and/or qrContent. Prefer the ready-made
+    // image, then the QR download URL, and finally generate an image from QR content.
     if(payment.qrImage){
       img.src=payment.qrImage.startsWith('data:')?payment.qrImage:`data:image/png;base64,${payment.qrImage}`;
-      img.hidden=false;canvas.hidden=true;
+      img.hidden=false;
+    }else if(payment.qrUrl){
+      img.src=payment.qrUrl;
+      img.hidden=false;
+      img.onerror=()=>{
+        img.hidden=true;
+        if(payment.qrContent && window.QRCode){
+          canvas.hidden=false;
+          QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2}).catch(()=>{});
+        }
+      };
     }else if(payment.qrContent && window.QRCode){
+      canvas.hidden=false;
       await QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2});
+    }else{
+      if(qrBox)qrBox.insertAdjacentHTML('beforeend','<p class="qr-error">QRIS belum tersedia dari server. Silakan buat transaksi baru.</p>');
     }
     const expires=new Date(payment.expiresAt);
     document.getElementById('paymentExpiry').textContent=`Berlaku sampai ${expires.toLocaleString('id-ID')}`;
