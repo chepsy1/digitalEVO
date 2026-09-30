@@ -1,3 +1,7 @@
+const qrisSupabaseClient = window.supabase.createClient(
+  window.SUPABASE_CONFIG.url,
+  window.SUPABASE_CONFIG.anonKey
+);
 const DEFAULT_FOLLOWERS=[
  {qty:100,price:7800,original:9500,sold:'20+',img:'assets/100.png'},
  {qty:200,price:15600,original:19000,sold:'10+',img:'assets/200.png'},
@@ -140,7 +144,7 @@ function bindCheckout(){
   const checkPayment=async(manual=true)=>{
     if(!currentPaymentId)return;
     try{
-      const {data,error}=await window.supabase.functions.invoke('check-qris',{body:{paymentId:currentPaymentId}});
+      const {data,error}=await qrisSupabaseClient.functions.invoke('check-qris',{body:{paymentId:currentPaymentId}});
       if(error)throw error;
       if(data?.status==='PAID'){
         clearInterval(paymentTimer);setPaymentStatus('Pembayaran berhasil. Pesanan sedang diproses.','paid');
@@ -179,7 +183,7 @@ function bindCheckout(){
     const submit=e.submitter||form.querySelector('button[type=submit]');
     if(submit){submit.disabled=true;submit.textContent='Membuat QRIS...';}
     try{
-      const {data,error}=await window.supabase.functions.invoke('create-qris',{body:payload});
+      const {data,error}=await qrisSupabaseClient.functions.invoke('create-qris',{body:payload});
       if(error)throw error;
       if(!data?.paymentId)throw new Error(data?.message||'Gagal membuat pembayaran QRIS.');
       await showPayment(data);
