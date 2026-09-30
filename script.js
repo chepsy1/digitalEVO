@@ -1,102 +1,68 @@
-const products=[
+const DEFAULT_FOLLOWERS=[
  {qty:100,price:7800,original:9500,sold:'20+',img:'assets/100.png'},
  {qty:200,price:15600,original:19000,sold:'10+',img:'assets/200.png'},
  {qty:300,price:21500,original:28500,sold:'10+',img:'assets/300.png'},
  {qty:500,price:29800,original:45000,sold:'20+',img:'assets/500.png'},
  {qty:1000,price:57200,original:85000,sold:'50+',img:'assets/1000.png'},
  {qty:1500,price:84500,original:135000,sold:'30+',img:'assets/1500.png'},
- {qty:2000,price:112000,original:179000,sold:'30+',img:'assets/2000.png'},
+ {qty:2000,price:112000,original:179000,sold:'30+',img:'assets/1500.png'},
  {qty:3000,price:168000,original:266000,sold:'8+',img:'assets/3000.png'},
  {qty:5000,price:275000,original:420000,sold:'10+',img:'assets/5000.png'}
 ];
-const discountPct=p=>Math.round((1-p.price/p.original)*100);
-const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);
-const grid=document.getElementById('productGrid');
-const select=document.getElementById('packageSelect');
-products.forEach(p=>{if(p.qty===500){grid.insertAdjacentHTML('beforeend',`<div class="product-promo-banner"><img src="assets/promo-500-5000.png" alt="Promo harga terbaik di paket pembelian 500 sampai 5000 followers" loading="lazy"></div>`)}grid.insertAdjacentHTML('beforeend',`<article class="product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${p.img}" alt="${p.qty.toLocaleString('id-ID')} Followers Shopee Premium" loading="lazy"><div class="product-info"><h3>${p.qty.toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="sold-month">🔥 ${p.sold} terjual/bln</div><div class="product-actions"><button class="btn btn-primary order-btn" data-qty="${p.qty}">Order Sekarang</button></div></div></article>`);select.insertAdjacentHTML('beforeend',`<option value="${p.qty}">${p.qty.toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`)})
-
-// Category: Akun Shopee Premium
-const accountProducts=[
- {qty:10000,original:380000,price:325000},
- {qty:20000,original:595000,price:520000},
- {qty:30000,original:860000,price:700000},
- {qty:50000,original:1180000,price:999000}
+DEFAULT_FOLLOWERS[6].img='assets/2000.png';
+const DEFAULT_ACCOUNTS=[
+ {qty:10000,original:380000,price:325000,sold:'',img:'assets/akun-premium-product.png'},
+ {qty:20000,original:595000,price:520000,sold:'',img:'assets/akun-premium-product.png'},
+ {qty:30000,original:860000,price:700000,sold:'',img:'assets/akun-premium-product.png'},
+ {qty:50000,original:1180000,price:999000,sold:'',img:'assets/akun-premium-product.png'}
 ];
-const accountGrid=document.getElementById('accountProductGrid');
-const accountDiscountPct=p=>Math.round((1-p.price/p.original)*100);
-if(accountGrid){
- accountProducts.forEach(p=>{
-  accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${accountDiscountPct(p)}%</div><img class="product-image" src="assets/akun-shopee-premium-banner.png" alt="Akun Shopee ${p.qty.toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${p.qty.toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`);
- });
+const DEFAULT_SITE={
+ followerEyebrow:'PAKET FOLLOWERS', followerTitle:'Paket Followers Shopee', followerSubtitle:'Mulai 100 sampai 5.000 Followers', followerDiscount:'DISKON hingga 37%',
+ accountEyebrow:'KATEGORI PRODUK', accountTitle:'Akun Shopee Premium', accountDescription:'Akun premium dengan followers tinggi untuk mendukung penjualan dan meningkatkan kredibilitas toko Anda!',
+ contactEyebrow:'BUTUH BANTUAN?', contactTitle:'Hubungi admin digitalEVO', contactWhatsapp:'0851 8535 3434'
+};
+const DEFAULT_IMAGES={logo:'assets/logo.png',header:'assets/header-utama.png',footer:'assets/footer-cta.png',followersBanner:'assets/promo-500-5000.png',accountBanner:'assets/akun-shopee-premium-banner.png'};
+let products=DEFAULT_FOLLOWERS.map(x=>({...x}));
+let accountProducts=DEFAULT_ACCOUNTS.map(x=>({...x}));
+let site={...DEFAULT_SITE};
+let images={...DEFAULT_IMAGES};
+const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
+const discountPct=p=>Math.round((1-(Number(p.price)||0)/(Number(p.original)||1))*100);
+const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+function renderSite(){
+ const grid=document.getElementById('productGrid'); const accountGrid=document.getElementById('accountProductGrid');
+ if(grid){grid.innerHTML='';products.forEach(p=>{if(p.qty===500)grid.insertAdjacentHTML('beforeend',`<div class="product-promo-banner"><img src="${escapeHtml(images.followersBanner)}" alt="Promo Followers Shopee" loading="lazy"></div>`);grid.insertAdjacentHTML('beforeend',`<article class="product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="${Number(p.qty).toLocaleString('id-ID')} Followers Shopee Premium" loading="lazy"><div class="product-info"><h3>${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="sold-month">🔥 ${escapeHtml(p.sold||'')} terjual/bln</div><div class="product-actions"><button class="btn btn-primary order-btn" data-qty="${p.qty}">Order Sekarang</button></div></div></article>`)});}
+ if(accountGrid){accountGrid.innerHTML='';accountProducts.forEach(p=>accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
+ document.querySelector('.brand img')?.setAttribute('src',images.logo);
+ document.querySelector('.top-banner img')?.setAttribute('src',images.header);
+ document.querySelector('.bottom-cta-image img')?.setAttribute('src',images.footer);
+ const set=(sel,val)=>{const el=document.querySelector(sel);if(el&&val!=null)el.textContent=val};
+ set('.product-head .eyebrow',site.followerEyebrow);set('.product-head h2',site.followerTitle);set('.section-subtitle',site.followerSubtitle);set('.head-badge',site.followerDiscount);
+ set('.account-category-head .eyebrow',site.accountEyebrow);set('.account-category-head h2',site.accountTitle);set('.account-category-head p',site.accountDescription);
+ set('.contact-band .eyebrow',site.contactEyebrow);set('.contact-band h2',site.contactTitle);const waText=document.querySelector('.contact-band strong');if(waText)waText.textContent=site.contactWhatsapp;
+ const accountBanner=document.querySelector('.account-banner-wrap img');if(accountBanner)accountBanner.src=images.accountBanner;
+ bindCheckout();
 }
 
 const accountDescription=`<strong>Akun Shopee Premium</strong><ul><li>Akun sudah berisi followers Indonesia aktif.</li><li>Akun belum didaftarkan ke Toko Shopee, sehingga Anda bisa mendaftarkannya sendiri.</li><li>Usia akun bervariatif mulai dari 1 Bulan–8 Tahun (tergantung stock yang tersedia).</li><li>Setelah pembelian, Anda bisa langsung mengganti E-mail dan Password.</li><li>Akun belum tertaut oleh Nomor Handphone. Anda bisa melakukan verifikasi dengan nomor handphone.</li></ul>`;
+function bindCheckout(){
+ const modal=document.getElementById('checkoutModal'),select=document.getElementById('packageSelect'); if(!modal||!select)return;
+ const closeModal=()=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true');document.body.style.overflow=''};
+ const setFields=isAccount=>{const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel'),s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact');a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;s.required=!isAccount;w.required=!isAccount;ac.required=isAccount};
+ const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
+ const update=qty=>{const p=products.find(x=>x.qty===Number(qty));if(!p)return;document.getElementById('orderTotal').textContent=rupiah(p.price);document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 1 Jam–48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</p>`};
+ const openFollower=qty=>{setFields(false);document.getElementById('modalTitle').textContent='Order Followers Shopee';select.innerHTML=followerOptions;select.value=String(qty);document.getElementById('selectedProduct').value=qty;update(qty);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink').focus()};
+ const openAccount=qty=>{setFields(true);document.getElementById('modalTitle').textContent=`Order Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`;select.innerHTML=accountProducts.map(p=>`<option value="account:${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');select.value=`account:${qty}`;document.getElementById('selectedProduct').value=`account:${qty}`;document.getElementById('checkoutDescription').innerHTML=accountDescription;const p=accountProducts.find(x=>x.qty===Number(qty));document.getElementById('orderTotal').textContent=rupiah(p?.price||0);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('accountContact').focus()};
+ document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
+ modal.querySelectorAll('[data-close]').forEach(el=>el.onclick=closeModal);
+ select.onchange=()=>{const value=select.value;if(value.startsWith('account:')){setFields(true);const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;document.getElementById('checkoutDescription').innerHTML=accountDescription;document.getElementById('orderTotal').textContent=rupiah(p?.price||0)}else{setFields(false);document.getElementById('modalTitle').textContent='Order Followers Shopee';update(Number(value))}};
+ const form=document.getElementById('checkoutForm');form.onsubmit=e=>{e.preventDefault();const value=select.value;let text='';if(value.startsWith('account:')){const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);const contact=document.getElementById('accountContact').value.trim();text=`Halo digitalEVO, saya ingin order Akun Shopee Premium.%0A%0APaket: AKUN Shopee ${p.qty} Followers%0ATotal: ${rupiah(p.price)}%0AE-Mail atau Nomor WhatsApp: ${encodeURIComponent(contact)}`}else{const wa=document.getElementById('customerWa').value.trim();const link=document.getElementById('shopeeLink').value.trim();const p=products.find(x=>x.qty===Number(value));text=`Halo digitalEVO, saya ingin order Followers Shopee.%0A%0APaket: ${p.qty} Followers%0ATotal: ${rupiah(p.price)}%0AWhatsApp: ${encodeURIComponent(wa)}%0ALink Shopee: ${encodeURIComponent(link)}`}window.open(`https://wa.me/6285185353434?text=${text}`,'_blank','noopener');closeModal()};
+}
 
-const modal=document.getElementById('checkoutModal');
-const closeModal=()=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true');document.body.style.overflow=''};
-const openModal=(qty)=>{select.value=String(qty);document.getElementById('selectedProduct').value=qty;updateCheckoutDetails(qty);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink').focus()};
-const openAccountModal=(qty)=>{document.getElementById('selectedProduct').value='account:'+qty;document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;select.innerHTML=accountProducts.map(p=>`<option value="account:${p.qty}">${p.qty.toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');select.value=`account:${qty}`;document.getElementById('checkoutDescription').innerHTML=accountDescription;document.getElementById('orderTotal').textContent=rupiah(accountProducts.find(x=>x.qty===qty).price);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink').focus()};
-const updateCheckoutDetails=(qty)=>{const p=products.find(x=>x.qty===Number(qty));if(!p)return;document.getElementById('orderTotal').textContent=rupiah(p.price);document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 1 Jam–48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</p>`};
-document.addEventListener('click',e=>{const btn=e.target.closest('.order-btn');if(btn)openModal(Number(btn.dataset.qty));const abtn=e.target.closest('.account-order-btn');if(abtn)openAccountModal(Number(abtn.dataset.accountQty));if(e.target.matches('[data-close]'))closeModal()});select.addEventListener('change',()=>{const value=select.value;if(value.startsWith('account:')){const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;document.getElementById('checkoutDescription').innerHTML=accountDescription;document.getElementById('orderTotal').textContent=rupiah(p.price);}else{document.getElementById('modalTitle').textContent='Order Followers Shopee';updateCheckoutDetails(Number(value));}});
-document.getElementById('checkoutForm').addEventListener('submit',e=>{e.preventDefault();const value=select.value;const wa=document.getElementById('customerWa').value.trim();const link=document.getElementById('shopeeLink').value.trim();const notes=document.getElementById('notes').value.trim();let text='';if(value.startsWith('account:')){const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);text=`Halo digitalEVO, saya ingin order Akun Shopee Premium.%0A%0APaket: AKUN Shopee ${p.qty} Followers%0ATotal: ${rupiah(p.price)}%0AWhatsApp: ${encodeURIComponent(wa)}%0ALink/Username: ${encodeURIComponent(link)}%0ACatatan: ${encodeURIComponent(notes||'-')}`;}else{const p=products.find(x=>x.qty===Number(value));text=`Halo digitalEVO, saya ingin order Followers Shopee.%0A%0APaket: ${p.qty} Followers%0ATotal: ${rupiah(p.price)}%0AWhatsApp: ${encodeURIComponent(wa)}%0ALink Shopee: ${encodeURIComponent(link)}%0ACatatan: ${encodeURIComponent(notes||'-')}`;}window.open(`https://wa.me/6285185353434?text=${text}`,'_blank','noopener');closeModal()});
-document.querySelector('.menu-toggle').addEventListener('click',()=>{const n=document.getElementById('mainNav');const b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav').classList.remove('open')));document.getElementById('year').textContent=new Date().getFullYear();
+async function loadRemote(){
+ const cfg=window.SUPABASE_CONFIG||{};if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient)return;
+ try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.png'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.png'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
+}
 
-// Daily sales counter: sequentially moves from 64 to 103 over the local 24-hour day, then resets.
-(function initDailySalesCounter(){
-  const el=document.getElementById('salesCount');
-  if(!el) return;
-
-  const START=64, END=103;
-  const DAY=24*60*60*1000;
-  const INCREMENTS=END-START;
-
-  // Fixed, varied intervals make the changes feel organic while remaining identical for every visitor.
-  // The offsets are normalized to a full 24-hour cycle, so the counter resets at local midnight.
-  const seed=(n)=>{const x=Math.sin(n*12.9898)*43758.5453;return x-Math.floor(x)};
-  const weights=Array.from({length:INCREMENTS},(_,i)=>0.65+seed(i+17)*0.85);
-  const total=weights.reduce((a,b)=>a+b,0);
-  const offsets=[];
-  let cumulative=0;
-  for(let i=0;i<weights.length;i++){
-    cumulative+=weights[i]/total*DAY;
-    offsets.push(cumulative);
-  }
-
-  const elapsedToday=()=>{
-    const now=new Date();
-    return now.getHours()*3600000+now.getMinutes()*60000+now.getSeconds()*1000+now.getMilliseconds();
-  };
-
-  let last=START;
-  const render=(value,animate=true)=>{
-    if(value===last && el.textContent===String(value)) return;
-    if(animate){
-      el.style.opacity='0.35';
-      el.style.transform='translateY(-2px)';
-      setTimeout(()=>{
-        el.textContent=String(value);
-        el.style.opacity='1';
-        el.style.transform='translateY(0)';
-      },140);
-    }else{
-      el.textContent=String(value);
-      el.style.opacity='1';
-      el.style.transform='translateY(0)';
-    }
-    last=value;
-  };
-
-  const update=()=>{
-    const elapsed=elapsedToday();
-    let value=START;
-    for(let i=0;i<offsets.length;i++){
-      if(elapsed>=offsets[i]) value=START+i+1;
-      else break;
-    }
-    render(Math.min(END,value),true);
-  };
-
-  render(START,false);
-  update();
-  setInterval(update,5000);
-})();
+document.addEventListener('DOMContentLoaded',()=>{renderSite();document.querySelector('.menu-toggle')?.addEventListener('click',()=>{const n=document.getElementById('mainNav'),b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav')?.classList.remove('open')));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();loadRemote();});

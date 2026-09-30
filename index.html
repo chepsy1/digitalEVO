@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="digitalEVO — layanan Followers Shopee Premium dengan proses order yang simpel dan cepat." />
-  <title>digitalEVO — Followers Shopee Premium</title>
+  <meta name="description" content="digitalEVO — layanan Followers Shopee Premium dan Akun Shopee Premium." />
+  <title>digitalEVO — Followers & Akun Shopee Premium</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -16,28 +16,29 @@
       <a class="brand" href="#home" aria-label="digitalEVO Beranda"><img src="assets/logo.png" alt="digitalEVO" /></a>
       <button class="menu-toggle" aria-label="Buka menu" aria-expanded="false">☰</button>
       <nav class="nav" id="mainNav">
-        <a href="#home">Beranda</a><a href="#produk">Produk</a><a href="#cara-order">Cara Order</a><a href="#faq">FAQ</a><a href="#kontak">Kontak</a>
+        <a href="#home">Beranda</a><a href="#produk">Produk</a><a href="#akun-shopee-premium">Akun Premium</a>
       </nav>
+      <a class="header-wa" target="_blank" rel="noopener" href="https://wa.me/6285185353434?text=Halo%20digitalEVO%2C%20saya%20ingin%20order.">✆ Chat Admin</a>
     </div>
   </header>
 
   <main>
-    <section class="hero" id="home">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="eyebrow">DIGITALEVO • SHOPEE PREMIUM</span>
-          <h1>Tambah Followers Shopee dengan <span>lebih simpel.</span></h1>
-          <p>Pilih paket followers yang sesuai, masukkan link akun Shopee, lalu lanjutkan order. Tampilan dibuat sederhana supaya nyaman dari HP maupun desktop.</p>
-          <div class="hero-actions"><a class="btn btn-primary" href="#produk">Lihat Paket</a><a class="btn btn-secondary" href="#cara-order">Cara Order</a></div>
-          <div class="trust-row"><span>✓ Order mudah</span><span>✓ Admin WhatsApp</span><span>✓ Pembayaran menyusul</span></div>
-        </div>
-        <div class="hero-card"><div class="hero-orb orb-a"></div><div class="hero-orb orb-b"></div><div class="hero-card-content"><div class="mini-label">PAKET TERSEDIA</div><strong>100 — 5.000</strong><span>Followers Shopee</span><div class="hero-price">Mulai <b>Rp7.800</b></div></div></div>
+    <section class="top-banner" id="home" aria-label="Banner digitalEVO">
+      <img src="assets/header-utama.png" alt="digitalEVO Shopee Premium" fetchpriority="high" />
+    </section>
+
+    <section class="benefit-strip">
+      <div class="container benefit-grid">
+        <div class="benefit-intro"><span class="benefit-icon">👥</span><div><h2>Followers Shopee</h2><p>Tingkatkan kepercayaan, jangkauan, dan peluang penjualan toko Anda!</p></div></div>
+        <div class="benefit-item"><span>⚡</span><div><strong>Proses Cepat</strong><small>Dalam hitungan menit</small></div></div>
+        <div class="benefit-item"><span>🛡️</span><div><strong>Aman & Terpercaya</strong><small>100% aman</small></div></div>
+        <div class="benefit-item"><span>🎧</span><div><strong>Support 24 Jam</strong><small>Siap membantu</small></div></div>
       </div>
     </section>
 
-    <section class="section" id="produk">
+    <section class="section product-section" id="produk">
       <div class="container">
-        <div class="section-head"><div><span class="eyebrow">PILIH PAKET</span><h2>Followers Shopee</h2></div><p>Semua paket menggunakan materi visual digitalEVO yang konsisten.</p></div>
+        <div class="section-head product-head"><div><span class="eyebrow">PAKET FOLLOWERS</span><h2>Paket Followers Shopee</h2><p class="section-subtitle">Mulai 100 sampai 5.000 Followers</p></div><div class="head-badge">DISKON hingga 37%</div></div>
         <div class="product-grid" id="productGrid"></div>
       </div>
     </section>
@@ -45,33 +46,16 @@
     <section class="account-category-section" id="akun-shopee-premium">
       <div class="container">
         <div class="account-category-head">
-          <span class="eyebrow">KATEGORI PRODUK</span>
-          <h2>Akun Shopee Premium</h2>
-          <p>Akun Shopee Premium dengan pilihan jumlah followers sesuai kebutuhan.</p>
+          <div><span class="eyebrow">KATEGORI PRODUK</span><h2>Akun Shopee Premium</h2><p>Akun premium dengan followers tinggi untuk mendukung penjualan dan meningkatkan kredibilitas toko Anda!</p></div>
+          <div class="account-highlights"><span>🛡️ Akun Original</span><span>👥 Followers Tinggi</span><span>⚡ Siap Pakai</span></div>
         </div>
-        <div class="account-banner-wrap">
-          <img src="assets/akun-shopee-premium-banner.png" alt="Akun Shopee Premium" loading="lazy">
-        </div>
+        <div class="account-banner-wrap"><img src="assets/akun-shopee-premium-banner.png" alt="Banner Akun Shopee Premium" loading="lazy"></div>
         <div class="product-grid account-product-grid" id="accountProductGrid"></div>
       </div>
     </section>
 
-    <section class="section soft" id="cara-order">
-      <div class="container">
-        <div class="section-head"><div><span class="eyebrow">CARA ORDER</span><h2>3 langkah sederhana</h2></div></div>
-        <div class="steps"><div class="step"><span>01</span><h3>Pilih paket</h3><p>Pilih jumlah followers yang Anda inginkan.</p></div><div class="step"><span>02</span><h3>Isi data order</h3><p>Masukkan link Shopee dan kontak WhatsApp.</p></div><div class="step"><span>03</span><h3>Konfirmasi</h3><p>Lanjutkan pembayaran dan konfirmasi ke admin.</p></div></div>
-      </div>
-    </section>
-
-    <section class="section" id="faq">
-      <div class="container narrow">
-        <div class="section-head"><div><span class="eyebrow">FAQ</span><h2>Pertanyaan umum</h2></div></div>
-        <div class="faq-list">
-          <details open><summary>Bagaimana cara order?</summary><p>Pilih paket di halaman Produk, kemudian klik tombol Order. Tahap checkout akan meminta link/username Shopee dan nomor WhatsApp.</p></details>
-          <details><summary>Apakah saya bisa memilih jumlah followers?</summary><p>Ya. Pilih salah satu paket yang tersedia dari 100 sampai 5.000 followers.</p></details>
-          <details><summary>Bagaimana jika saya mengalami kendala?</summary><p>Hubungi admin digitalEVO melalui WhatsApp untuk bantuan terkait order.</p></details>
-        </div>
-      </div>
+    <section class="bottom-cta-image" aria-label="Promo Akun Shopee">
+      <img src="assets/footer-cta.png" alt="Dapatkan Akun Shopee Sekarang" loading="lazy" />
     </section>
 
     <section class="contact-band" id="kontak">
@@ -82,7 +66,7 @@
     </section>
   </main>
 
-  <footer><div class="container footer-inner"><div class="footer-brand"><img src="assets/logo.png" alt="digitalEVO" /><p>Followers Shopee Premium.</p></div><p>© <span id="year"></span> digitalEVO. All rights reserved.</p></div></footer>
+  <footer><div class="container footer-inner"><div class="footer-brand"><img src="assets/logo.png" alt="digitalEVO" /><p>Followers & Akun Shopee Premium.</p></div><p>© <span id="year"></span> digitalEVO. All rights reserved.</p></div></footer>
 
   <div class="modal" id="checkoutModal" aria-hidden="true">
     <div class="modal-backdrop" data-close></div>
@@ -90,31 +74,24 @@
       <button class="modal-close" data-close aria-label="Tutup">×</button>
       <span class="eyebrow">CHECKOUT</span>
       <h2 id="modalTitle">Order Followers Shopee</h2>
-
-      <div class="checkout-description">
+      <div class="checkout-description" id="checkoutDescription">
         <strong>Followers Shopee REAL-HUMAN Permanent</strong>
-        <ul>
-          <li>Estimasi Pengerjaan 1 Jam-48 Jam.</li>
-          <li>Pengerjaan dilakukan Otomatis.</li>
-          <li>Metode Hanya Membutuhkan Username atau LINK Profile.</li>
-          <li>⚠️Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.⚠️</li>
-          <li>Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</li>
-        </ul>
+        <ul><li>Estimasi Pengerjaan 1 Jam-48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode Hanya Membutuhkan Username atau LINK Profile.</li><li>⚠️Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.⚠️</li><li>Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</li></ul>
       </div>
-
       <form id="checkoutForm">
         <input type="hidden" id="selectedProduct" />
         <label>Paket<select id="packageSelect"></select></label>
-        <label>Link / Username Shopee<input id="shopeeLink" required placeholder="contoh: shopee.co.id/namaakun" /></label>
-        <label>WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
-        <label>Catatan <span class="optional">(opsional)</span><textarea id="notes" rows="3" placeholder="Catatan tambahan"></textarea></label>
+        <label id="shopeeLinkLabel">Link / Username Shopee<input id="shopeeLink" required placeholder="masukkan username atau link akun shopee" /></label>
+        <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
+        <label id="accountContactLabel" hidden>E-Mail atau Nomor WhatsApp<input id="accountContact" inputmode="email" placeholder="Masukkan E-Mail atau Nomor WhatsApp" /></label>
         <div class="order-total"><span>Total</span><strong id="orderTotal">Rp0</strong></div>
         <button class="btn btn-primary full" type="submit">Lanjutkan Order</button>
       </form>
       <p class="modal-note">Pembayaran online akan diintegrasikan pada tahap berikutnya.</p>
     </div>
   </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
