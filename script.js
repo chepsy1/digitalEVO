@@ -71,8 +71,8 @@ function bindCheckout(){
   const setFields=isAccount=>{
     const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel');
     const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact');
-    a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;
-    s.required=!isAccount;w.required=!isAccount;ac.required=isAccount;
+    a.hidden=isAccount;b.hidden=true;c.hidden=!isAccount;
+    s.required=!isAccount;w.required=false;ac.required=isAccount;
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
   const update=qty=>{
@@ -219,7 +219,6 @@ function bindCheckout(){
     }else{
       payload.category='followers';
       payload.qty=Number(value);
-      payload.customerWhatsapp=document.getElementById('customerWa').value.trim();
       payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
     }
     const submit=e.submitter||form.querySelector('button[type=submit]');
