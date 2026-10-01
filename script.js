@@ -242,4 +242,20 @@ async function loadRemote(){
  try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.png'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.png'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
 }
 
-document.addEventListener('DOMContentLoaded',()=>{renderSite();document.querySelector('.menu-toggle')?.addEventListener('click',()=>{const n=document.getElementById('mainNav'),b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav')?.classList.remove('open')));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();loadRemote();});
+function initSalesIndicator(){
+ const el=document.getElementById('salesCount');
+ if(!el)return;
+ const key='digitalEVO_sales_indicator_v1';
+ const now=Date.now();
+ const DAY=24*60*60*1000;
+ let data=null;
+ try{data=JSON.parse(localStorage.getItem(key)||'null')}catch{}
+ if(!data||typeof data.value!=='number'||now-data.createdAt>=DAY){
+   const value=64+Math.floor(Math.random()*26);
+   data={value,createdAt:now};
+   try{localStorage.setItem(key,JSON.stringify(data))}catch{}
+ }
+ el.textContent=data.value;
+}
+
+document.addEventListener('DOMContentLoaded',()=>{initSalesIndicator();renderSite();document.querySelector('.menu-toggle')?.addEventListener('click',()=>{const n=document.getElementById('mainNav'),b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav')?.classList.remove('open')));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();loadRemote();});
