@@ -69,31 +69,20 @@ function bindCheckout(){
   paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
 
   const setFields=isAccount=>{
-    const linkLabel=document.getElementById('shopeeLinkLabel');
-    const followerWaLabel=document.getElementById('customerWaLabel');
-    const nameLabel=document.getElementById('accountNameLabel');
-    const accountContactLabel=document.getElementById('accountContactLabel');
+    const fields=document.getElementById('checkoutFields');
+    if(!fields)return;
 
-    const link=document.getElementById('shopeeLink');
-    const followerWa=document.getElementById('customerWa');
-    const name=document.getElementById('accountName');
-    const accountContact=document.getElementById('accountContact');
-
-    // Checkout Followers: Link/Username + WhatsApp
-    linkLabel.hidden=isAccount;
-    followerWaLabel.hidden=isAccount;
-    link.required=!isAccount;
-    followerWa.required=!isAccount;
-    link.disabled=isAccount;
-    followerWa.disabled=isAccount;
-
-    // Checkout Akun Shopee Premium: Nama + WhatsApp/Email
-    nameLabel.hidden=!isAccount;
-    accountContactLabel.hidden=!isAccount;
-    name.required=isAccount;
-    accountContact.required=isAccount;
-    name.disabled=!isAccount;
-    accountContact.disabled=!isAccount;
+    if(isAccount){
+      fields.innerHTML=`
+        <label>Nama<input id="accountName" autocomplete="name" required placeholder="Masukkan nama Anda" /></label>
+        <label>Nomor WhatsApp / Email Untuk Mendapatkan Username dan Password Akun<input id="accountContact" type="text" autocomplete="email" required placeholder="Masukkan Nomor WhatsApp atau Email" /></label>
+      `;
+    }else{
+      fields.innerHTML=`
+        <label id="shopeeLinkLabel">Link / Username Shopee<input id="shopeeLink" required placeholder="masukkan username atau link akun shopee" /></label>
+        <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
+      `;
+    }
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
   const update=qty=>{
