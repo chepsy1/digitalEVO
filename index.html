@@ -146,7 +146,9 @@
         <input type="hidden" id="selectedProduct" />
         <label>Paket<select id="packageSelect"></select></label>
         <label id="shopeeLinkLabel">Link / Username Shopee<input id="shopeeLink" required placeholder="masukkan username atau link akun shopee" /></label>
-         <label id="customerWaLabel">Nomor WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
+        <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
+        <label id="accountNameLabel" hidden>Nama<input id="accountName" autocomplete="name" placeholder="Masukkan nama Anda" /></label>
+        <label id="accountContactLabel" hidden>Nomor WhatsApp / Email Untuk Mendapatkan Username dan Password Akun<input id="accountContact" type="text" autocomplete="email" placeholder="Masukkan Nomor WhatsApp atau Email" /></label>
         <div class="order-total"><span>Total</span><strong id="orderTotal">Rp0</strong></div>
         <button class="btn btn-primary full" type="submit">Bayar dengan QRIS</button>
       </form>

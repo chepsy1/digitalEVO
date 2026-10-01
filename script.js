@@ -69,10 +69,10 @@ function bindCheckout(){
   paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
 
   const setFields=isAccount=>{
-    const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel');
-    const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa');
-    a.hidden=isAccount;b.hidden=isAccount;
-    s.required=!isAccount;w.required=!isAccount;
+    const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel'),n=document.getElementById('accountNameLabel');
+    const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact'),an=document.getElementById('accountName');
+    a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;n.hidden=!isAccount;
+    s.required=!isAccount;w.required=!isAccount;ac.required=isAccount;an.required=isAccount;
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
   const update=qty=>{
@@ -97,6 +97,7 @@ function bindCheckout(){
     const p=accountProducts.find(x=>x.qty===Number(qty));
     document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
     modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+    document.getElementById('accountName').focus();
   };
   document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));
   document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
@@ -214,7 +215,8 @@ function bindCheckout(){
     if(value.startsWith('account:')){
       payload.category='account';
       payload.qty=Number(value.split(':')[1]);
-      payload.accountContact='';
+      payload.accountName=document.getElementById('accountName').value.trim();
+      payload.accountContact=document.getElementById('accountContact').value.trim();
     }else{
       payload.category='followers';
       payload.qty=Number(value);
