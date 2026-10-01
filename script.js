@@ -69,10 +69,10 @@ function bindCheckout(){
   paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
 
   const setFields=isAccount=>{
-    const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel');
-    const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact');
-    a.hidden=isAccount;b.hidden=true;c.hidden=!isAccount;
-    s.required=!isAccount;w.required=false;ac.required=isAccount;
+    const a=document.getElementById('shopeeLinkLabel'),c=document.getElementById('accountContactLabel');
+    const s=document.getElementById('shopeeLink'),ac=document.getElementById('accountContact');
+    a.hidden=isAccount;c.hidden=!isAccount;
+    s.required=!isAccount;ac.required=isAccount;
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
   const update=qty=>{
