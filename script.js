@@ -21,8 +21,8 @@ const DEFAULT_ACCOUNTS=[
  {qty:50000,original:1180000,price:999000,sold:'',img:'assets/akun-premium-product.png'}
 ];
 const DEFAULT_SITE={
- followerEyebrow:'PAKET FOLLOWERS', followerTitle:'Paket Followers Shopee', followerSubtitle:'Mulai 100 sampai 5.000 Followers', followerDiscount:'DISKON hingga 37%',
- accountEyebrow:'KATEGORI PRODUK', accountTitle:'Akun Shopee Premium', accountDescription:'Akun premium dengan followers tinggi untuk mendukung penjualan dan meningkatkan kredibilitas toko Anda!',
+ followerEyebrow:'PAKET FOLLOWERS', followerTitle:'Paket Followers Shopee', followerSubtitle:'', followerDiscount:'DISKON hingga 37%',
+ accountEyebrow:'KATEGORI PRODUK', accountTitle:'Akun Shopee Premium', accountDescription:'',
  contactEyebrow:'BUTUH BANTUAN?', contactTitle:'Hubungi admin digitalEVO', contactWhatsapp:'0851 8535 3434'
 };
 const DEFAULT_IMAGES={logo:'assets/logo.png',header:'assets/header-utama.png',footer:'assets/footer-cta.png',followersBanner:'assets/promo-500-5000.png',accountBanner:'assets/akun-shopee-premium-banner.png'};
