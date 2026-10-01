@@ -174,3 +174,23 @@
   .premium-notes{grid-template-columns:1fr 1fr}
   .premium-list li{font-size:8px}
 }
+
+/* Mobile-friendly premium visual */
+.premium-visual img{object-fit:contain;background:#fff7f1;}
+@media(max-width:720px){
+  .premium-info-card{overflow:hidden;}
+  .premium-visual{height:auto;min-height:0;padding:2px 0 4px;}
+  .premium-visual img{width:100%;max-width:250px;height:auto;max-height:260px;aspect-ratio:4/5;object-fit:contain;border-radius:8px;margin:auto;}
+}
+
+
+/* Use the new square Followers Shopee Premium artwork as the complete section visual */
+.premium-info-card{display:block;padding:0;background:#fff;border:0;border-radius:8px;box-shadow:none;overflow:hidden;}
+.premium-visual{width:100%;height:auto;display:block;}
+.premium-visual img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border:0;border-radius:8px;mix-blend-mode:normal;}
+.premium-content,.premium-notes{display:none;}
+@media(max-width:720px){
+  .premium-info{padding:8px 0 12px;}
+  .premium-info-card{width:calc(100% - 12px);border-radius:6px;}
+  .premium-visual,.premium-visual img{height:auto;aspect-ratio:1/1;}
+}
