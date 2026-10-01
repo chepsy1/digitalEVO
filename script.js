@@ -69,11 +69,31 @@ function bindCheckout(){
   paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
 
   const setFields=isAccount=>{
-    const a=document.getElementById('shopeeLinkLabel'),b=document.getElementById('customerWaLabel'),c=document.getElementById('accountContactLabel'),n=document.getElementById('accountNameLabel');
-    const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact'),an=document.getElementById('accountName');
-    a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;n.hidden=!isAccount;
-    s.required=!isAccount;w.required=!isAccount;ac.required=isAccount;an.required=isAccount;
-    s.disabled=isAccount;w.disabled=isAccount;
+    const linkLabel=document.getElementById('shopeeLinkLabel');
+    const followerWaLabel=document.getElementById('customerWaLabel');
+    const nameLabel=document.getElementById('accountNameLabel');
+    const accountContactLabel=document.getElementById('accountContactLabel');
+
+    const link=document.getElementById('shopeeLink');
+    const followerWa=document.getElementById('customerWa');
+    const name=document.getElementById('accountName');
+    const accountContact=document.getElementById('accountContact');
+
+    // Checkout Followers: Link/Username + WhatsApp
+    linkLabel.hidden=isAccount;
+    followerWaLabel.hidden=isAccount;
+    link.required=!isAccount;
+    followerWa.required=!isAccount;
+    link.disabled=isAccount;
+    followerWa.disabled=isAccount;
+
+    // Checkout Akun Shopee Premium: Nama + WhatsApp/Email
+    nameLabel.hidden=!isAccount;
+    accountContactLabel.hidden=!isAccount;
+    name.required=isAccount;
+    accountContact.required=isAccount;
+    name.disabled=!isAccount;
+    accountContact.disabled=!isAccount;
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
   const update=qty=>{
