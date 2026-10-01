@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="ticker.css" />
 </head>
 <body>
   <header class="site-header">
@@ -25,6 +26,9 @@
   <main>
     <section class="top-banner" id="home" aria-label="Banner digitalEVO">
       <img src="assets/header-utama.png" alt="digitalEVO Shopee Premium" fetchpriority="high" />
+    </section>
+    <section class="de-ticker" aria-label="Aktivitas pesanan terbaru">
+      <div id="deTickerTrack" class="de-ticker-track"></div>
     </section>
 
     <section class="premium-info" aria-label="Informasi Followers Shopee Premium">
@@ -125,6 +129,9 @@
 
     <section class="section product-section" id="produk">
       <div class="container">
+        <div class="followers-promo-top" aria-label="Promo Paket Followers Shopee">
+          <img src="assets/promo-500-5000.png" alt="Paket Followers Shopee — Mulai 100 - 5.000 Followers, diskon hingga 33%" loading="lazy" />
+        </div>
         <div class="section-head product-head"><div><span class="eyebrow">PAKET FOLLOWERS</span><h2>Paket Followers Shopee</h2><p class="section-subtitle">Mulai 100 sampai 5.000 Followers</p></div><div class="head-badge">DISKON hingga 37%</div></div>
         <div class="product-grid" id="productGrid"></div>
       </div>
@@ -206,5 +213,6 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="supabase-config.js"></script>
   <script src="script.js"></script>
+  <script src="ticker.js"></script>
 </body>
 </html>
