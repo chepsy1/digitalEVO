@@ -73,6 +73,7 @@ function bindCheckout(){
     const s=document.getElementById('shopeeLink'),w=document.getElementById('customerWa'),ac=document.getElementById('accountContact'),an=document.getElementById('accountName');
     a.hidden=isAccount;b.hidden=isAccount;c.hidden=!isAccount;n.hidden=!isAccount;
     s.required=!isAccount;w.required=!isAccount;ac.required=isAccount;an.required=isAccount;
+    s.disabled=isAccount;w.disabled=isAccount;
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
   const update=qty=>{
