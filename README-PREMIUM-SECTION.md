@@ -8,6 +8,6 @@ Bagian **FOLLOWERS SHOPEE PREMIUM** pada `index.html` telah diperbarui agar meng
 - Dua kolom benefit dengan check icon
 - Strip keamanan di bagian bawah
 - Responsive untuk desktop dan mobile
-- Ilustrasi lokal: `assets/premium-followers-illustration.png`
+- Ilustrasi lokal: `assets/premium-followers-illustration.webp`
 
-File preview mockup tersedia di `assets/premium-section-preview.png`.
+File preview mockup tersedia di `assets/premium-section-preview.webp`.

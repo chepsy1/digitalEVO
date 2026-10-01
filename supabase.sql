@@ -130,29 +130,29 @@ on conflict (key) do nothing;
 
 insert into public.site_settings(key, value) values
 ('images', '{
-  "logo":"assets/logo.png",
-  "header":"assets/header-utama.png",
-  "footer":"assets/footer-cta.png",
-  "followersBanner":"assets/promo-500-5000.png",
-  "accountBanner":"assets/akun-shopee-premium-banner.png"
+  "logo":"assets/logo.webp",
+  "header":"assets/header-utama.webp",
+  "footer":"assets/footer-cta.webp",
+  "followersBanner":"assets/promo-500-5000.webp",
+  "accountBanner":"assets/akun-shopee-premium-banner.webp"
 }'::jsonb)
 on conflict (key) do nothing;
 
 insert into public.products(category,qty,original,price,sold,image_url,sort_order)
 select * from (values
-('followers',100,9500,7800,'20+','assets/100.png',1),
-('followers',200,19000,15600,'10+','assets/200.png',2),
-('followers',300,28500,21500,'10+','assets/300.png',3),
-('followers',500,45000,29800,'20+','assets/500.png',4),
-('followers',1000,85000,57200,'50+','assets/1000.png',5),
-('followers',1500,135000,84500,'30+','assets/1500.png',6),
-('followers',2000,179000,112000,'30+','assets/2000.png',7),
-('followers',3000,266000,168000,'8+','assets/3000.png',8),
-('followers',5000,420000,275000,'10+','assets/5000.png',9),
-('account',10000,380000,325000,'','assets/akun-premium-product.png',1),
-('account',20000,595000,520000,'','assets/akun-premium-product.png',2),
-('account',30000,860000,700000,'','assets/akun-premium-product.png',3),
-('account',50000,1180000,999000,'','assets/akun-premium-product.png',4)
+('followers',100,9500,7800,'20+','assets/100.webp',1),
+('followers',200,19000,15600,'10+','assets/200.webp',2),
+('followers',300,28500,21500,'10+','assets/300.webp',3),
+('followers',500,45000,29800,'20+','assets/500.webp',4),
+('followers',1000,85000,57200,'50+','assets/1000.webp',5),
+('followers',1500,135000,84500,'30+','assets/1500.webp',6),
+('followers',2000,179000,112000,'30+','assets/2000.webp',7),
+('followers',3000,266000,168000,'8+','assets/3000.webp',8),
+('followers',5000,420000,275000,'10+','assets/5000.webp',9),
+('account',10000,380000,325000,'','assets/akun-premium-product.webp',1),
+('account',20000,595000,520000,'','assets/akun-premium-product.webp',2),
+('account',30000,860000,700000,'','assets/akun-premium-product.webp',3),
+('account',50000,1180000,999000,'','assets/akun-premium-product.webp',4)
 ) as v(category,qty,original,price,sold,image_url,sort_order)
 where not exists (select 1 from public.products limit 1);
 

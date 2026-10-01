@@ -3,29 +3,29 @@ const qrisSupabaseClient = window.supabase.createClient(
   window.SUPABASE_CONFIG.anonKey
 );
 const DEFAULT_FOLLOWERS=[
- {qty:100,price:7800,original:9500,sold:'20+',img:'assets/100.png'},
- {qty:200,price:15600,original:19000,sold:'10+',img:'assets/200.png'},
- {qty:300,price:21500,original:28500,sold:'10+',img:'assets/300.png'},
- {qty:500,price:29800,original:45000,sold:'20+',img:'assets/500.png'},
- {qty:1000,price:57200,original:85000,sold:'50+',img:'assets/1000.png'},
- {qty:1500,price:84500,original:135000,sold:'30+',img:'assets/1500.png'},
- {qty:2000,price:112000,original:179000,sold:'30+',img:'assets/1500.png'},
- {qty:3000,price:168000,original:266000,sold:'8+',img:'assets/3000.png'},
- {qty:5000,price:275000,original:420000,sold:'10+',img:'assets/5000.png'}
+ {qty:100,price:7800,original:9500,sold:'20+',img:'assets/100.webp'},
+ {qty:200,price:15600,original:19000,sold:'10+',img:'assets/200.webp'},
+ {qty:300,price:21500,original:28500,sold:'10+',img:'assets/300.webp'},
+ {qty:500,price:29800,original:45000,sold:'20+',img:'assets/500.webp'},
+ {qty:1000,price:57200,original:85000,sold:'50+',img:'assets/1000.webp'},
+ {qty:1500,price:84500,original:135000,sold:'30+',img:'assets/1500.webp'},
+ {qty:2000,price:112000,original:179000,sold:'30+',img:'assets/1500.webp'},
+ {qty:3000,price:168000,original:266000,sold:'8+',img:'assets/3000.webp'},
+ {qty:5000,price:275000,original:420000,sold:'10+',img:'assets/5000.webp'}
 ];
-DEFAULT_FOLLOWERS[6].img='assets/2000.png';
+DEFAULT_FOLLOWERS[6].img='assets/2000.webp';
 const DEFAULT_ACCOUNTS=[
- {qty:10000,original:380000,price:325000,sold:'',img:'assets/akun-premium-product.png'},
- {qty:20000,original:595000,price:520000,sold:'',img:'assets/akun-premium-product.png'},
- {qty:30000,original:860000,price:700000,sold:'',img:'assets/akun-premium-product.png'},
- {qty:50000,original:1180000,price:999000,sold:'',img:'assets/akun-premium-product.png'}
+ {qty:10000,original:380000,price:325000,sold:'',img:'assets/akun-premium-product.webp'},
+ {qty:20000,original:595000,price:520000,sold:'',img:'assets/akun-premium-product.webp'},
+ {qty:30000,original:860000,price:700000,sold:'',img:'assets/akun-premium-product.webp'},
+ {qty:50000,original:1180000,price:999000,sold:'',img:'assets/akun-premium-product.webp'}
 ];
 const DEFAULT_SITE={
  followerEyebrow:'PAKET FOLLOWERS', followerTitle:'Paket Followers Shopee', followerSubtitle:'', followerDiscount:'DISKON hingga 37%',
  accountEyebrow:'KATEGORI PRODUK', accountTitle:'Akun Shopee Premium', accountDescription:'',
  contactEyebrow:'BUTUH BANTUAN?', contactTitle:'Hubungi admin digitalEVO', contactWhatsapp:'0851 8535 3434'
 };
-const DEFAULT_IMAGES={logo:'assets/logo.png',header:'assets/header-utama.png',footer:'assets/footer-cta.png',followersBanner:'assets/promo-500-5000.png',accountBanner:'assets/akun-shopee-premium-banner.png'};
+const DEFAULT_IMAGES={logo:'assets/logo.webp',header:'assets/header-utama.webp',footer:'assets/footer-cta.webp',followersBanner:'assets/promo-500-5000.webp',accountBanner:'assets/akun-shopee-premium-banner.webp'};
 let products=DEFAULT_FOLLOWERS.map(x=>({...x}));
 let accountProducts=DEFAULT_ACCOUNTS.map(x=>({...x}));
 let site={...DEFAULT_SITE};
@@ -250,7 +250,7 @@ function bindCheckout(){
 
 async function loadRemote(){
  const cfg=window.SUPABASE_CONFIG||{};if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient)return;
- try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.png'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.png'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
+ try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
 }
 
 function initSalesIndicator(){
