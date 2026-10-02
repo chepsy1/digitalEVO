@@ -243,3 +243,11 @@
   .premium-header-subtitle{font-size:8px;letter-spacing:.35px;margin-top:5px;gap:5px}
   .premium-header-subtitle i{width:11px}
 }
+
+/* Shopee Premium image header */
+.premium-image-header{width:100%;overflow:hidden;border-radius:8px;line-height:0;background:#ffd6c5;}
+.premium-image-header img{display:block;width:100%;height:auto;max-width:none;}
+@media(max-width:720px){
+  .premium-image-header{border-radius:6px;}
+  .premium-image-header img{width:100%;height:auto;}
+}
