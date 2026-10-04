@@ -1,7 +1,3 @@
-const qrisSupabaseClient = window.supabase.createClient(
-  window.SUPABASE_CONFIG.url,
-  window.SUPABASE_CONFIG.anonKey
-);
 const DEFAULT_FOLLOWERS=[
  {qty:100,price:7800,original:9500,sold:'20+',img:'assets/100.webp'},
  {qty:200,price:15600,original:19000,sold:'10+',img:'assets/200.webp'},
@@ -126,6 +122,8 @@ function bindCheckout(){
   };
 
   let currentPaymentId=null;
+  let currentPaymentAmount=0;
+  let currentPaymentStartTime=0;
   let paymentTimer=null;
   const setPaymentStatus=(text,cls='')=>{
     const el=document.getElementById('paymentStatus');
@@ -133,6 +131,8 @@ function bindCheckout(){
   };
   const showPayment=async payment=>{
     currentPaymentId=payment.paymentId;
+    currentPaymentAmount=Number(payment.amount||0);
+    currentPaymentStartTime=Number(payment.startTime||Math.floor(Date.now()/1000));
     closeModal();
     document.getElementById('paymentInvoice').textContent=payment.partnerReferenceNo;
     document.getElementById('paymentAmount').textContent=rupiah(payment.amount);
@@ -196,16 +196,27 @@ function bindCheckout(){
   const checkPayment=async(manual=true)=>{
     if(!currentPaymentId)return;
     try{
-      const {data,error}=await qrisSupabaseClient.functions.invoke('check-qris',{body:{paymentId:currentPaymentId}});
-      if(error)throw error;
-      if(data?.status==='PAID'){
-        clearInterval(paymentTimer);setPaymentStatus('Pembayaran berhasil. Pesanan sedang diproses.','paid');
+      const response=await fetch('/api/check-payment',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          amount:Number(currentPaymentAmount),
+          startTime:Number(currentPaymentStartTime)
+        })
+      });
+
+      const data=await response.json();
+
+      if(!response.ok){
+        throw new Error(data?.error||data?.message||'Gagal mengecek pembayaran.');
+      }
+
+      if(data?.paid===true){
+        clearInterval(paymentTimer);
+        setPaymentStatus('Pembayaran berhasil. Pesanan sedang diproses.','paid');
         return;
       }
-      if(data?.status==='EXPIRED'||data?.status==='FAILED'){
-        clearInterval(paymentTimer);setPaymentStatus('Pembayaran tidak dapat dilanjutkan. Silakan buat transaksi baru.','failed');
-        return;
-      }
+
       if(manual)setPaymentStatus('Belum ada pembayaran yang terkonfirmasi.');
     }catch(err){
       if(manual)setPaymentStatus(err.message||'Gagal mengecek pembayaran.','failed');
@@ -236,10 +247,33 @@ function bindCheckout(){
     const submit=e.submitter||form.querySelector('button[type=submit]');
     if(submit){submit.disabled=true;submit.textContent='Membuat QRIS...';}
     try{
-      const {data,error}=await qrisSupabaseClient.functions.invoke('create-qris',{body:payload});
-      if(error)throw error;
-      if(!data?.paymentId)throw new Error(data?.message||'Gagal membuat pembayaran QRIS.');
-      await showPayment(data);
+      const response = await fetch('/api/create-qris',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({amount:Number(payload.amount||payload.price||value)})
+      });
+
+      const data = await response.json();
+
+      if(!response.ok){
+        throw new Error(data?.error||data?.message||'Gagal membuat pembayaran QRIS.');
+      }
+
+      if(!data?.success || !data?.data?.qris_url){
+        throw new Error(data?.message||'Gateway gagal membuat QRIS.');
+      }
+
+      const qrisUrl = data.data.qris_url;
+      const paymentId = qrisUrl.split('/').filter(Boolean).pop();
+
+      await showPayment({
+        paymentId,
+        partnerReferenceNo:paymentId,
+        amount:Number(data.data.amount||payload.amount||payload.price||value),
+        qrUrl:qrisUrl,
+        expiresAt:data.data.expires_at,
+        startTime:Math.floor(Date.now()/1000)
+      });
     }catch(err){
       alert(err?.message||'Gagal membuat pembayaran QRIS. Silakan coba lagi.');
     }finally{
