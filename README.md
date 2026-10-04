@@ -84,3 +84,10 @@ Admin panel memakai **Supabase Auth Email + Password** dan **Row Level Security 
 - Storage bucket `site-assets`: publik hanya **membaca**; upload/update/delete hanya admin.
 - `public.admins`: tidak dapat dikelola dari browser. Penambahan/pencabutan admin dilakukan dari Supabase SQL/Authentication.
 - `service_role` key tidak boleh dimasukkan ke HTML/JavaScript frontend.
+
+
+## Paket tambahan: ShopeePay API Gateway
+
+Folder `shoppepay-api-gateway/` berisi gateway yang Anda kirim. File `.env` asli tidak disertakan demi keamanan; gunakan `.env.example` sebagai template dan isi rahasia hanya di environment server.
+
+**Penting:** gateway ini belum dihubungkan ke alur checkout website. Website saat ini memanggil Supabase Edge Functions `create-qris` dan `check-qris`, sedangkan gateway memakai endpoint `/create-qris` dan `/check-payment` dengan format data berbeda. Jangan menaruh `API_KEY`, token ShopeePay, atau token Telegram di JavaScript frontend. Sebelum dipakai untuk pembayaran sungguhan, perlu dibuat adapter backend yang aman dan diuji end-to-end.
