@@ -1,7 +1,3 @@
-const qrisSupabaseClient = window.supabase.createClient(
-  window.SUPABASE_CONFIG.url,
-  window.SUPABASE_CONFIG.anonKey
-);
 const DEFAULT_FOLLOWERS=[
  {qty:100,price:7800,original:9500,sold:'20+',img:'assets/100.webp'},
  {qty:200,price:15600,original:19000,sold:'10+',img:'assets/200.webp'},
@@ -126,6 +122,7 @@ function bindCheckout(){
   };
 
   let currentPaymentId=null;
+  let currentPayment=null;
   let paymentTimer=null;
   const setPaymentStatus=(text,cls='')=>{
     const el=document.getElementById('paymentStatus');
@@ -133,6 +130,7 @@ function bindCheckout(){
   };
   const showPayment=async payment=>{
     currentPaymentId=payment.paymentId;
+    currentPayment=payment;
     closeModal();
     document.getElementById('paymentInvoice').textContent=payment.partnerReferenceNo;
     document.getElementById('paymentAmount').textContent=rupiah(payment.amount);
@@ -191,13 +189,15 @@ function bindCheckout(){
     setPaymentStatus('Menunggu pembayaran...');
     paymentModal.classList.add('show');paymentModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     clearInterval(paymentTimer);
-    paymentTimer=setInterval(()=>checkPayment(false),5000);
+    paymentTimer=setInterval(()=>checkPayment(false),10000);
   };
   const checkPayment=async(manual=true)=>{
     if(!currentPaymentId)return;
     try{
-      const {data,error}=await qrisSupabaseClient.functions.invoke('check-qris',{body:{paymentId:currentPaymentId}});
-      if(error)throw error;
+      const {amount,startTime}=currentPayment;
+      const response=await fetch('/api/check-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,startTime})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data?.message||'Gagal mengecek pembayaran.');
       if(data?.status==='PAID'){
         clearInterval(paymentTimer);setPaymentStatus('Pembayaran berhasil. Pesanan sedang diproses.','paid');
         return;
@@ -236,8 +236,9 @@ function bindCheckout(){
     const submit=e.submitter||form.querySelector('button[type=submit]');
     if(submit){submit.disabled=true;submit.textContent='Membuat QRIS...';}
     try{
-      const {data,error}=await qrisSupabaseClient.functions.invoke('create-qris',{body:payload});
-      if(error)throw error;
+      const response=await fetch('/api/create-qris',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data?.message||'Gagal membuat pembayaran QRIS.');
       if(!data?.paymentId)throw new Error(data?.message||'Gagal membuat pembayaran QRIS.');
       await showPayment(data);
     }catch(err){
