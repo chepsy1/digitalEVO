@@ -1,16 +1,569 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>digitalEVO Admin</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="admin.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script></head>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>digitalEVO — Admin Panel</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+</head>
+
 <body class="admin-body">
-<header class="admin-top"><div><strong>digitalEVO</strong><span>Admin Panel</span></div><button id="logoutBtn" class="btn btn-light" hidden>Logout</button></header>
-<main class="admin-wrap">
-<section id="loginView" class="admin-card login-card"><span class="eyebrow">ADMIN</span><h1>Kelola website digitalEVO</h1><p>Login dengan akun admin untuk mengubah tulisan, harga, foto produk, banner, header dan footer tanpa upload HTML lagi.</p><form id="loginForm"><label>Email<input id="loginEmail" type="email" required></label><label>Password<input id="loginPassword" type="password" required></label><button class="btn btn-primary full">Login</button></form><p id="loginMsg" class="admin-msg" role="alert" aria-live="polite"></p></section>
-<section id="panelView" hidden>
-<div class="admin-grid">
-<section class="admin-card"><div class="admin-head"><div><span class="eyebrow">KONTEN</span><h2>Tulisan Website</h2></div><button id="saveSite" class="btn btn-primary">Simpan</button></div>
-<div class="form-grid"><label>Judul Followers<input id="followerTitle"></label><label>Subjudul Followers<input id="followerSubtitle"></label><label>Label Followers<input id="followerEyebrow"></label><label>Badge Diskon Followers<input id="followerDiscount"></label><label>Judul Akun Premium<input id="accountTitle"></label><label>Label Akun Premium<input id="accountEyebrow"></label><label class="full-col">Deskripsi Akun Premium<textarea id="accountDescription" rows="3"></textarea></label><label>Label Kontak<input id="contactEyebrow"></label><label>Judul Kontak<input id="contactTitle"></label><label>Nomor WhatsApp<input id="contactWhatsapp"></label></div><p id="siteMsg" class="admin-msg"></p></section>
-<section class="admin-card"><div class="admin-head"><div><span class="eyebrow">FOTO</span><h2>Header, Banner & Footer</h2></div></div><div id="imageSettings" class="image-admin-grid"></div><p class="hint">Foto baru langsung tersimpan ke Supabase Storage dan dipakai website setelah halaman di-refresh.</p><p id="imageMsg" class="admin-msg"></p></section>
-</div>
-<section class="admin-card"><div class="admin-head"><div><span class="eyebrow">PRODUK</span><h2>Followers Shopee</h2></div><button id="addFollower" class="btn btn-primary">+ Produk</button></div><div id="followersTable" class="product-admin-list"></div></section>
-<section class="admin-card"><div class="admin-head"><div><span class="eyebrow">PRODUK</span><h2>Akun Shopee Premium</h2></div><button id="addAccount" class="btn btn-primary">+ Produk</button></div><div id="accountsTable" class="product-admin-list"></div></section>
-</section></main>
-<script src="admin.js"></script></body></html>
+
+<!-- LOGIN -->
+<section id="loginView" class="admin-login-page">
+  <div class="login-brand">
+    <div class="brand-mark">dE</div>
+    <div>
+      <strong>digitalEVO</strong>
+      <span>ADMIN PANEL</span>
+    </div>
+  </div>
+
+  <div class="admin-login-card">
+    <span class="eyebrow">SECURE LOGIN</span>
+    <h1>Selamat datang kembali</h1>
+    <p>Masuk untuk mengelola website, produk dan pesanan digitalEVO.</p>
+
+    <form id="loginForm">
+      <label>
+        Email
+        <input id="loginEmail" type="email" autocomplete="email" required>
+      </label>
+
+      <label>
+        Password
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </label>
+
+      <button class="btn btn-primary full" type="submit">
+        Masuk ke Admin
+      </button>
+    </form>
+
+    <p id="loginMsg" class="admin-msg" role="alert"></p>
+  </div>
+
+  <small>digitalEVO Admin • Secure Management System</small>
+</section>
+
+
+<!-- ADMIN PANEL -->
+<section id="panelView" class="admin-shell" hidden>
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+
+    <div class="sidebar-brand">
+      <div class="brand-mark">dE</div>
+      <div>
+        <strong>digitalEVO</strong>
+        <span>ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+
+      <button class="nav-item active" data-section="dashboard">
+        <span>⌂</span>
+        <span>Dashboard</span>
+      </button>
+
+      <button class="nav-item" data-section="products">
+        <span>▣</span>
+        <span>Produk</span>
+      </button>
+
+      <button class="nav-item" data-section="orders">
+        <span>▤</span>
+        <span>Pesanan</span>
+      </button>
+
+      <button class="nav-item" data-section="payments">
+        <span>◉</span>
+        <span>Pembayaran</span>
+      </button>
+
+      <button class="nav-item" data-section="content">
+        <span>✎</span>
+        <span>Konten Website</span>
+      </button>
+
+      <button class="nav-item" data-section="media">
+        <span>▧</span>
+        <span>Media</span>
+      </button>
+
+      <button class="nav-item" data-section="settings">
+        <span>⚙</span>
+        <span>Pengaturan</span>
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+      <a href="/" class="sidebar-home">← Lihat Website</a>
+      <button id="logoutBtn" class="sidebar-logout">Keluar</button>
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <!-- TOPBAR -->
+    <header class="admin-header">
+
+      <div>
+        <span class="eyebrow">DIGITALEVO MANAGEMENT</span>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+
+      <div class="admin-header-actions">
+        <button id="refreshAdmin" class="header-icon" title="Refresh">↻</button>
+        <div class="admin-user">
+          <div class="admin-avatar">A</div>
+          <div>
+            <strong>Administrator</strong>
+            <span>Admin</span>
+          </div>
+        </div>
+      </div>
+
+    </header>
+
+
+    <!-- DASHBOARD -->
+    <section id="section-dashboard" class="admin-section active">
+
+      <div class="welcome-banner">
+        <div>
+          <span class="eyebrow">OVERVIEW</span>
+          <h2>Dashboard digitalEVO</h2>
+          <p>Kelola bisnis digitalEVO dari satu tempat.</p>
+        </div>
+        <div class="dashboard-date" id="dashboardDate"></div>
+      </div>
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-icon">▤</div>
+          <div>
+            <span>Total Pesanan</span>
+            <strong id="statOrders">0</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">Rp</div>
+          <div>
+            <span>Total Pendapatan</span>
+            <strong id="statRevenue">Rp0</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">◉</div>
+          <div>
+            <span>Pembayaran Berhasil</span>
+            <strong id="statPaid">0</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">▣</div>
+          <div>
+            <span>Total Produk</span>
+            <strong id="statProducts">0</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dashboard-grid">
+
+        <section class="admin-card">
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">AKTIVITAS</span>
+              <h2>Pesanan Terbaru</h2>
+            </div>
+            <button class="text-button" data-section-link="orders">Lihat semua →</button>
+          </div>
+
+          <div id="recentOrders" class="recent-orders">
+            <div class="empty-state">
+              <span>▤</span>
+              <strong>Belum ada data pesanan</strong>
+              <p>Pesanan baru akan muncul di sini.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">PRODUK</span>
+              <h2>Ringkasan Produk</h2>
+            </div>
+          </div>
+
+          <div id="productSummary" class="product-summary"></div>
+        </section>
+
+      </div>
+
+    </section>
+
+
+    <!-- PRODUCTS -->
+    <section id="section-products" class="admin-section">
+
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">CATALOG MANAGEMENT</span>
+          <h2>Produk</h2>
+          <p>Kelola harga, jumlah, gambar dan status produk.</p>
+        </div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="product-tab active" data-product-category="followers">
+          Followers Shopee
+        </button>
+        <button class="product-tab" data-product-category="account">
+          Akun Shopee Premium
+        </button>
+      </div>
+
+      <section id="productFollowersPanel" class="product-category-panel active">
+        <div class="admin-card">
+
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">FOLLOWERS</span>
+              <h2>Paket Followers Indonesia</h2>
+            </div>
+            <button id="addFollower" class="btn btn-primary">+ Tambah Produk</button>
+          </div>
+
+          <div id="followersTable" class="product-admin-list"></div>
+
+        </div>
+      </section>
+
+      <section id="productAccountPanel" class="product-category-panel">
+        <div class="admin-card">
+
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">ACCOUNT</span>
+              <h2>Akun Shopee Premium</h2>
+            </div>
+            <button id="addAccount" class="btn btn-primary">+ Tambah Produk</button>
+          </div>
+
+          <div id="accountsTable" class="product-admin-list"></div>
+
+        </div>
+      </section>
+
+    </section>
+
+
+    <!-- ORDERS -->
+    <section id="section-orders" class="admin-section">
+
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">ORDER MANAGEMENT</span>
+          <h2>Pesanan</h2>
+          <p>Kelola dan pantau seluruh pesanan pelanggan.</p>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input id="orderSearch" type="search" placeholder="Cari nomor transaksi...">
+
+        <select id="orderStatusFilter">
+          <option value="">Semua Status</option>
+          <option value="paid">Dibayar</option>
+          <option value="processing">Diproses</option>
+          <option value="completed">Selesai</option>
+          <option value="cancelled">Dibatalkan</option>
+        </select>
+      </div>
+
+      <section class="admin-card">
+        <div id="ordersTable" class="orders-table">
+
+          <div class="empty-state">
+            <span>▤</span>
+            <strong>Data pesanan belum tersedia</strong>
+            <p>Pesanan akan ditampilkan setelah sistem order tersimpan di database.</p>
+          </div>
+
+        </div>
+      </section>
+
+    </section>
+
+
+    <!-- PAYMENTS -->
+    <section id="section-payments" class="admin-section">
+
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">PAYMENT MONITORING</span>
+          <h2>Pembayaran</h2>
+          <p>Pantau status pembayaran pelanggan.</p>
+        </div>
+      </div>
+
+      <div class="payment-status-grid">
+
+        <div class="payment-status-card">
+          <span>Berhasil</span>
+          <strong id="paymentPaidCount">0</strong>
+        </div>
+
+        <div class="payment-status-card">
+          <span>Menunggu</span>
+          <strong id="paymentPendingCount">0</strong>
+        </div>
+
+        <div class="payment-status-card">
+          <span>Dibatalkan</span>
+          <strong id="paymentCancelledCount">0</strong>
+        </div>
+
+      </div>
+
+      <section class="admin-card">
+        <div class="admin-head">
+          <div>
+            <span class="eyebrow">TRANSAKSI</span>
+            <h2>Riwayat Pembayaran</h2>
+          </div>
+        </div>
+
+        <div id="paymentsTable" class="orders-table">
+          <div class="empty-state">
+            <span>◉</span>
+            <strong>Belum ada riwayat pembayaran</strong>
+            <p>Data pembayaran akan muncul setelah order tersimpan.</p>
+          </div>
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- CONTENT -->
+    <section id="section-content" class="admin-section">
+
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">WEBSITE CONTENT</span>
+          <h2>Konten Website</h2>
+          <p>Ubah tulisan website tanpa mengedit HTML.</p>
+        </div>
+        <button id="saveSite" class="btn btn-primary">Simpan Perubahan</button>
+      </div>
+
+      <div class="admin-grid">
+
+        <section class="admin-card">
+
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">FOLLOWERS</span>
+              <h2>Bagian Followers</h2>
+            </div>
+          </div>
+
+          <div class="form-grid">
+
+            <label>
+              Label
+              <input id="followerEyebrow">
+            </label>
+
+            <label>
+              Badge Diskon
+              <input id="followerDiscount">
+            </label>
+
+            <label class="full-col">
+              Judul
+              <input id="followerTitle">
+            </label>
+
+            <label class="full-col">
+              Subjudul
+              <input id="followerSubtitle">
+            </label>
+
+          </div>
+
+        </section>
+
+
+        <section class="admin-card">
+
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">ACCOUNT</span>
+              <h2>Akun Premium</h2>
+            </div>
+          </div>
+
+          <div class="form-grid">
+
+            <label>
+              Label
+              <input id="accountEyebrow">
+            </label>
+
+            <label class="full-col">
+              Judul
+              <input id="accountTitle">
+            </label>
+
+            <label class="full-col">
+              Deskripsi
+              <textarea id="accountDescription" rows="5"></textarea>
+            </label>
+
+          </div>
+
+        </section>
+
+
+        <section class="admin-card">
+
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">CONTACT</span>
+              <h2>Kontak Admin</h2>
+            </div>
+          </div>
+
+          <div class="form-grid">
+
+            <label>
+              Label
+              <input id="contactEyebrow">
+            </label>
+
+            <label>
+              Judul
+              <input id="contactTitle">
+            </label>
+
+            <label class="full-col">
+              Nomor WhatsApp
+              <input id="contactWhatsapp">
+            </label>
+
+          </div>
+
+          <p id="siteMsg" class="admin-msg"></p>
+
+        </section>
+
+      </div>
+
+    </section>
+
+
+    <!-- MEDIA -->
+    <section id="section-media" class="admin-section">
+
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">MEDIA LIBRARY</span>
+          <h2>Media Website</h2>
+          <p>Kelola logo, header, banner dan footer.</p>
+        </div>
+      </div>
+
+      <section class="admin-card">
+
+        <div class="admin-head">
+          <div>
+            <span class="eyebrow">SITE ASSETS</span>
+            <h2>Gambar Website</h2>
+          </div>
+        </div>
+
+        <div id="imageSettings" class="image-admin-grid"></div>
+
+        <p class="hint">
+          Gambar baru akan disimpan ke Supabase Storage dan digunakan website setelah halaman diperbarui.
+        </p>
+
+        <p id="imageMsg" class="admin-msg"></p>
+
+      </section>
+
+    </section>
+
+
+    <!-- SETTINGS -->
+    <section id="section-settings" class="admin-section">
+
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">SYSTEM</span>
+          <h2>Pengaturan</h2>
+          <p>Informasi dan konfigurasi panel digitalEVO.</p>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+
+        <section class="admin-card">
+          <span class="eyebrow">SECURITY</span>
+          <h2>Keamanan Admin</h2>
+          <p>
+            Panel menggunakan Supabase Authentication dan pemeriksaan hak akses
+            administrator sebelum data dapat dikelola.
+          </p>
+
+          <div class="security-status">
+            <span class="status-dot"></span>
+            <strong>Admin Authentication Aktif</strong>
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <span class="eyebrow">PAYMENT</span>
+          <h2>Payment Gateway</h2>
+          <p>
+            Sistem pembayaran QRIS tetap menggunakan payment gateway yang sudah
+            terhubung dengan website.
+          </p>
+
+          <div class="security-status">
+            <span class="status-dot"></span>
+            <strong>Gateway Terhubung</strong>
+          </div>
+        </section>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</section>
+
+<script src="admin.js"></script>
+</body>
+</html>
