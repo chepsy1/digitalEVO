@@ -1,0 +1,14 @@
+{
+  "name": "digitalevo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "digitalEVO website with Vercel Functions and QRIS payment gateway",
+  "scripts": {
+    "dev": "vercel dev",
+    "preview": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "devDependencies": {
+    "vercel": "latest"
+  }
+}

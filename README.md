@@ -84,3 +84,53 @@ Admin panel memakai **Supabase Auth Email + Password** dan **Row Level Security 
 - Storage bucket `site-assets`: publik hanya **membaca**; upload/update/delete hanya admin.
 - `public.admins`: tidak dapat dikelola dari browser. Penambahan/pencabutan admin dilakukan dari Supabase SQL/Authentication.
 - `service_role` key tidak boleh dimasukkan ke HTML/JavaScript frontend.
+## GitHub Codespaces + QRIS
+
+Project ini mempertahankan struktur Vercel Functions sehingga bisa dikembangkan langsung di GitHub Codespaces.
+
+### 1. Buat Codespace
+
+Push repository ini ke GitHub, lalu pilih **Code → Codespaces → Create codespace on main**.
+
+### 2. Konfigurasi secret lokal
+
+Di terminal Codespace jalankan:
+
+```bash
+cp .env.example .env.local
+```
+
+Kemudian isi `.env.local` dengan nilai environment variable dari project Vercel. **Jangan commit `.env.local`.**
+
+Variable QRIS yang wajib untuk API proxy adalah:
+
+```env
+PAYMENT_GATEWAY_URL=...
+PAYMENT_GATEWAY_API_KEY=...
+```
+
+`PAYMENT_GATEWAY_API_KEY` dibaca hanya oleh server-side Vercel Function dan tidak boleh dimasukkan ke JavaScript frontend.
+
+### 3. Jalankan lokal
+
+```bash
+npm install
+npm run dev
+```
+
+Vercel Dev akan menjalankan website dan folder `/api` sebagai serverless functions. Buka port **3000** pada tab Ports/Codespaces.
+
+### 4. Deploy
+
+Untuk deployment production melalui Vercel CLI:
+
+```bash
+npm run deploy
+```
+
+Atau hubungkan repository GitHub ke Vercel. Untuk production, tetap masukkan secret melalui **Vercel Environment Variables**, bukan ke repository.
+
+### QRIS troubleshooting
+
+Jika checkout menampilkan `Payment gateway belum dikonfigurasi`, periksa `PAYMENT_GATEWAY_URL` dan `PAYMENT_GATEWAY_API_KEY`. Jika gateway merespons error, cek endpoint `/create-qris` dan `/check-payment` pada gateway yang digunakan.
+

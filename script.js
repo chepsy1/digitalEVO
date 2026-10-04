@@ -207,7 +207,7 @@ function bindCheckout(){
     }else{
       if(qrBox)qrBox.insertAdjacentHTML('beforeend','<p class="qr-error">QRIS belum tersedia dari server. Silakan buat transaksi baru.</p>');
     }
-    const expires=new Date(Date.now()+15*60*1000);
+    const expires=new Date(payment.expiresAt || (Date.now()+15*60*1000));
     document.getElementById('paymentExpiry').textContent=`Berlaku sampai ${expires.toLocaleString('id-ID',{
       timeZone:'Asia/Jakarta',
       day:'numeric',
@@ -229,6 +229,7 @@ function bindCheckout(){
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
+          paymentId: currentPaymentId,
           amount:Number(currentPaymentAmount),
           startTime:Number(currentPaymentStartTime)
         })
@@ -315,12 +316,12 @@ function bindCheckout(){
         throw new Error(data?.error||data?.message||'Gagal membuat pembayaran QRIS.');
       }
 
-      if(!data?.success || !data?.data?.qris_url){
-        throw new Error(data?.message||'Gateway gagal membuat QRIS.');
+      const gatewayData = data?.data || data?.result || data || {};
+      const qrisUrl = gatewayData.qris_url || gatewayData.qr_url || gatewayData.qrUrl || null;
+      const paymentId = gatewayData.payment_id || gatewayData.paymentId || gatewayData.transaction_id || gatewayData.transactionId || (qrisUrl ? qrisUrl.split('/').filter(Boolean).pop() : null);
+      if(!paymentId && !gatewayData.qrContent && !gatewayData.qr_content && !gatewayData.qrImage && !gatewayData.qr_image && !qrisUrl){
+        throw new Error(data?.message || data?.error || 'Gateway gagal membuat QRIS.');
       }
-
-      const qrisUrl = data.data.qris_url;
-      const paymentId = qrisUrl.split('/').filter(Boolean).pop();
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
         product: payload.category === 'account' ? 'Account Premium' : 'Followers Indonesia',
@@ -339,7 +340,9 @@ function bindCheckout(){
         partnerReferenceNo:paymentId,
         amount:Number(data.data.amount||payload.amount),
         qrUrl:qrisUrl,
-        expiresAt:data.data.expires_at,
+        qrContent:gatewayData.qrContent || gatewayData.qr_content,
+        qrImage:gatewayData.qrImage || gatewayData.qr_image,
+        expiresAt:gatewayData.expires_at || gatewayData.expiresAt,
         startTime:Math.floor(Date.now()/1000)
       });
     }catch(err){
