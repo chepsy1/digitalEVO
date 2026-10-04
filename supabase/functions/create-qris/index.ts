@@ -80,73 +80,46 @@ Deno.serve(async (req) => {
     const { error: insertError } = await supabase.from("payments").insert(row);
     if (insertError) return json({ message: insertError.message }, 500);
 
-    const baseUrl = Deno.env.get("DANA_BASE_URL") || "https://api.sandbox.dana.id";
-    const path = "/v1.0/qr/qr-mpm-generate.htm";
-    const body = {
-      merchantId: Deno.env.get("DANA_MERCHANT_ID"),
-      partnerReferenceNo,
-      amount: { value: `${amount}.00`, currency: "IDR" },
-      storeId: Deno.env.get("DANA_STORE_ID") || "",
-      validityPeriod: formatDANA(expiresAt),
-      additionalInfo: {
-        terminalSource: "MER",
-        envInfo: { terminalType: "SYSTEM", orderTerminalType: "WEB" }
-      }
-    };
-    if (!body.merchantId || !Deno.env.get("DANA_PARTNER_ID") || !Deno.env.get("DANA_PRIVATE_KEY") || !Deno.env.get("DANA_CHANNEL_ID")) {
+    const gatewayUrl = (Deno.env.get("PAYMENT_GATEWAY_URL") || "").replace(/\/$/, "");
+    const gatewayKey = Deno.env.get("PAYMENT_GATEWAY_API_KEY") || "";
+    if (!gatewayUrl || !gatewayKey) {
       await supabase.from("payments").update({status:"FAILED",updated_at:new Date().toISOString()}).eq("id", paymentId);
-      return json({ message: "Credential DANA belum lengkap. Periksa DANA_MERCHANT_ID, DANA_PARTNER_ID, DANA_PRIVATE_KEY, dan DANA_CHANNEL_ID di Edge Function Secrets." }, 500);
+      return json({ message: "Payment gateway belum dikonfigurasi. Isi PAYMENT_GATEWAY_URL dan PAYMENT_GATEWAY_API_KEY di Supabase Edge Function Secrets." }, 500);
     }
 
-    const bodyText = JSON.stringify(body);
-    const ts = timestamp();
-    const hash = await sha256Hex(bodyText);
-    const stringToSign = `POST:${path}:${hash}:${ts}`;
-    const signature = await sign(stringToSign, Deno.env.get("DANA_PRIVATE_KEY")!);
-    const externalId = crypto.randomUUID().replaceAll("-", "").slice(0, 32);
-
-    const response = await fetch(baseUrl + path, {
+    const response = await fetch(`${gatewayUrl}/create-qris`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-TIMESTAMP": ts,
-        "X-SIGNATURE": signature,
-        "X-PARTNER-ID": Deno.env.get("DANA_PARTNER_ID")!,
-        "X-EXTERNAL-ID": externalId,
-        "CHANNEL-ID": Deno.env.get("DANA_CHANNEL_ID")!,
-        ...(Deno.env.get("DANA_ORIGIN") ? { "ORIGIN": Deno.env.get("DANA_ORIGIN")! } : {}),
-      },
-      body: bodyText
+      headers: { "Content-Type": "application/json", "X-API-Key": gatewayKey },
+      body: JSON.stringify({ amount })
     });
-    const dana = await response.json().catch(() => ({}));
-
-    if (!response.ok || dana.responseCode !== "2004700") {
+    const gateway = await response.json().catch(() => ({}));
+    if (!response.ok || !gateway?.success) {
       await supabase.from("payments").update({
-        status:"FAILED", dana_payload:dana, updated_at:new Date().toISOString()
+        status:"FAILED", dana_payload:gateway, updated_at:new Date().toISOString()
       }).eq("id", paymentId);
-      return json({ message: dana.responseMessage || `DANA error (${response.status})`, danaCode:dana.responseCode }, 502);
+      return json({ message: gateway?.error || `Payment gateway error (${response.status})` }, 502);
     }
 
-    const qrImage = dana.qrImage
-      ? (String(dana.qrImage).startsWith("data:") ? dana.qrImage : `data:image/png;base64,${dana.qrImage}`)
-      : null;
+    const gatewayData = gateway.data || {};
+    const qrUrl = gatewayData.qris_url || null;
+    const qrContent = gatewayData.qr_content || null;
+    const expiresAtFromGateway = gatewayData.expires_at ? new Date(gatewayData.expires_at.replace(" ", "T") + "+07:00") : expiresAt;
     await supabase.from("payments").update({
-      dana_reference_no: dana.referenceNo || null,
-      qr_content: dana.qrContent || null,
-      qr_image: qrImage,
-      qr_url: dana.qrUrl || null,
-      dana_payload: dana,
-      updated_at: new Date().toISOString()
+      qr_content: qrContent,
+      qr_url: qrUrl,
+      dana_payload: gateway,
+      expires_at: expiresAtFromGateway.toISOString(),
+      updated_at:new Date().toISOString()
     }).eq("id", paymentId);
 
     return json({
       paymentId,
       partnerReferenceNo,
       amount,
-      qrContent: dana.qrContent || null,
-      qrImage,
-      qrUrl: dana.qrUrl || null,
-      expiresAt: expiresAt.toISOString()
+      qrContent,
+      qrImage: null,
+      qrUrl,
+      expiresAt: expiresAtFromGateway.toISOString()
     });
   } catch (e) {
     return json({ message: e?.message || "Internal error" }, 500);
