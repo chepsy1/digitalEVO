@@ -207,8 +207,16 @@ function bindCheckout(){
     }else{
       if(qrBox)qrBox.insertAdjacentHTML('beforeend','<p class="qr-error">QRIS belum tersedia dari server. Silakan buat transaksi baru.</p>');
     }
-    const expires=new Date(payment.expiresAt);
-    document.getElementById('paymentExpiry').textContent=`Berlaku sampai ${expires.toLocaleString('id-ID')}`;
+    const expires=new Date(Date.now()+15*60*1000);
+    document.getElementById('paymentExpiry').textContent=`Berlaku sampai ${expires.toLocaleString('id-ID',{
+      timeZone:'Asia/Jakarta',
+      day:'numeric',
+      month:'long',
+      year:'numeric',
+      hour:'2-digit',
+      minute:'2-digit',
+      hour12:false
+    })} WIB`;
     setPaymentStatus('Menunggu pembayaran...');
     paymentModal.classList.add('show');paymentModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     clearInterval(paymentTimer);
