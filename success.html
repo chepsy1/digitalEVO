@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembayaran Berhasil - digitalEVO</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+    }
+
+    .success-card {
+      width: 100%;
+      max-width: 520px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px 24px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.10);
+      text-align: center;
+    }
+
+    .success-icon {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: #22c55e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: bold;
+    }
+
+    h1 {
+      margin: 0 0 25px;
+      font-size: 28px;
+    }
+
+    .details {
+      text-align: left;
+      border-radius: 14px;
+      background: #f8fafc;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .label {
+      color: #64748b;
+    }
+
+    .value {
+      font-weight: 600;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .message {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 12px;
+      background: #ecfdf5;
+      color: #166534;
+      font-weight: 600;
+    }
+
+    .buttons {
+      display: grid;
+      gap: 12px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      border: 0;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-home {
+      background: #111827;
+      color: #fff;
+    }
+
+    .btn-order {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-wa {
+      background: #25d366;
+      color: #fff;
+    }
+
+    @media (max-width: 480px) {
+      .success-card {
+        padding: 25px 18px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .row {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .value {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="success-card">
+
+    <div class="success-icon">✓</div>
+
+    <h1>✅ Pembayaran Berhasil</h1>
+
+    <div class="details">
+      <div class="row">
+        <span class="label">Nominal pembayaran</span>
+        <span class="value" id="amount">-</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Produk yang dibeli</span>
+        <span class="value" id="product">-</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Jumlah followers/account</span>
+        <span class="value" id="quantity">-</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Nomor transaksi</span>
+        <span class="value" id="transaction">-</span>
+      </div>
+
+      <div class="row">
+        <span class="label">Waktu pembayaran</span>
+        <span class="value" id="paymentTime">-</span>
+      </div>
+    </div>
+
+    <div class="message">
+      Pesanan Anda sedang diproses.
+    </div>
+
+    <div class="buttons">
+      <a href="index.html" class="btn btn-home">
+        🏠 Kembali ke Beranda
+      </a>
+
+      <a href="#" id="checkOrder" class="btn btn-order">
+        📋 Cek Pesanan
+      </a>
+
+      <a href="#" id="whatsapp" class="btn btn-wa">
+        💬 Hubungi Admin Melalui WhatsApp
+      </a>
+    </div>
+
+  </main>
+
+
+<script>
+  const data = JSON.parse(
+    sessionStorage.getItem('digitalEVO_success') || '{}'
+  );
+
+  const rupiah = value =>
+    new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(Number(value || 0));
+
+  document.getElementById('amount').textContent =
+    rupiah(data.amount);
+
+  document.getElementById('product').textContent =
+    data.product || '-';
+
+  document.getElementById('quantity').textContent =
+    data.quantity
+      ? `${Number(data.quantity).toLocaleString('id-ID')} ${data.product === 'Account Premium' ? 'Account' : 'Followers'}`
+      : '-';
+
+  document.getElementById('transaction').textContent =
+    data.transaction || '-';
+
+  if (data.paymentTime) {
+    const date = new Date(data.paymentTime);
+
+    document.getElementById('paymentTime').textContent =
+      date.toLocaleString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }) + ' WIB';
+  }
+
+  const orderText = encodeURIComponent(
+    `Halo Admin, saya sudah melakukan pembayaran.%0A%0A` +
+    `Nomor transaksi: ${data.transaction || '-'}%0A` +
+    `Produk: ${data.product || '-'}%0A` +
+    `Jumlah: ${data.quantity || '-'}%0A` +
+    `Nominal: ${rupiah(data.amount)}`
+  );
+
+  const whatsappNumber = '628XXXXXXXXXX';
+
+  document.getElementById('whatsapp').href =
+    `https://wa.me/${whatsappNumber}?text=${orderText}`;
+
+  document.getElementById('checkOrder').href =
+    `#`;
+</script>
+
+</body>
+</html>

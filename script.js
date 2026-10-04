@@ -242,7 +242,17 @@ function bindCheckout(){
 
       if(data?.paid===true){
         clearInterval(paymentTimer);
-        setPaymentStatus('Pembayaran berhasil. Pesanan sedang diproses.','paid');
+
+        const order = JSON.parse(sessionStorage.getItem('digitalEVO_pendingOrder') || '{}');
+
+        sessionStorage.setItem('digitalEVO_success', JSON.stringify({
+          ...order,
+          paymentTime: new Date().toISOString()
+        }));
+
+        sessionStorage.removeItem('digitalEVO_pendingOrder');
+
+        window.location.href = 'success.html';
         return;
       }
 
@@ -298,6 +308,14 @@ function bindCheckout(){
 
       const qrisUrl = data.data.qris_url;
       const paymentId = qrisUrl.split('/').filter(Boolean).pop();
+
+      sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
+        product: payload.category === 'account' ? 'Account Premium' : 'Followers Indonesia',
+        quantity: Number(payload.qty || 0),
+        amount: Number(data.data.amount || payload.amount),
+        transaction: paymentId,
+        createdAt: new Date().toISOString()
+      }));
 
       await showPayment({
         paymentId,
