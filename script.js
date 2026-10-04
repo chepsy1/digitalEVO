@@ -153,16 +153,12 @@ function bindCheckout(){
 
       // Gateway dapat mengembalikan URL localhost.
       // Ubah ke gateway Vercel agar dapat diakses browser.
-      if(qrSrc.includes('localhost:3001')){
-        qrSrc=qrSrc.replace(
-          /^https?:\/\/localhost:3001/,
-          'https://shoppepay-api-gateway-f7dg.vercel.app'
-        );
-      }
+      // Gunakan proxy Vercel agar browser tidak mengakses
+      // endpoint QR gateway secara langsung.
+      const qrId=qrSrc.split('/').filter(Boolean).pop();
 
-      // URL relatif juga diarahkan ke gateway.
-      if(qrSrc.startsWith('/')){
-        qrSrc='https://shoppepay-api-gateway-f7dg.vercel.app'+qrSrc;
+      if(qrId){
+        qrSrc='/api/qr/'+encodeURIComponent(qrId);
       }
 
       img.src=qrSrc;
