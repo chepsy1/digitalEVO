@@ -149,13 +149,38 @@ function bindCheckout(){
       img.src=payment.qrImage.startsWith('data:')?payment.qrImage:`data:image/png;base64,${payment.qrImage}`;
       img.hidden=false;
     }else if(payment.qrUrl){
-      img.src=payment.qrUrl;
+      let qrSrc=payment.qrUrl;
+
+      // Gateway dapat mengembalikan URL localhost.
+      // Ubah ke gateway Vercel agar dapat diakses browser.
+      if(qrSrc.includes('localhost:3001')){
+        qrSrc=qrSrc.replace(
+          /^https?:\/\/localhost:3001/,
+          'https://shoppepay-api-gateway-f7dg.vercel.app'
+        );
+      }
+
+      // URL relatif juga diarahkan ke gateway.
+      if(qrSrc.startsWith('/')){
+        qrSrc='https://shoppepay-api-gateway-f7dg.vercel.app'+qrSrc;
+      }
+
+      img.src=qrSrc;
       img.hidden=false;
       img.onerror=()=>{
         img.hidden=true;
-        if(payment.qrContent && window.QRCode){
-          canvas.hidden=false;
-          QRCode.toCanvas(canvas,payment.qrContent,{width:280,margin:2}).catch(()=>{});
+
+        // Jika QRCode tersedia dan URL gagal sebagai gambar,
+        // tampilkan halaman QR gateway melalui iframe fallback.
+        if(qrBox){
+          const iframe=document.createElement('iframe');
+          iframe.src=qrSrc;
+          iframe.width='300';
+          iframe.height='300';
+          iframe.style.border='0';
+          iframe.style.borderRadius='12px';
+          iframe.setAttribute('title','QRIS ShopeePay');
+          qrBox.appendChild(iframe);
         }
       };
     }else if(payment.qrContent){
