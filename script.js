@@ -245,9 +245,22 @@ function bindCheckout(){
 
         const order = JSON.parse(sessionStorage.getItem('digitalEVO_pendingOrder') || '{}');
 
+        const paymentTime = new Date().toISOString();
+
+        try {
+          await fetch('/api/notify-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...order,
+              paymentTime
+            })
+          });
+        } catch {}
+
         sessionStorage.setItem('digitalEVO_success', JSON.stringify({
           ...order,
-          paymentTime: new Date().toISOString()
+          paymentTime
         }));
 
         sessionStorage.removeItem('digitalEVO_pendingOrder');
@@ -314,6 +327,10 @@ function bindCheckout(){
         quantity: Number(payload.qty || 0),
         amount: Number(data.data.amount || payload.amount),
         transaction: paymentId,
+        customerWhatsapp: payload.customerWhatsapp || '',
+        shopeeLink: payload.shopeeLink || '',
+        accountName: payload.accountName || '',
+        accountContact: payload.accountContact || '',
         createdAt: new Date().toISOString()
       }));
 
