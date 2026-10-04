@@ -236,11 +236,15 @@ function bindCheckout(){
     if(value.startsWith('account:')){
       payload.category='account';
       payload.qty=Number(value.split(':')[1]);
+      const selectedProduct=accountProducts.find(x=>x.qty===payload.qty);
+      payload.amount=Number(selectedProduct?.price||0);
       payload.accountName=document.getElementById('accountName').value.trim();
       payload.accountContact=document.getElementById('accountContact').value.trim();
     }else{
       payload.category='followers';
       payload.qty=Number(value);
+      const selectedProduct=products.find(x=>x.qty===payload.qty);
+      payload.amount=Number(selectedProduct?.price||0);
       payload.customerWhatsapp=document.getElementById('customerWa').value.trim();
       payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
     }
@@ -250,7 +254,7 @@ function bindCheckout(){
       const response = await fetch('/api/create-qris',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({amount:Number(payload.amount||payload.price||value)})
+        body:JSON.stringify({amount:Number(payload.amount)})
       });
 
       const data = await response.json();
@@ -269,7 +273,7 @@ function bindCheckout(){
       await showPayment({
         paymentId,
         partnerReferenceNo:paymentId,
-        amount:Number(data.data.amount||payload.amount||payload.price||value),
+        amount:Number(data.data.amount||payload.amount),
         qrUrl:qrisUrl,
         expiresAt:data.data.expires_at,
         startTime:Math.floor(Date.now()/1000)
