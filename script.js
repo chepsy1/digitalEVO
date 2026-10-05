@@ -319,6 +319,29 @@ function bindCheckout(){
       const gatewayData = data?.data || data?.result || data || {};
       const qrisUrl = gatewayData.qris_url || gatewayData.qr_url || gatewayData.qrUrl || null;
       const paymentId = gatewayData.payment_id || gatewayData.paymentId || gatewayData.transaction_id || gatewayData.transactionId || (qrisUrl ? qrisUrl.split('/').filter(Boolean).pop() : null);
+
+      // Telegram order notification
+      try {
+        await fetch('https://shoppepay-api-gateway-f7dg.vercel.app/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service:payload.service||payload.product||payload.category||'Followers Shopee',quantity:payload.quantity||payload.qty||'',username:payload.shopeeLink||payload.username||'',total:payload.total||payload.amount||'',payment:'QRIS'})});
+      } catch(e) { console.error('Telegram notification failed:',e); }
+
+      // Kirim order otomatis ke Telegram
+      try {
+        await fetch('https://shoppepay-api-gateway-f7dg.vercel.app/api/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service: payload.service || payload.product || payload.category || 'Followers Shopee',
+            quantity: payload.quantity || payload.qty || '',
+            username: payload.shopeeLink || payload.username || '',
+            total: payload.total || payload.amount || '',
+            payment: 'QRIS'
+          })
+        });
+      } catch (telegramError) {
+        console.error('Telegram notification failed:', telegramError);
+      }
+
       if(!paymentId && !gatewayData.qrContent && !gatewayData.qr_content && !gatewayData.qrImage && !gatewayData.qr_image && !qrisUrl){
         throw new Error(data?.message || data?.error || 'Gateway gagal membuat QRIS.');
       }
