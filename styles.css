@@ -251,3 +251,176 @@
   .premium-image-header{border-radius:6px;}
   .premium-image-header img{width:100%;height:auto;}
 }
+/* =========================================
+   digitalEVO SOCIAL ICONS
+   ========================================= */
+
+.de-social-links {
+  width: 100%;
+  padding: 18px 0 22px;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.de-social-links-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+/* Tombol ikon */
+.de-social-link {
+  position: relative;
+  width: 46px;
+  height: 46px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+  border-radius: 50%;
+
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(0,0,0,.08);
+
+  color: #444;
+  text-decoration: none;
+
+  box-shadow:
+    0 5px 14px rgba(0,0,0,.10),
+    inset 0 1px 2px rgba(255,255,255,.95);
+
+  transition:
+    transform .28s ease,
+    box-shadow .28s ease,
+    background .28s ease,
+    color .28s ease;
+
+  animation: deSocialFloat 3s ease-in-out infinite;
+}
+
+/* Ukuran SVG */
+.de-social-link svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+
+  transition:
+    transform .28s ease,
+    color .28s ease;
+}
+
+/* Animasi berbeda tiap ikon */
+.de-social-link:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.de-social-link:nth-child(2) {
+  animation-delay: .18s;
+}
+
+.de-social-link:nth-child(3) {
+  animation-delay: .36s;
+}
+
+.de-social-link:nth-child(4) {
+  animation-delay: .54s;
+}
+
+/* Animasi naik turun */
+@keyframes deSocialFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* =========================================
+   HOVER
+   ========================================= */
+
+.de-social-link:hover {
+  transform: translateY(-8px) scale(1.10);
+
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.16),
+    inset 0 1px 2px rgba(255,255,255,.95);
+}
+
+.de-social-link:hover svg {
+  transform: scale(1.12);
+}
+
+/* Instagram */
+.de-social-link:nth-child(1):hover {
+  color: #fff;
+  border-color: transparent;
+
+  background:
+    linear-gradient(
+      135deg,
+      #feda75,
+      #fa7e1e,
+      #d62976,
+      #962fbf,
+      #4f5bd5
+    );
+}
+
+/* TikTok */
+.de-social-link:nth-child(2):hover {
+  color: #111;
+  border-color: #111;
+
+  background:
+    linear-gradient(
+      135deg,
+      #25f4ee 0%,
+      #ffffff 50%,
+      #fe2c55 100%
+    );
+}
+
+/* WhatsApp */
+.de-social-link:nth-child(3):hover {
+  color: #fff;
+  border-color: #25d366;
+  background: #25d366;
+}
+
+/* Email */
+.de-social-link:nth-child(4):hover {
+  color: #ee4d2d;
+  border-color: #ee4d2d;
+  background: #fff4ef;
+}
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  .de-social-links {
+    padding: 16px 0 20px;
+  }
+
+  .de-social-links-inner {
+    gap: 16px;
+  }
+
+  .de-social-link {
+    width: 40px;
+    height: 40px;
+  }
+
+  .de-social-link svg {
+    width: 21px;
+    height: 21px;
+  }
+}
