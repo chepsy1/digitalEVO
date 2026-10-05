@@ -26,9 +26,9 @@
   border-radius: 30px;
   background: linear-gradient(135deg, rgba(255,255,255,.93) 0%, rgba(239,243,246,.84) 48%, rgba(210,216,221,.62) 100%);
   border: 1px solid rgba(255,255,255,.88);
-  box-shadow: 0 5px 16px rgba(76,86,96,.12), inset 0 1px 1px rgba(255,255,255,.98), inset 0 -1px 2px rgba(110,120,130,.10);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: #4b5157;
   font-size: 12px;
   line-height: 1;
@@ -45,7 +45,7 @@
   border-radius: 50%;
   background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(236,240,243,.78));
   border: 1px solid rgba(255,255,255,.9);
-  box-shadow: inset 0 1px 2px rgba(255,255,255,.98), 0 2px 7px rgba(70,80,90,.09);
+  box-shadow: none;
 }
 
 .de-ticker-cart svg { display: block; width: 19px; height: 19px; }

@@ -2,39 +2,62 @@
   const track = document.getElementById("deTickerTrack");
   if (!track) return;
 
+  // Jumlah bintang:
+  // 8 bintang  = 75%
+  // 9 bintang  = 15%
+  // 10 bintang = 10%
+  function generateStars() {
+    const random = Math.random();
+
+    if (random < 0.75) {
+      return "********";
+    }
+
+    if (random < 0.90) {
+      return "*********";
+    }
+
+    return "**********";
+  }
+
   function generatePhone() {
     const allowed = "125789";
     const first = allowed[Math.floor(Math.random() * allowed.length)];
+    const stars = generateStars();
     const lastTwo = String(Math.floor(Math.random() * 100)).padStart(2, "0");
 
-    return `+628${first}********${lastTwo}`;
+    return `+628${first}${stars}${lastTwo}`;
   }
 
-  const packages = [
-    { label: "5000 Followers", weight: 10 },
+  // Paket followers biasa = 85%
+  const normalPackages = [
+    { label: "500 Followers", weight: 24 },
     { label: "100 Followers", weight: 22 },
     { label: "1000 Followers", weight: 32 },
     { label: "1500 Followers", weight: 20 },
     { label: "200 Followers", weight: 15 },
     { label: "300 Followers", weight: 15 },
-    { label: "500 Followers", weight: 24 },
     { label: "3000 Followers", weight: 15 },
+    { label: "5000 Followers", weight: 10 }
+  ];
 
-    { label: "10000 Followers", weight: 2 },
-    { label: "20000 Followers", weight: 1 },
-    { label: "30000 Followers", weight: 1 },
+  // Paket akun Shopee = 15%
+  const accountPackages = [
+    { label: "10000 Followers", weight: 4 },
+    { label: "20000 Followers", weight: 3 },
+    { label: "30000 Followers", weight: 2 },
     { label: "50000 Followers", weight: 1 }
   ];
 
-  function getRandomProduct() {
-    const totalWeight = packages.reduce(
+  function weightedRandom(list) {
+    const totalWeight = list.reduce(
       (sum, item) => sum + item.weight,
       0
     );
 
     let random = Math.random() * totalWeight;
 
-    for (const item of packages) {
+    for (const item of list) {
       random -= item.weight;
 
       if (random < 0) {
@@ -42,7 +65,23 @@
       }
     }
 
-    return packages[0].label;
+    return list[0].label;
+  }
+
+  function getRandomProduct() {
+    // Sekitar 15% akun Shopee
+    if (Math.random() < 0.15) {
+      return {
+        label: weightedRandom(accountPackages),
+        isAccount: true
+      };
+    }
+
+    // Sekitar 85% followers biasa
+    return {
+      label: weightedRandom(normalPackages),
+      isAccount: false
+    };
   }
 
   function generateTime() {
@@ -85,6 +124,10 @@
       const product = getRandomProduct();
       const time = generateTime();
 
+      const orderText = product.isAccount
+        ? `memesan <strong>akun shopee ${product.label}</strong>`
+        : `memesan <strong>${product.label}</strong>`;
+
       html += `<div class="de-ticker-item">
         ${cartIcon()}
 
@@ -95,7 +138,7 @@
 
           <span class="de-ticker-bottom">
             <span class="de-ticker-order">
-              memesan <strong>akun shopee ${product}</strong>
+              ${orderText}
             </span>
 
             <span class="de-ticker-time">
