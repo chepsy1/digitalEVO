@@ -42,4 +42,38 @@ app.get('/api/telegram-test', async (req, res) => {
   }
 });
 
+
+app.use(require('express').json());
+
+app.post('/api/order', async (req, res) => {
+  try {
+    const { service, quantity, username, total, payment } = req.body;
+
+    const message = `🛒 ORDER BARU DIGITAL EVO
+
+📦 Layanan: ${service || '-'}
+🔢 Jumlah: ${quantity || '-'}
+👤 Username: ${username || '-'}
+💰 Total: ${total || '-'}
+💳 Pembayaran: ${payment || 'QRIS'}
+
+⏳ Status: Menunggu Pembayaran`;
+
+    await axios.post(
+      `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: process.env.TELEGRAM_CHAT_ID,
+        text: message
+      }
+    );
+
+    res.json({ success: true, message: 'Order berhasil dikirim ke Telegram' });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
+
 module.exports = app;
