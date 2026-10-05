@@ -223,8 +223,8 @@
   document.getElementById('transaction').textContent =
     data.transaction || '-';
 
-  if (data.paymentTime) {
-    const date = new Date(data.paymentTime);
+  if (data.createdAt) {
+    const date = new Date(data.createdAt);
 
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const offsetMinutes = -date.getTimezoneOffset();
