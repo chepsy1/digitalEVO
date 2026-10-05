@@ -125,6 +125,7 @@ function bindCheckout(){
   let currentPaymentAmount=0;
   let currentPaymentStartTime=0;
   let paymentTimer=null;
+  let countdownTimer=null;
   const setPaymentStatus=(text,cls='')=>{
     const el=document.getElementById('paymentStatus');
     if(el){el.textContent=text;el.className=`payment-status ${cls}`.trim();}
@@ -207,34 +208,32 @@ function bindCheckout(){
     }else{
       if(qrBox)qrBox.insertAdjacentHTML('beforeend','<p class="qr-error">QRIS belum tersedia dari server. Silakan buat transaksi baru.</p>');
     }
-    const expires=new Date(payment.expiresAt || (Date.now()+15*60*1000));
-    const visitorTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
 
-    const expiryOffset = -expires.getTimezoneOffset();
-    let expiryZoneName = 'UTC';
+    const updateCountdown = () => {
+      const remaining = Math.max(0, expires.getTime() - Date.now());
+      const totalSeconds = Math.floor(remaining / 1000);
 
-    if(expiryOffset === 420){
-      expiryZoneName = 'WIB';
-    }else if(expiryOffset === 480){
-      expiryZoneName = 'WITA';
-    }else if(expiryOffset === 540){
-      expiryZoneName = 'WIT';
-    }else{
-      const sign = expiryOffset >= 0 ? '+' : '-';
-      const hours = Math.floor(Math.abs(expiryOffset) / 60);
-      const minutes = Math.abs(expiryOffset) % 60;
-      expiryZoneName = `UTC${sign}${hours}${minutes ? ':' + String(minutes).padStart(2,'0') : ''}`;
-    }
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
 
-    document.getElementById('paymentExpiry').textContent=`Berlaku sampai ${expires.toLocaleString('id-ID',{
-      timeZone:visitorTimeZone,
-      day:'numeric',
-      month:'long',
-      year:'numeric',
-      hour:'2-digit',
-      minute:'2-digit',
-      hour12:false
-    })} ${expiryZoneName}`;
+      const el = document.getElementById('paymentExpiry');
+
+      if (el) {
+        el.textContent =
+          `Sisa waktu pembayaran ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      if (remaining <= 0) {
+        clearInterval(countdownTimer);
+        if (el) el.textContent = 'Waktu pembayaran telah habis';
+      }
+    };
+
+    clearInterval(countdownTimer);
+    updateCountdown();
+    countdownTimer = setInterval(updateCountdown, 1000);
+
     setPaymentStatus('Menunggu pembayaran...');
     paymentModal.classList.add('show');paymentModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     clearInterval(paymentTimer);
