@@ -77,7 +77,7 @@ app.post('/api/order', async (req, res) => {
 });
 
 
-app.post('/notify-order', async (req, res) => {
+app.post('/api/notify-order', async (req, res) => {
   try {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;

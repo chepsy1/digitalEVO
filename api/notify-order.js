@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ success: false, error: 'Gateway belum dikonfigurasi' });
     }
 
-    const response = await fetch(`${gateway}/notify-order`, {
+    const response = await fetch(`${gateway}/api/notify-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
