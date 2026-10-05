@@ -226,9 +226,28 @@
   if (data.paymentTime) {
     const date = new Date(data.paymentTime);
 
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const offsetMinutes = -date.getTimezoneOffset();
+
+    let zoneName = 'UTC';
+
+    if (offsetMinutes === 420) {
+      zoneName = 'WIB';
+    } else if (offsetMinutes === 480) {
+      zoneName = 'WITA';
+    } else if (offsetMinutes === 540) {
+      zoneName = 'WIT';
+    } else {
+      const sign = offsetMinutes >= 0 ? '+' : '-';
+      const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+      const minutes = Math.abs(offsetMinutes) % 60;
+
+      zoneName = `UTC${sign}${hours}${minutes ? ':' + String(minutes).padStart(2, '0') : ''}`;
+    }
+
     document.getElementById('paymentTime').textContent =
       date.toLocaleString('id-ID', {
-        timeZone: 'Asia/Jakarta',
+        timeZone: timeZone,
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -236,7 +255,7 @@
         minute: '2-digit',
         second: '2-digit',
         hour12: false
-      }) + ' WIB';
+      }) + ' ' + zoneName;
   }
 
   const orderText = encodeURIComponent(
