@@ -76,4 +76,77 @@ app.post('/api/order', async (req, res) => {
   }
 });
 
+
+app.post('/notify-order', async (req, res) => {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    if (!token || !chatId) {
+      return res.status(500).json({
+        success: false,
+        error: 'Telegram belum dikonfigurasi'
+      });
+    }
+
+    const order = req.body || {};
+
+    const paymentTime = order.paymentTime
+      ? new Date(order.paymentTime).toLocaleString('id-ID', {
+          timeZone: 'Asia/Makassar'
+        })
+      : new Date().toLocaleString('id-ID', {
+          timeZone: 'Asia/Makassar'
+        });
+
+    const category = order.category || '-';
+    const quantity = order.qty || order.quantity || '-';
+    const username =
+      order.shopeeLink ||
+      order.username ||
+      order.accountName ||
+      '-';
+
+    const whatsapp =
+      order.customerWhatsapp ||
+      order.accountContact ||
+      '-';
+
+    const amount = order.amount || order.total || '-';
+
+    const formattedAmount = Number(amount).toLocaleString('id-ID');
+
+    const message = `💰 PEMBAYARAN BERHASIL - DIGITAL EVO
+
+📦 Kategori: ${category}
+🔢 Jumlah: ${quantity}
+👤 Username/Link: ${username}
+📱 WhatsApp/Kontak: ${whatsapp}
+💵 Total: Rp${formattedAmount}
+💳 Pembayaran: QRIS
+
+✅ Status: PEMBAYARAN BERHASIL
+🕐 Waktu: ${paymentTime}`;
+
+    await axios.post(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      {
+        chat_id: chatId,
+        text: message
+      }
+    );
+
+    return res.json({
+      success: true,
+      message: 'Notifikasi pembayaran berhasil dikirim ke Telegram'
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
+    });
+  }
+});
+
 module.exports = app;
