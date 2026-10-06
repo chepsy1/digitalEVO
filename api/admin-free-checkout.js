@@ -78,16 +78,25 @@ export default async function handler(req, res) {
     }
     if (!product) return json(res,404,{error:'Produk tidak ditemukan. Silakan refresh daftar produk admin.'});
 
-    if (!product?.id || !uuidPattern.test(String(product.id))) {
-      return json(res,500,{error:'Produk ditemukan tetapi UUID produk tidak valid. Silakan refresh produk admin.'});
+    if (!product) {
+      return json(res,404,{error:'Produk tidak ditemukan. Silakan refresh daftar produk admin.'});
     }
+
+    // IMPORTANT: pada database lama, products.id dapat berupa angka (mis. 5),
+    // sedangkan orders.product_id adalah UUID. Jangan pernah mengirim angka
+    // tersebut ke kolom UUID karena PostgreSQL akan melempar invalid input syntax.
+    // Jika ID produk bukan UUID, biarkan product_id NULL; informasi produk tetap
+    // disimpan melalui product_name/category sehingga order tetap masuk statistik.
+    const resolvedProductId = uuidPattern.test(String(product.id || ''))
+      ? String(product.id)
+      : null;
 
     const qty = Math.max(1, Number(quantity) || 1);
     const invoice = `ADM-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random()*900+100)}`;
 
     const order = {
       transaction_id: invoice,
-      product_id: product.id,
+      product_id: resolvedProductId,
       product_name: product.category === 'account'
         ? `Akun Shopee ${Number(product.qty).toLocaleString('id-ID')} Followers`
         : `${Number(product.qty).toLocaleString('id-ID')} Followers`,
