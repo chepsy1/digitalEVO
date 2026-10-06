@@ -62,8 +62,34 @@ function bindCheckout(){
     paymentModal?.setAttribute('aria-hidden','true');
     document.body.style.overflow='';
   };
+  const bindPhotoUpload=()=>{
+    const input=document.getElementById('shopeeScreenshot');
+    const preview=document.getElementById('shopeeScreenshotPreview');
+    if(!input||!preview)return;
+    input.onchange=()=>{
+      const file=input.files?.[0];
+      preview.innerHTML='';
+      if(!file)return;
+      const allowed=['image/jpeg','image/png','image/webp'];
+      if(!allowed.includes(file.type)){
+        input.value='';
+        preview.innerHTML='<span class=\"upload-error\">Format harus JPG, PNG, atau WEBP.</span>';
+        return;
+      }
+      if(file.size>3*1024*1024){
+        input.value='';
+        preview.innerHTML='<span class=\"upload-error\">Ukuran foto maksimal 3 MB.</span>';
+        return;
+      }
+      const img=document.createElement('img');
+      img.alt='Preview screenshot akun Shopee';
+      img.src=URL.createObjectURL(file);
+      preview.appendChild(img);
+    };
+  };
   paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
 
+  // Checkout fields are category-specific: the Shopee screenshot upload exists ONLY for Followers orders.
   const setFields=isAccount=>{
     const fields=document.getElementById('checkoutFields');
     if(!fields)return;
@@ -77,7 +103,13 @@ function bindCheckout(){
       fields.innerHTML=`
         <label id="shopeeLinkLabel">Link / Username Shopee<input id="shopeeLink" required placeholder="masukkan username atau link akun shopee" /></label>
         <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
+        <label class="photo-upload-label">Upload Foto/Screenshoot Akun Shopee
+          <input id="shopeeScreenshot" type="file" accept="image/jpeg,image/png,image/webp" required />
+        </label>
+        <div class="upload-help">Khusus pesanan Followers Shopee. Upload screenshot halaman akun/profil Shopee. JPG, PNG, atau WEBP, maksimal 3 MB.</div>
+        <div id="shopeeScreenshotPreview" class="photo-upload-preview" aria-live="polite"></div>
       `;
+      bindPhotoUpload();
     }
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
@@ -319,8 +351,28 @@ function bindCheckout(){
       payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
     }
     const submit=e.submitter||form.querySelector('button[type=submit]');
-    if(submit){submit.disabled=true;submit.textContent='Membuat QRIS...';}
+    if(submit){submit.disabled=true;submit.textContent='Menyiapkan pesanan...';}
     try{
+      if(payload.category==='followers'){
+        const fileInput=document.getElementById('shopeeScreenshot');
+        const file=fileInput?.files?.[0];
+        if(!file) throw new Error('Silakan upload foto/screenshot akun Shopee terlebih dahulu.');
+        if(!['image/jpeg','image/png','image/webp'].includes(file.type)) throw new Error('Format foto harus JPG, PNG, atau WEBP.');
+        if(file.size>3*1024*1024) throw new Error('Ukuran foto maksimal 3 MB.');
+        const cfg=window.SUPABASE_CONFIG||{};
+        if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient) throw new Error('Konfigurasi Supabase belum tersedia untuk upload foto.');
+        const client=window.supabase.createClient(cfg.url,cfg.anonKey);
+        const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+        const path=`orders/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+        if(submit)submit.textContent='Mengupload foto...';
+        const upload=await client.storage.from('order-photos').upload(path,file,{contentType:file.type,upsert:false});
+        if(upload.error) throw new Error(upload.error.message||'Gagal mengupload foto.');
+        const publicResult=client.storage.from('order-photos').getPublicUrl(path);
+        payload.photoPath=path;
+        payload.photoUrl=publicResult?.data?.publicUrl||'';
+        payload.photoName=file.name;
+      }
+      if(submit)submit.textContent='Membuat QRIS...';
       const response = await fetch('/api/create-qris',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -350,6 +402,9 @@ function bindCheckout(){
         shopeeLink: payload.shopeeLink || '',
         accountName: payload.accountName || '',
         accountContact: payload.accountContact || '',
+        photoUrl: payload.photoUrl || '',
+        photoPath: payload.photoPath || '',
+        photoName: payload.photoName || '',
         createdAt: new Date().toISOString()
       }));
 

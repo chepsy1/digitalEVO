@@ -65,6 +65,13 @@ function buildEmailHtml(order) {
       <div style="margin-top:22px;padding:14px 16px;border-radius:10px;background:#ecfdf5;color:#166534;font-weight:700;">
         Status: PEMBAYARAN BERHASIL
       </div>
+
+      ${order.photoUrl ? `
+      <div style="margin-top:22px;padding-top:20px;border-top:1px solid #e5e7eb;">
+        <div style="font-size:13px;color:#6b7280;margin-bottom:8px;">Foto / Screenshot Akun Shopee</div>
+        <a href="${escapeHtml(order.photoUrl)}" target="_blank" rel="noopener" style="display:inline-block;color:#ea580c;font-weight:800;text-decoration:none;margin-bottom:12px;">Buka foto asli →</a>
+        <img src="${escapeHtml(order.photoUrl)}" alt="Screenshot akun Shopee" style="display:block;width:100%;max-width:560px;height:auto;border:1px solid #e5e7eb;border-radius:12px;" />
+      </div>` : ''}
     </div>
   </div>
 </body>

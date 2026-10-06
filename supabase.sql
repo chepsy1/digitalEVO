@@ -204,3 +204,22 @@ create policy "admin update payments" on public.payments
   for update to authenticated
   using (public.is_admin())
   with check (public.is_admin());
+
+-- ============================================================
+-- Order screenshot uploads
+-- The checkout uploads buyer's Shopee screenshot before QRIS creation.
+-- Files are publicly readable so the admin email can contain a direct
+-- image link. Do not use this bucket for sensitive documents.
+-- ============================================================
+insert into storage.buckets (id, name, public)
+values ('order-photos', 'order-photos', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "public read order photos" on storage.objects;
+create policy "public read order photos" on storage.objects
+  for select using (bucket_id = 'order-photos');
+
+drop policy if exists "public upload order photos" on storage.objects;
+create policy "public upload order photos" on storage.objects
+  for insert to anon, authenticated
+  with check (bucket_id = 'order-photos' and name like 'orders/%');
