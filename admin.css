@@ -1124,3 +1124,5 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
   .image-admin-grid{grid-template-columns:1fr 1fr}
   .free-checkout-grid{grid-template-columns:1fr}
 }
+
+.order-shopee-link a{display:inline-block;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--primary,#2563eb);font-weight:700;text-decoration:none}.order-shopee-link a:hover{text-decoration:underline}

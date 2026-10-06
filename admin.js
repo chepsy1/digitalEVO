@@ -387,6 +387,7 @@ function renderOrders() {
           <tr>
             <th>Invoice</th>
             <th>WhatsApp</th>
+            <th>Link / Username Shopee</th>
             <th>Produk</th>
             <th>Jumlah</th>
             <th>Harga</th>
@@ -400,6 +401,7 @@ function renderOrders() {
             <tr>
               <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
               <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
+              <td class="order-shopee-link">${order.shopee_link ? `<a href="${escapeAttr(order.shopee_link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(order.shopee_link)}</a>` : '-'}</td>
               <td>${escapeHtml(order.product_name || order.product || '-')}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>

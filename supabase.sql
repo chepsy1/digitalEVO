@@ -248,6 +248,9 @@ create table if not exists public.orders (
   transaction_id text unique,
   customer_whatsapp text,
   account_contact text,
+  shopee_link text,
+  photo_url text,
+  photo_path text,
   product_id uuid references public.products(id) on delete set null,
   product_name text,
   category text,
@@ -263,6 +266,9 @@ create table if not exists public.orders (
 
 alter table public.orders add column if not exists customer_whatsapp text;
 alter table public.orders add column if not exists account_contact text;
+alter table public.orders add column if not exists shopee_link text;
+alter table public.orders add column if not exists photo_url text;
+alter table public.orders add column if not exists photo_path text;
 alter table public.orders add column if not exists product_id uuid;
 alter table public.orders add column if not exists product_name text;
 alter table public.orders add column if not exists category text;
