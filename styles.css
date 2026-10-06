@@ -424,3 +424,229 @@
     height: 21px;
   }
 }
+
+
+/* =========================================================
+   digitalEVO - LAYANAN PREMIUM SHOPEE (mobile first)
+   Scoped to .devo-premium-* so the rest of the website is untouched.
+   ========================================================= */
+.devo-premium-section{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px 14px 18px;
+  background:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+}
+.devo-premium-card{
+  width:100%;
+  max-width:620px;
+  margin:0 auto;
+  box-sizing:border-box;
+  padding:20px 16px 18px;
+  border:2px solid #f6c400;
+  border-radius:18px;
+  background:linear-gradient(180deg,#fff 0%,#fffdf3 52%,#fff7df 100%);
+  box-shadow:0 8px 24px rgba(242,155,0,.12);
+  overflow:hidden;
+}
+.devo-premium-brand{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:0 0 8px;
+}
+.devo-premium-logo{
+  display:block;
+  width:auto;
+  max-width:150px;
+  height:auto;
+  max-height:76px;
+  object-fit:contain;
+}
+.devo-premium-title{text-align:center;margin:0 0 18px}
+.devo-premium-title h2{
+  margin:0;
+  color:#f36b21;
+  font-size:22px;
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+.devo-premium-title p{
+  margin:8px auto 0;
+  max-width:500px;
+  color:#6d5410;
+  font-size:11px;
+  line-height:1.5;
+  font-weight:700;
+  letter-spacing:.35px;
+}
+.devo-premium-features,
+.devo-premium-benefits{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+.devo-premium-features{display:flex;flex-direction:column;gap:9px}
+.devo-premium-features li{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:11px 10px;
+  border:1px solid #f7df88;
+  border-radius:12px;
+  background:#fff;
+  box-sizing:border-box;
+}
+.devo-premium-features li > div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.devo-premium-features strong{
+  color:#f36b21;
+  font-size:14px;
+  line-height:1.25;
+  font-weight:800;
+}
+.devo-premium-features li > div > span{
+  color:#4b4b4b;
+  font-size:12px;
+  line-height:1.4;
+}
+
+/* Mobile: exact compact layout requested = 2 + 2 + 1 */
+@media (max-width:699px){
+  .devo-premium-features{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    align-items:stretch;
+  }
+  .devo-premium-features li{
+    width:100%;
+    min-width:0;
+    min-height:0;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    gap:5px;
+    padding:9px 7px 8px;
+    border-radius:10px;
+    text-align:center;
+  }
+  /* Poin 1-4 = dua kolom; poin 5 = selebar dua kolom */
+  .devo-premium-features li:nth-child(5){
+    grid-column:1 / -1;
+  }
+  .devo-premium-features .devo-premium-icon{
+    flex:0 0 28px;
+    width:28px;
+    height:28px;
+    border-radius:8px;
+  }
+  .devo-premium-features .devo-premium-icon svg{
+    width:16px;
+    height:16px;
+  }
+  .devo-premium-features strong{
+    display:block;
+    font-size:10.5px;
+    line-height:1.2;
+    word-break:normal;
+  }
+  .devo-premium-features li > div{
+    width:100%;
+    min-width:0;
+    gap:2px;
+  }
+  .devo-premium-features li > div > span{
+    display:block;
+    font-size:9.5px;
+    line-height:1.25;
+  }
+}
+.devo-premium-icon{
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  background:#fff2bd;
+  color:#f36b21;
+  box-sizing:border-box;
+}
+.devo-premium-icon svg,
+.devo-premium-lock svg{
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.devo-premium-benefits{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed #e8c84e;
+}
+.devo-premium-benefits > div{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#3e3e3e;
+  font-size:12px;
+  line-height:1.35;
+}
+.devo-premium-benefits .devo-premium-icon{flex-basis:31px;width:31px;height:31px;border-radius:9px}
+.devo-premium-benefits .devo-premium-icon svg{width:18px;height:18px}
+.devo-premium-safe{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:15px;
+  padding:12px;
+  border-radius:12px;
+  background:#fff1bd;
+  border:1px solid #f4d45d;
+  color:#5d4b12;
+}
+.devo-premium-lock{
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  background:#fff;
+  color:#f36b21;
+}
+.devo-premium-safe > div{display:flex;flex-direction:column;gap:2px}
+.devo-premium-safe b{font-size:13px;line-height:1.2;color:#d95b17}
+.devo-premium-safe span{font-size:11px;line-height:1.35}
+@media (min-width:700px){
+  .devo-premium-section{padding-left:20px;padding-right:20px}
+  .devo-premium-card{padding:24px 22px 20px}
+  .devo-premium-title h2{font-size:25px}
+  .devo-premium-title p{font-size:12px}
+}
+
+/* Mobile layout fix for Premium Shopee feature cards: 2 + 2 + 1 */
+@media (max-width: 700px) {
+  .devo-premium .devo-features,
+  .devo-premium .features-grid,
+  .devo-premium .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+  .devo-premium .devo-features > :nth-child(5),
+  .devo-premium .features-grid > :nth-child(5),
+  .devo-premium .feature-grid > :nth-child(5) {
+    grid-column: 1 / -1 !important;
+  }
+}

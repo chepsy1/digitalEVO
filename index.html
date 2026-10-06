@@ -299,6 +299,37 @@
 }
 </style>
 
+
+<style id="devo-premium-mobile-2rows-fix">
+/* FIX: 5 fitur premium Shopee = 2 kolom + 2 kolom + 1 full-width */
+@media (max-width: 700px) {
+  .devo-premium .devo-features,
+  .devo-premium .features-grid,
+  .devo-premium .feature-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .devo-premium .devo-features > :nth-child(5),
+  .devo-premium .features-grid > :nth-child(5),
+  .devo-premium .feature-grid > :nth-child(5) {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+
+  .devo-premium .devo-feature,
+  .devo-premium .feature-card,
+  .devo-premium .feature-item {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px 9px !important;
+  }
+}
+</style>
+
 </head>
 <body>
   <header class="site-header">
@@ -338,66 +369,50 @@
     </section>
 
 
-    <!-- FOLLOWERS SHOPEE PREMIUM - INTEGRATED CARD -->
-    <section aria-label="Informasi Followers Shopee Premium" style="padding:10px 0 14px;">
-      <div class="container">
-        <div style="
-          border:2px solid transparent;
-          border-radius:14px;
-          padding:0;
-          margin:0;
-          box-sizing:border-box;
-          background:
-            linear-gradient(180deg,#ffffff 0%,#fffaf8 55%,#fff3ee 100%) padding-box,
-            linear-gradient(135deg,rgba(238,77,45,.24),rgba(255,138,101,.14),rgba(238,77,45,.24)) border-box;
-          font-family:Arial,sans-serif;
-          overflow:hidden;
-          box-shadow:0 3px 8px rgba(238,77,45,.08),0 8px 20px rgba(238,77,45,.05);
-        ">
+    <!-- FOLLOWERS SHOPEE PREMIUM - REDESIGNED MOBILE FIRST -->
+    <section class="devo-premium-section" aria-label="Informasi Followers Shopee Premium">
+      <div class="devo-premium-card">
+        <div class="devo-premium-brand">
+          <img src="assets/logo.webp" alt="digitalEVO" class="devo-premium-logo">
+        </div>
 
-          <!-- PREMIUM SHOPEE INFO - SIMPLE TEXT STYLE -->
-          <div class="premium-simple-content">
-            <div class="premium-simple-title">
-              <h2>LAYANAN PREMIUM SHOPEE</h2>
-              <p>UNTUK TOKO ONLINE/AFFILIATE</p>
-            </div>
+        <div class="devo-premium-title">
+          <h2>LAYANAN PREMIUM SHOPEE</h2>
+          <p>SOLUSI TERPERCAYA UNTUK KEBUTUHAN TOKO ONLINE &amp; AFFILIATE ANDA.</p>
+        </div>
 
-            <ul class="premium-simple-features">
-              <li>
-                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6"/></svg></span>
-                <div><strong>Real Human</strong><span>(Bukan Bot &amp; Bukan Akun Fake)</span></div>
-              </li>
-              <li>
-                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
-                <div><strong>Permanent</strong><span>(Jumlah Followers Tidak Drop)</span></div>
-              </li>
-              <li>
-                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-                <div><strong>65 - 85%</strong><span>Akun Aktif</span></div>
-              </li>
-              <li>
-                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-                <div><strong>70 - 90%</strong><span>Akun Followers Indonesia</span></div>
-              </li>
-              <li>
-                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.2-1.2"/></svg></span>
-                <div><strong>Proses hanya membutuhkan</strong><span>Link/Username</span></div>
-              </li>
-            </ul>
+        <ul class="devo-premium-features">
+          <li>
+            <span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6"/></svg></span>
+            <div><strong>Real Human</strong><span>(Bukan Bot &amp; Bukan Akun Fake)</span></div>
+          </li>
+          <li>
+            <span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+            <div><strong>Permanent</strong><span>(Jumlah Followers Tidak Drop)</span></div>
+          </li>
+          <li>
+            <span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <div><strong>80–95%</strong><span>Akun Aktif</span></div>
+          </li>
+          <li>
+            <span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+            <div><strong>70–90%</strong><span>Akun Followers Indonesia</span></div>
+          </li>
+          <li>
+            <span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.2-1.2"/></svg></span>
+            <div><strong>Proses hanya membutuhkan</strong><span>Link/Username</span></div>
+          </li>
+        </ul>
 
-            <div class="premium-simple-benefits">
-              <div><span class="premium-point-icon premium-password-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="16" r="3.5"/><path d="M10.8 13.2 19 5v3h-3v3h-3l-2.2 2.2"/><path d="M8 14.5v3"/></svg></span><b>Tanpa Membutuhkan Password</b></div>
-              <div><span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 6h4M11 18h2"/></svg></span><b>Tanpa Harus Menginstal Aplikasi</b></div>
-              <div><span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.2-1.2"/><path d="M4 4l16 16"/></svg></span><b>Tanpa Klik Link dan Tanpa Harus Login</b></div>
-            </div>
+        <div class="devo-premium-benefits">
+          <div><span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="16" r="3.5"/><path d="M10.8 13.2 19 5v3h-3v3h-3l-2.2 2.2"/><path d="M8 14.5v3"/></svg></span><b>Tanpa Membutuhkan Password</b></div>
+          <div><span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 6h4M11 18h2"/></svg></span><b>Tanpa Harus Menginstal Aplikasi</b></div>
+          <div><span class="devo-premium-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.2-1.2"/><path d="M4 4l16 16"/></svg></span><b>Tanpa Klik Link dan Tanpa Harus Login</b></div>
+        </div>
 
-            <div class="premium-simple-safe">
-              <span class="premium-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1"/><path d="M12 16v2"/></svg></span>
-              <b>Akun Aman</b>
-              <span>dengan metode yang kami gunakan.</span>
-            </div>
-          </div>
-          </div>
+        <div class="devo-premium-safe">
+          <span class="devo-premium-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1"/><path d="M12 16v2"/></svg></span>
+          <div><b>Akun Aman</b><span>dengan metode yang kami gunakan.</span></div>
         </div>
       </div>
     </section>
