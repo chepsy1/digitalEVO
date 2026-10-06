@@ -134,3 +134,31 @@ Atau hubungkan repository GitHub ke Vercel. Untuk production, tetap masukkan sec
 
 Jika checkout menampilkan `Payment gateway belum dikonfigurasi`, periksa `PAYMENT_GATEWAY_URL` dan `PAYMENT_GATEWAY_API_KEY`. Jika gateway merespons error, cek endpoint `/create-qris` dan `/check-payment` pada gateway yang digunakan.
 
+
+
+## Notifikasi Email Pesanan
+
+Website sekarang dapat mengirim email otomatis setiap kali pembayaran pesanan **berhasil dikonfirmasi**. Notifikasi dikirim dari Vercel Function `/api/notify-order`, sehingga API key email tidak pernah masuk ke browser.
+
+Fitur ini menggunakan **Resend API** tanpa menambah dependency npm.
+
+### Environment Variables di Vercel
+
+Tambahkan variable berikut pada project Vercel:
+
+```env
+RESEND_API_KEY=re_xxxxxxxxx
+NOTIFY_EMAIL=email-anda@example.com
+RESEND_FROM=digitalEVO <noreply@domain-anda.com>
+```
+
+- `RESEND_API_KEY`: API key dari akun Resend.
+- `NOTIFY_EMAIL`: alamat email Anda yang menerima notifikasi.
+- `RESEND_FROM`: alamat pengirim yang sudah diverifikasi di Resend. Untuk domain produksi, gunakan domain yang telah diverifikasi di Resend.
+- `PAYMENT_GATEWAY_URL` dan `PAYMENT_GATEWAY_API_KEY` tetap dipertahankan untuk notifikasi Telegram/QRIS yang sudah ada.
+
+### Kapan email dikirim?
+
+Email dikirim setelah `/api/check-payment` mengembalikan status pembayaran sebagai berhasil. Jadi pembuatan QRIS atau checkout yang belum dibayar **tidak** mengirim email pesanan berhasil.
+
+Isi email mencakup nomor transaksi, produk, jumlah, username/link Shopee, WhatsApp/kontak, total pembayaran, waktu pembayaran, dan status pembayaran.
