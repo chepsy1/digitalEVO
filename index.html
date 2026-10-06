@@ -17,6 +17,145 @@
 .feature-icon{width:15px;height:15px;min-width:15px;display:block;color:#f15a24;flex:none;margin-top:3px;overflow:visible;}
 .feature-icon *{vector-effect:non-scaling-stroke;}
 </style>
+
+<style>
+/* Premium Shopee - simple white/black typography */
+.premium-simple-content {
+  background: #fff;
+  color: #111;
+  padding: 28px 30px 30px;
+  font-family: Inter, Poppins, Arial, sans-serif;
+}
+
+.premium-simple-title {
+  margin-bottom: 22px;
+}
+
+.premium-simple-title h2 {
+  margin: 0 0 6px;
+  color: #111;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.premium-simple-title p {
+  margin: 0;
+  color: #111;
+  font-size: clamp(14px, 1.8vw, 18px);
+  line-height: 1.5;
+}
+
+.premium-simple-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.premium-simple-features li {
+  color: #111;
+  padding: 18px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  border-right: 1px solid #e7e7e7;
+}
+
+.premium-simple-features li:last-child {
+  border-right: 0;
+}
+
+.premium-simple-features strong,
+.premium-simple-features span {
+  color: #111;
+}
+
+.premium-simple-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 18px;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.premium-simple-benefits > div {
+  color: #111;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-right: 1px solid #e7e7e7;
+}
+
+.premium-simple-benefits > div:last-child {
+  border-right: 0;
+}
+
+.premium-simple-safe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: #111;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.premium-simple-safe .premium-lock {
+  display: inline-flex;
+  color: #111;
+  flex: 0 0 auto;
+}
+
+.premium-simple-safe b {
+  color: #111;
+}
+
+@media (max-width: 800px) {
+  .premium-simple-content {
+    padding: 22px 18px 24px;
+  }
+
+  .premium-simple-features {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .premium-simple-features li:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .premium-simple-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-simple-benefits > div {
+    border-right: 0;
+    border-bottom: 1px solid #e7e7e7;
+  }
+
+  .premium-simple-benefits > div:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-simple-features {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-simple-features li {
+    border-right: 0;
+    border-bottom: 1px solid #e7e7e7;
+  }
+
+  .premium-simple-features li:last-child {
+    border-bottom: 0;
+  }
+}
+</style>
+
 </head>
 <body>
   <header class="site-header">
@@ -73,35 +212,38 @@
           box-shadow:0 3px 8px rgba(238,77,45,.08),0 8px 20px rgba(238,77,45,.05);
         ">
 
-          <!-- HEADER IMAGE -->
-          <div class="premium-image-header">
-            <img src="assets/premium-shopee-header.webp" alt="Followers Shopee Premium — digitalEVO">
-          </div>
-
-          <!-- ISI -->
-          <div style="padding:12px 14px;background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(255,250,248,.96) 50%,rgba(255,243,238,.98) 100%);">
-            <div style="background:linear-gradient(135deg,#fff8f5,#fff0ea);border-left:3px solid rgba(238,77,45,.72);border-radius:6px;padding:7px 9px;margin-bottom:8px;font-size:12px;box-shadow:0 2px 6px rgba(238,77,45,.05);color:#333;">
-              <b style="color:#bd9400;">Layanan Premium Shopee</b> dengan proses mudah dan praktis.
+          <!-- PREMIUM SHOPEE INFO - SIMPLE TEXT STYLE -->
+          <div class="premium-simple-content">
+            <div class="premium-simple-title">
+              <h2>Layanan Premium Shopee</h2>
+              <p>dengan proses mudah dan praktis.</p>
             </div>
 
-            <ul style="margin:5px 0 7px 18px;padding:0;font-size:12px;line-height:1.5;color:#636363;">
-              <li>Real Human <b>(Bukan Bot &amp; Bukan Akun Fake)</b></li>
-              <li>Permanent <b>(Jumlah Followers Tidak Drop)</b></li>
-              <li><b>65 - 85%</b> Akun Aktif</li>
-              <li><b>70 - 90%</b> Akun Followers Indonesia</li>
-              <li><span style="color:#efc631;">Proses hanya membutuhkan Link/Username</span></li>
+            <ul class="premium-simple-features">
+              <li><strong>Real Human</strong> <span>(Bukan Bot &amp; Bukan Akun Fake)</span></li>
+              <li><strong>Permanent</strong> <span>(Jumlah Followers Tidak Drop)</span></li>
+              <li><strong>65 - 85%</strong> <span>Akun Aktif</span></li>
+              <li><strong>70 - 90%</strong> <span>Akun Followers Indonesia</span></li>
+              <li><strong>Proses hanya membutuhkan</strong> <span>Link/Username</span></li>
             </ul>
 
-            <div style="background:linear-gradient(135deg,#ffffff,#fff7f4);border:1px solid rgba(240,218,211,.72);border-radius:8px;padding:8px 10px;margin-top:7px;font-size:12px;line-height:1.55;color:#444;box-shadow:0 2px 7px rgba(238,77,45,.04);">
-              <div><b><span style="color:rgba(238,77,45,.82);">▪</span> Tanpa Membutuhkan Password</b></div>
-              <div><b><span style="color:rgba(238,77,45,.82);">▪</span> Tanpa Harus Menginstal Aplikasi</b></div>
-              <div><b><span style="color:rgba(238,77,45,.82);">▪</span> Tanpa Klik Link dan Tanpa Harus Login</b></div>
+            <div class="premium-simple-benefits">
+              <div><strong>▪</strong> <b>Tanpa Membutuhkan Password</b></div>
+              <div><strong>▪</strong> <b>Tanpa Harus Menginstal Aplikasi</b></div>
+              <div><strong>▪</strong> <b>Tanpa Klik Link dan Tanpa Harus Login</b></div>
             </div>
 
-            <div style="margin-top:8px;padding:7px 9px;background:linear-gradient(135deg,rgba(255,249,246,.94),rgba(255,237,231,.9));border:1px solid rgba(255,224,215,.72);border-radius:7px;font-size:11px;box-shadow:0 2px 6px rgba(238,77,45,.04);color:#636363;">
-              <span style="color:#e79439;font-size:14px;font-weight:700;">♢</span>
-              <b style="color:#e79439;">Akun Aman</b>
-              <b>dengan metode yang kami gunakan</b>.
+            <div class="premium-simple-safe">
+              <span class="premium-lock" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="10" width="14" height="11" rx="2"></rect>
+                  <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                  <circle cx="12" cy="15" r="1"></circle>
+                  <path d="M12 16v2"></path>
+                </svg>
+              </span>
+              <b>Akun Aman</b>
+              <span>dengan metode yang kami gunakan.</span>
             </div>
           </div>
         </div>
