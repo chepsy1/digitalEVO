@@ -149,6 +149,115 @@
         text-align: left;
       }
     }
+
+    /* ===== POPUP IKLAN SETELAH CHECKOUT BERHASIL ===== */
+    .checkout-ad-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(5, 15, 35, .68);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .checkout-ad-overlay.is-visible {
+      display: flex;
+      animation: checkoutAdFadeIn .25s ease-out;
+    }
+
+    .checkout-ad {
+      position: relative;
+      width: min(760px, 94vw);
+      max-height: 88vh;
+      animation: checkoutAdZoom .28s ease-out;
+    }
+
+    .checkout-ad-link {
+      display: block;
+      line-height: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,.96);
+      background: #061536;
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.45),
+        0 0 0 1px rgba(255,255,255,.20);
+    }
+
+    .checkout-ad-link img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 82vh;
+      object-fit: contain;
+    }
+
+    .checkout-ad-close {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      z-index: 2;
+      width: 38px;
+      height: 38px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: #172b4d;
+      color: #fff;
+      font: 700 22px/32px Arial, sans-serif;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 5px 16px rgba(0,0,0,.30);
+      padding: 0;
+    }
+
+    .checkout-ad-close:hover {
+      background: #ef4444;
+    }
+
+    @keyframes checkoutAdFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes checkoutAdZoom {
+      from {
+        opacity: 0;
+        transform: scale(.92);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .checkout-ad-overlay {
+        padding: 16px;
+      }
+
+      .checkout-ad {
+        width: min(94vw, 560px);
+      }
+
+      .checkout-ad-link {
+        border-radius: 12px;
+        border-width: 2px;
+      }
+
+      .checkout-ad-close {
+        top: -11px;
+        right: -11px;
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
+        line-height: 28px;
+      }
+    }
+
   </style>
 </head>
 
@@ -210,7 +319,69 @@
   </main>
 
 
+  <!-- POPUP IKLAN: muncul 2 detik setelah halaman checkout berhasil terbuka -->
+  <div class="checkout-ad-overlay" id="checkoutAdOverlay" aria-hidden="true">
+    <div class="checkout-ad" role="dialog" aria-modal="true" aria-label="Iklan">
+      <button
+        type="button"
+        class="checkout-ad-close"
+        id="checkoutAdClose"
+        aria-label="Tutup iklan"
+      >×</button>
+
+      <a
+        class="checkout-ad-link"
+        href="https://followersindonesia.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Kunjungi Followers Indonesia"
+      >
+        <img
+          src="assets/popup-iklan-followers.png"
+          alt="Situs tambah followers, like, views — 100% aman tanpa drop"
+        />
+      </a>
+    </div>
+  </div>
+
+
 <script>
+
+  /* Popup iklan checkout: tampil 2 detik setelah success page terbuka */
+  (() => {
+    const overlay = document.getElementById('checkoutAdOverlay');
+    const closeButton = document.getElementById('checkoutAdClose');
+
+    if (!overlay || !closeButton) return;
+
+    const closeAd = () => {
+      overlay.classList.remove('is-visible');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    };
+
+    const openAd = () => {
+      overlay.classList.add('is-visible');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      closeButton.focus();
+    };
+
+    closeButton.addEventListener('click', closeAd);
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) closeAd();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && overlay.classList.contains('is-visible')) {
+        closeAd();
+      }
+    });
+
+    window.setTimeout(openAd, 2000);
+  })();
+
   const data = JSON.parse(
     sessionStorage.getItem('digitalEVO_success') || '{}'
   );
