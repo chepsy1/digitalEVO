@@ -66,3 +66,7 @@ Upload seluruh isi ZIP ke GitHub/Vercel seperti website sebelumnya. Setelah depl
 3. Pastikan admin user sudah masuk tabel `public.admins`.
 4. Login ke `/admin.html`.
 5. Buka Dashboard dan Analytics.
+
+
+### Pencatatan pembayaran QRIS
+Setelah pembayaran berstatus PAID, `/api/check-payment` menyimpan order ke `orders` menggunakan `SUPABASE_SERVICE_ROLE_KEY` dan memperbarui `products.sold` jika nilai sold saat ini berupa angka.
