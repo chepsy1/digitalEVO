@@ -300,36 +300,41 @@
 </style>
 
 
-<style id="devo-premium-mobile-2rows-fix">
-/* FIX: 5 fitur premium Shopee = 2 kolom + 2 kolom + 1 full-width */
-@media (max-width: 700px) {
-  .devo-premium .devo-features,
-  .devo-premium .features-grid,
-  .devo-premium .feature-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-    width: 100% !important;
-  }
 
-  .devo-premium .devo-features > :nth-child(5),
-  .devo-premium .features-grid > :nth-child(5),
-  .devo-premium .feature-grid > :nth-child(5) {
-    grid-column: 1 / -1 !important;
-    width: 100% !important;
-  }
 
-  .devo-premium .devo-feature,
-  .devo-premium .feature-card,
-  .devo-premium .feature-item {
-    min-width: 0 !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 12px 9px !important;
-  }
+<style>
+
+/* ===== PREMIUM SHOPEE IMAGE BANNER =====
+   Banner dibuat sebagai gambar.
+   CSS fitur/konten di bawah banner tetap dipertahankan.
+*/
+.devo-premium-image-banner {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    overflow: hidden;
+    border-radius: 18px;
 }
-</style>
 
+.devo-premium-image-banner img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: inherit;
+}
+
+@media (max-width: 600px) {
+    .devo-premium-image-banner {
+        border-radius: 14px;
+    }
+}
+
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -372,13 +377,15 @@
     <!-- FOLLOWERS SHOPEE PREMIUM - REDESIGNED MOBILE FIRST -->
     <section class="devo-premium-section" aria-label="Informasi Followers Shopee Premium">
       <div class="devo-premium-card">
-        <div class="devo-premium-brand">
-          <img src="assets/logo.webp" alt="digitalEVO" class="devo-premium-logo">
+        <div class="devo-premium-image-banner">
+          <img
+            src="assets/premium-shopee-banner.png"
+            alt="Layanan Premium Shopee digitalEVO"
+            loading="eager"
+          >
         </div>
 
-        <div class="devo-premium-title">
-          <h2>LAYANAN PREMIUM SHOPEE</h2>
-          <p>SOLUSI TERPERCAYA UNTUK KEBUTUHAN TOKO ONLINE &amp; AFFILIATE ANDA.</p>
+
         </div>
 
         <ul class="devo-premium-features">

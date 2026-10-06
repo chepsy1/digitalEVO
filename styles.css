@@ -650,3 +650,165 @@
     grid-column: 1 / -1 !important;
   }
 }
+
+
+/* =========================================================
+   PREMIUM SHOPEE HERO - yellow/orange Shopee-inspired header
+   ========================================================= */
+.devo-premium-hero{
+  margin:-20px -16px 18px;
+  padding:18px 16px 17px;
+  text-align:center;
+  background:linear-gradient(135deg,#ffd400 0%,#ffbd00 52%,#ff9f00 100%);
+  border-radius:16px 16px 12px 12px;
+  box-shadow:0 7px 18px rgba(255,153,0,.18);
+  font-family:"Poppins",Arial,Helvetica,sans-serif;
+}
+.devo-premium-hero .devo-premium-brand{
+  margin:0 0 7px;
+}
+.devo-premium-hero .devo-premium-logo{
+  width:82px;
+  max-width:82px;
+  max-height:52px;
+  height:auto;
+  padding:5px 9px;
+  box-sizing:border-box;
+  object-fit:contain;
+  background:rgba(255,255,255,.94);
+  border-radius:10px;
+  box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+.devo-premium-hero .devo-premium-title{
+  margin:0;
+}
+.devo-premium-hero .devo-premium-title h2{
+  margin:0;
+  color:#fff;
+  font-family:"Poppins",Arial,Helvetica,sans-serif;
+  font-size:19px;
+  line-height:1.25;
+  font-weight:700;
+  letter-spacing:.15px;
+  text-shadow:0 1px 2px rgba(173,90,0,.18);
+}
+.devo-premium-hero .devo-premium-title p{
+  margin:6px auto 0;
+  max-width:500px;
+  color:#fff;
+  font-family:"Poppins",Arial,Helvetica,sans-serif;
+  font-size:10px;
+  line-height:1.45;
+  font-weight:600;
+  letter-spacing:.18px;
+}
+@media (max-width:699px){
+  .devo-premium-hero{
+    margin:-20px -16px 15px;
+    padding:15px 12px 14px;
+    border-radius:15px 15px 11px 11px;
+  }
+  .devo-premium-hero .devo-premium-logo{
+    width:70px;
+    max-width:70px;
+    max-height:45px;
+    padding:4px 7px;
+    border-radius:9px;
+  }
+  .devo-premium-hero .devo-premium-title h2{
+    font-size:16px;
+    letter-spacing:.1px;
+  }
+  .devo-premium-hero .devo-premium-title p{
+    margin-top:5px;
+    font-size:9px;
+    line-height:1.45;
+  }
+}
+
+
+
+/* ===== PREMIUM SHOPEE BANNER VISUAL ENHANCEMENT ===== */
+/* Text styles are intentionally NOT changed. */
+
+.devo-premium-header {
+    position: relative !important;
+    overflow: hidden !important;
+    isolation: isolate !important;
+
+    background:
+        linear-gradient(
+            115deg,
+            transparent 0%,
+            rgba(255,255,255,0.10) 45%,
+            transparent 65%
+        ),
+        radial-gradient(
+            circle at 15% 50%,
+            rgba(255,255,255,0.20),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(255,255,255,0.16),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #ffd600 0%,
+            #ffc400 40%,
+            #ffab00 72%,
+            #ff9800 100%
+        ) !important;
+
+    border: 1px solid rgba(255,255,255,0.45) !important;
+    box-shadow:
+        0 8px 25px rgba(255,152,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.35) !important;
+}
+
+.devo-premium-header::before {
+    content: "" !important;
+    position: absolute !important;
+    width: 150px !important;
+    height: 150px !important;
+    left: -70px !important;
+    top: -75px !important;
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.12) !important;
+    z-index: -1 !important;
+}
+
+.devo-premium-header::after {
+    content: "" !important;
+    position: absolute !important;
+    width: 180px !important;
+    height: 180px !important;
+    right: -90px !important;
+    bottom: -100px !important;
+    border-radius: 50% !important;
+    background: rgba(255,255,255,0.10) !important;
+    z-index: -1 !important;
+}
+
+@media (max-width:600px) {
+    .devo-premium-header {
+        border-radius: 15px !important;
+        box-shadow:
+            0 6px 18px rgba(255,152,0,0.20),
+            inset 0 1px 0 rgba(255,255,255,0.35) !important;
+    }
+    .devo-premium-header::before {
+        width: 110px !important;
+        height: 110px !important;
+        left: -55px !important;
+        top: -55px !important;
+    }
+    .devo-premium-header::after {
+        width: 130px !important;
+        height: 130px !important;
+        right: -65px !important;
+        bottom: -70px !important;
+    }
+}
+
