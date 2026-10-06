@@ -225,9 +225,18 @@ create policy "admin update payments" on public.payments
 -- Files are publicly readable so the admin email can contain a direct
 -- image link. Do not use this bucket for sensitive documents.
 -- ============================================================
-insert into storage.buckets (id, name, public)
-values ('order-photos', 'order-photos', true)
-on conflict (id) do update set public = true;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'order-photos',
+  'order-photos',
+  true,
+  3145728,
+  ARRAY['image/jpeg','image/png','image/webp']::text[]
+)
+on conflict (id) do update set
+  public = true,
+  file_size_limit = 3145728,
+  allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp']::text[];
 
 drop policy if exists "public read order photos" on storage.objects;
 create policy "public read order photos" on storage.objects
@@ -236,7 +245,12 @@ create policy "public read order photos" on storage.objects
 drop policy if exists "public upload order photos" on storage.objects;
 create policy "public upload order photos" on storage.objects
   for insert to anon, authenticated
-  with check (bucket_id = 'order-photos' and name like 'orders/%');
+  with check (
+    bucket_id = 'order-photos'
+    and name like 'orders/%'
+    and lower(storage.extension(name)) in ('jpg','jpeg','png','webp')
+    and coalesce(metadata->>'mimetype','') in ('image/jpeg','image/png','image/webp')
+  );
 
 
 -- ============================================================

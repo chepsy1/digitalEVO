@@ -298,17 +298,6 @@ function bindCheckout(){
 
         const paymentTime = new Date().toISOString();
 
-        try {
-          await fetch('/api/notify-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...order,
-              paymentTime
-            })
-          });
-        } catch {}
-
         sessionStorage.setItem('digitalEVO_success', JSON.stringify({
           ...order,
           paymentTime
@@ -381,7 +370,12 @@ function bindCheckout(){
       const response = await fetch('/api/create-qris',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({amount:Number(payload.amount)})
+        body:JSON.stringify({
+          category: payload.category,
+          qty: Number(payload.qty),
+          productId: payload.productId || null,
+          productSortOrder: payload.productSortOrder || null
+        })
       });
 
       const data = await response.json();
