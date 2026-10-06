@@ -135,6 +135,29 @@ function setupMobileMenu() {
   };
 }
 
+function setupSidebarCollapse() {
+  const shell = $('panelView');
+  const button = $('sidebarCollapseBtn');
+  if (!shell || !button) return;
+
+  const saved = localStorage.getItem('digitalevo_admin_sidebar_collapsed');
+  if (saved === '1' && window.innerWidth > 850) {
+    shell.classList.add('sidebar-collapsed');
+  }
+
+  button.onclick = () => {
+    if (window.innerWidth <= 850) {
+      $('adminSidebar')?.classList.remove('open');
+      return;
+    }
+
+    const collapsed = shell.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('digitalevo_admin_sidebar_collapsed', collapsed ? '1' : '0');
+    button.setAttribute('aria-expanded', String(!collapsed));
+    button.setAttribute('title', collapsed ? 'Tampilkan menu' : 'Minimize menu');
+  };
+}
+
 /* =========================
    LOAD DATA
 ========================= */
@@ -1221,6 +1244,7 @@ async function showPanel() {
 
   setupNavigation();
   setupMobileMenu();
+  setupSidebarCollapse();
   setupProductTabs();
   setupAnalytics();
 
