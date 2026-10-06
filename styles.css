@@ -812,3 +812,125 @@
     }
 }
 
+
+
+/* =========================================================
+   PREMIUM SHOPEE - LAPTOP / DESKTOP POLISH
+   Banner image + content below aligned as one clean card.
+   ========================================================= */
+.devo-premium-section{
+  padding:24px 20px 30px !important;
+  background:#fff !important;
+}
+.devo-premium-card{
+  width:min(1120px,100%) !important;
+  max-width:1120px !important;
+  margin:0 auto !important;
+  padding:0 0 24px !important;
+  border:1px solid #f0c52a !important;
+  border-radius:20px !important;
+  background:#fff !important;
+  box-shadow:0 10px 30px rgba(38,45,55,.08) !important;
+  overflow:hidden !important;
+}
+.devo-premium-image-banner{
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  line-height:0 !important;
+  overflow:hidden !important;
+  border-radius:19px 19px 0 0 !important;
+  background:#ffb000 !important;
+}
+.devo-premium-image-banner img{
+  display:block !important;
+  width:100% !important;
+  height:auto !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+}
+.devo-premium-features{
+  width:calc(100% - 44px) !important;
+  margin:22px auto 0 !important;
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:12px !important;
+}
+.devo-premium-features li{
+  min-width:0 !important;
+  height:100% !important;
+  padding:14px 10px !important;
+  border:1px solid #f0df9a !important;
+  border-radius:12px !important;
+  background:linear-gradient(180deg,#fff 0%,#fffdf7 100%) !important;
+  box-shadow:0 3px 10px rgba(60,50,20,.045) !important;
+}
+.devo-premium-benefits{
+  width:calc(100% - 44px) !important;
+  margin:18px auto 0 !important;
+  padding-top:18px !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  gap:10px !important;
+}
+.devo-premium-benefits > div{
+  min-height:52px;
+  padding:9px 11px;
+  border:1px solid #f0e6c5;
+  border-radius:11px;
+  background:#fffdf7;
+  box-sizing:border-box;
+}
+.devo-premium-safe{
+  width:calc(100% - 44px) !important;
+  margin:16px auto 0 !important;
+  box-sizing:border-box;
+}
+
+@media (min-width:700px) and (max-width:1050px){
+  .devo-premium-features{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+  .devo-premium-features li:nth-child(5){
+    grid-column:1 / -1;
+  }
+  .devo-premium-benefits{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+
+@media (max-width:699px){
+  .devo-premium-section{
+    padding:14px 10px 22px !important;
+  }
+  .devo-premium-card{
+    border-radius:15px !important;
+    padding-bottom:16px !important;
+  }
+  .devo-premium-image-banner{
+    border-radius:14px 14px 0 0 !important;
+  }
+  .devo-premium-features{
+    width:calc(100% - 20px) !important;
+    margin-top:14px !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+  .devo-premium-features li:nth-child(5){
+    grid-column:1 / -1 !important;
+  }
+  .devo-premium-benefits{
+    width:calc(100% - 20px) !important;
+    grid-template-columns:1fr !important;
+    gap:7px !important;
+    margin-top:12px !important;
+    padding-top:12px !important;
+  }
+  .devo-premium-safe{
+    width:calc(100% - 20px) !important;
+    margin-top:12px !important;
+  }
+}
