@@ -6,8 +6,34 @@ export default async function handler(req, res) {
     const apiKey = process.env.PAYMENT_GATEWAY_API_KEY || process.env.API_KEY;
     if (!gateway || !apiKey) return res.status(500).json({ error: 'Payment gateway belum dikonfigurasi.' });
 
-    const amount = Number(req.body?.amount);
-    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Nominal pembayaran tidak valid.' });
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const category = String(body.category || '').trim();
+    const qty = Number(body.qty);
+    if (!['followers','account'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
+      return res.status(400).json({ error: 'Produk pembayaran tidak valid.' });
+    }
+
+    // Harga selalu diambil dari database. Nilai amount dari browser tidak dipercaya.
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(500).json({ error: 'Supabase server belum dikonfigurasi.' });
+    }
+    const supabaseBase = String(process.env.SUPABASE_URL).replace(/\/+$/, '');
+    const productResponse = await fetch(
+      `${supabaseBase}/rest/v1/products?category=eq.${encodeURIComponent(category)}&qty=eq.${encodeURIComponent(String(qty))}&select=id,category,qty,price&limit=1`,
+      { headers: {
+        'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+      }}
+    );
+    const productData = await productResponse.json();
+    if (!productResponse.ok) {
+      return res.status(500).json({ error: productData?.message || 'Gagal memverifikasi produk.' });
+    }
+    const product = productData?.[0];
+    const amount = Number(product?.price);
+    if (!product || !Number.isSafeInteger(amount) || amount <= 0) {
+      return res.status(400).json({ error: 'Produk tidak ditemukan atau harga tidak valid.' });
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 20000);

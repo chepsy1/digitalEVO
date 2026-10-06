@@ -1,39 +1,74 @@
+function json(res, status, body) {
+  return res.status(status).json(body);
+}
+
+async function supabaseFetch(path, options = {}) {
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!base || !key) throw new Error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi.');
+  return fetch(`${base}${path}`, {
+    ...options,
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+}
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
   try {
     const gateway = String(process.env.PAYMENT_GATEWAY_URL || '').replace(/\/+$/, '');
     const apiKey = process.env.PAYMENT_GATEWAY_API_KEY || process.env.API_KEY;
-
-    if (!gateway || !apiKey) {
-      return res.status(500).json({ error: 'Payment gateway belum dikonfigurasi.' });
-    }
+    if (!gateway || !apiKey) return json(res, 500, { error: 'Payment gateway belum dikonfigurasi.' });
 
     const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const order = body.order && typeof body.order === 'object' ? body.order : {};
+    const category = String(order.category || '').trim();
+    const qty = Number(order.quantity || order.qty);
+    const paymentId = String(body.paymentId || body.payment_id || body.transactionId || body.transaction_id || body.id || '').trim();
+
+    if (!paymentId) return json(res, 400, { error: 'Payment ID tidak valid.' });
+    if (!['followers', 'account'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
+      return json(res, 400, { error: 'Produk pesanan tidak valid.' });
+    }
+
+    // Harga dan produk diverifikasi ulang dari database. Nominal dari browser diabaikan.
+    const productResponse = await supabaseFetch(
+      `/rest/v1/products?category=eq.${encodeURIComponent(category)}&qty=eq.${encodeURIComponent(String(qty))}&select=id,category,qty,price&limit=1`
+    );
+    const products = await productResponse.json();
+    if (!productResponse.ok) return json(res, 500, { error: products?.message || 'Gagal memverifikasi produk.' });
+    const product = products?.[0];
+    const expectedAmount = Number(product?.price);
+    if (!product || !Number.isSafeInteger(expectedAmount) || expectedAmount <= 0) {
+      return json(res, 400, { error: 'Produk atau harga tidak valid.' });
+    }
+
+    const startTime = Number(body.startTime || Math.floor(Date.now() / 1000));
     const payload = {
-      ...body,
-      paymentId:
-        body.paymentId ||
-        body.payment_id ||
-        body.transactionId ||
-        body.transaction_id ||
-        body.id,
-      amount: Number(body.amount || 0),
-      startTime: Number(body.startTime || Math.floor(Date.now() / 1000))
+      paymentId,
+      // Penting: amount dikirim ke gateway dari database, bukan dari browser.
+      amount: expectedAmount,
+      startTime: Number.isFinite(startTime) ? startTime : Math.floor(Date.now() / 1000)
     };
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
-
     let response;
     try {
       response = await fetch(`${gateway}/check-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'X-API-Key': apiKey
         },
         body: JSON.stringify(payload),
@@ -45,155 +80,149 @@ export default async function handler(req, res) {
 
     const raw = await response.text();
     let data;
-    try {
-      data = raw ? JSON.parse(raw) : {};
-    } catch {
-      data = { raw };
-    }
-
+    try { data = raw ? JSON.parse(raw) : {}; } catch { data = { raw }; }
     if (!response.ok) {
-      return res.status(response.status).json({
-        error: data?.error || data?.message || `Gateway error (${response.status})`,
-        details: data
+      return json(res, response.status, {
+        error: data?.error || data?.message || `Gateway error (${response.status})`
       });
     }
 
     const d = data?.data || data?.result || data;
     const status = String(d?.status || data?.status || '').toUpperCase();
-    const paid =
-      d?.paid === true ||
-      data?.paid === true ||
-      ['PAID', 'SUCCESS', 'SUCCEEDED', 'COMPLETED', 'SETTLED'].includes(status);
+    const paid = d?.paid === true || data?.paid === true || ['PAID','SUCCESS','SUCCEEDED','COMPLETED','SETTLED'].includes(status);
+    const gatewayAmount = Number(
+      d?.amount ??
+      d?.transaction?.amount ??
+      data?.amount ??
+      data?.transaction?.amount ??
+      0
+    );
+
+    // Jika gateway memberi nominal transaksi, wajib sama dengan harga produk di database.
+    // Ini mencegah manipulasi amount dari browser.
+    if (paid && (!Number.isSafeInteger(gatewayAmount) || gatewayAmount !== expectedAmount)) {
+      return json(res, 400, {
+        error: 'Nominal pembayaran tidak sesuai dengan harga produk.',
+        paid: false,
+        orderRecorded: false
+      });
+    }
 
     let orderRecorded = false;
     let orderError = null;
+    let orderWasNew = false;
 
-    // Saat pembayaran benar-benar PAID, simpan transaksi ke Supabase.
-    // Jangan mengandalkan browser untuk mencatat order; server menggunakan
-    // service-role key agar dashboard admin selalu menerima transaksi.
     if (paid) {
-      if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        orderError = 'SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY belum tersedia di Vercel.';
+      const transactionId = paymentId;
+      const now = new Date().toISOString();
+      const resolvedProductId = isUuid(product.id) ? String(product.id) : null;
+
+      // Idempotency: polling status berkali-kali tidak boleh menggandakan sold.
+      const existingResponse = await supabaseFetch(
+        `/rest/v1/orders?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,transaction_id,payment_status,order_status&limit=1`
+      );
+      const existing = await existingResponse.json();
+      if (!existingResponse.ok) {
+        orderError = existing?.message || 'Gagal memeriksa order yang sudah ada.';
+      } else if (existing?.[0]) {
+        orderRecorded = true;
+        orderWasNew = false;
       } else {
-        const order = body.order || {};
-        const transactionId = String(payload.paymentId || order.transaction || '').trim();
+        const record = {
+          transaction_id: transactionId,
+          customer_whatsapp: order.customerWhatsapp || null,
+          account_contact: order.accountContact || null,
+          shopee_link: category === 'followers' ? (order.shopeeLink || null) : null,
+          photo_url: category === 'followers' ? (order.photoUrl || null) : null,
+          photo_path: category === 'followers' ? (order.photoPath || null) : null,
+          product_id: resolvedProductId,
+          product_name: category === 'account'
+            ? `Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`
+            : `${Number(qty).toLocaleString('id-ID')} Followers`,
+          category,
+          quantity: 1,
+          amount: expectedAmount,
+          payment_status: 'paid',
+          order_status: 'completed',
+          payment_method: 'QRIS',
+          paid_at: now,
+          updated_at: now
+        };
 
-        if (!transactionId) {
-          orderError = 'Transaction/payment ID kosong sehingga order tidak dapat dicatat.';
+        const insert = await supabaseFetch('/rest/v1/orders', {
+          method: 'POST',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify(record)
+        });
+        if (insert.ok) {
+          orderRecorded = true;
+          orderWasNew = true;
         } else {
-          const now = new Date().toISOString();
-          const qty = Math.max(1, Number(order.quantity || order.qty || 1));
-          const amount = Math.max(0, Number(payload.amount || order.amount || 0));
+          const orderRaw = await insert.text();
+          let orderData = {};
+          try { orderData = orderRaw ? JSON.parse(orderRaw) : {}; } catch {}
+          orderError = orderData?.message || orderData?.details || orderData?.hint || orderRaw || `Gagal menyimpan order (${insert.status}).`;
+        }
 
-          const record = {
-            transaction_id: transactionId,
-            customer_whatsapp: order.customerWhatsapp || null,
-            account_contact: order.accountContact || null,
-            shopee_link: order.shopeeLink || null,
-            photo_url: order.photoUrl || null,
-            photo_path: order.photoPath || null,
-            product_name: order.product || null,
-            category: order.category || null,
-            quantity: qty,
-            amount,
-            payment_status: 'paid',
-            order_status: 'completed',
-            payment_method: 'QRIS',
-            paid_at: now,
-            updated_at: now
-          };
-
+        if (orderWasNew && orderRecorded) {
+          // sold hanya diperbarui sekali untuk satu transaksi.
           try {
-            const base = process.env.SUPABASE_URL.replace(/\/+$/, '');
-            const orderResponse = await fetch(
-              `${base}/rest/v1/orders?on_conflict=transaction_id`,
-              {
-                method: 'POST',
-                headers: {
-                  'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
-                  'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-                  'Content-Type': 'application/json',
-                  'Prefer': 'resolution=merge-duplicates,return=minimal'
-                },
-                body: JSON.stringify(record)
-              }
+            const productListResponse = await supabaseFetch(
+              `/rest/v1/products?category=eq.${encodeURIComponent(category)}&qty=eq.${encodeURIComponent(String(qty))}&select=id,sold&limit=1`
             );
-
-            if (orderResponse.ok) {
-              orderRecorded = true;
-            } else {
-              const orderRaw = await orderResponse.text();
-              let orderData = {};
-              try { orderData = orderRaw ? JSON.parse(orderRaw) : {}; } catch {}
-              orderError =
-                orderData?.message ||
-                orderData?.details ||
-                orderData?.hint ||
-                orderData?.error ||
-                orderRaw ||
-                `Gagal menyimpan order (${orderResponse.status}).`;
-            }
-
-            // Perbarui indikator sold produk berdasarkan kategori + qty.
-            // Ini sengaja tidak bergantung pada products.id karena database lama
-            // dapat memiliki ID numerik sementara orders.product_id adalah UUID.
-            if (orderRecorded && order.category && Number.isFinite(qty)) {
-              try {
-                const productResponse = await fetch(
-                  `${base}/rest/v1/products?category=eq.${encodeURIComponent(String(order.category))}&qty=eq.${encodeURIComponent(String(qty))}&select=id,sold`,
-                  {
-                    headers: {
-                      'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
-                      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
-                    }
-                  }
+            const productList = await productListResponse.json();
+            const liveProduct = productList?.[0];
+            if (liveProduct) {
+              const soldRaw = String(liveProduct.sold ?? '').trim();
+              const numericMatch = soldRaw.match(/^\s*(\d+(?:[.,]\d+)?)\s*$/);
+              if (numericMatch) {
+                const currentSold = Number(numericMatch[1].replace(',', '.'));
+                const nextSold = Math.max(0, Math.round(currentSold + 1));
+                await supabaseFetch(
+                  `/rest/v1/products?id=eq.${encodeURIComponent(String(liveProduct.id))}`,
+                  { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ sold: String(nextSold), updated_at: now }) }
                 );
-
-                if (productResponse.ok) {
-                  const products = await productResponse.json();
-                  const product = products?.[0];
-
-                  if (product) {
-                    const currentSoldRaw = String(product.sold ?? '').trim();
-                    // Hanya menaikkan sold jika nilainya numerik. Nilai seperti
-                    // "20+" tetap dibiarkan agar label marketing tidak rusak.
-                    const numericMatch = currentSoldRaw.match(/^\s*(\d+(?:[.,]\d+)?)\s*$/);
-                    if (numericMatch) {
-                      const currentSold = Number(numericMatch[1].replace(',', '.'));
-                      const nextSold = Math.max(0, Math.round(currentSold + qty));
-                      await fetch(
-                        `${base}/rest/v1/products?id=eq.${encodeURIComponent(String(product.id))}`,
-                        {
-                          method: 'PATCH',
-                          headers: {
-                            'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
-                            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
-                          },
-                          body: JSON.stringify({
-                            sold: String(nextSold),
-                            updated_at: now
-                          })
-                        }
-                      );
-                    }
-                  }
-                }
-              } catch (soldError) {
-                // Statistik dashboard tetap berasal dari orders; kegagalan label
-                // sold tidak boleh membatalkan order yang sudah tercatat.
-                console.warn('Gagal memperbarui sold produk:', soldError);
               }
             }
-          } catch (dbError) {
-            orderError = dbError?.message || 'Gagal menghubungi Supabase.';
+          } catch (soldError) {
+            console.warn('Gagal memperbarui sold produk:', soldError);
           }
+        }
+      }
+
+      // Notifikasi dipanggil server-side saja; browser tidak lagi memiliki akses
+      // untuk memicu email/Telegram secara bebas.
+      if (orderRecorded && orderWasNew) {
+        try {
+          const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+          const host = String(req.headers.host || '').trim();
+          if (host && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            const notifyOrder = {
+              ...order,
+              category,
+              quantity: 1,
+              amount: expectedAmount,
+              transaction: transactionId,
+              paymentId: transactionId,
+              product: category === 'account' ? `Account Premium` : `Followers Indonesia`,
+              paymentTime: now
+            };
+            await fetch(`${proto}://${host}/api/notify-order`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Internal-Notify-Key': process.env.SUPABASE_SERVICE_ROLE_KEY
+              },
+              body: JSON.stringify(notifyOrder)
+            });
+          }
+        } catch (notifyError) {
+          console.warn('Notifikasi order gagal:', notifyError);
         }
       }
     }
 
-    return res.status(200).json({
+    return json(res, 200, {
       ...data,
       paid,
       orderRecorded,
@@ -201,11 +230,8 @@ export default async function handler(req, res) {
       status: status || data?.status || null
     });
   } catch (error) {
-    return res.status(502).json({
-      error:
-        error?.name === 'AbortError'
-          ? 'Payment gateway timeout.'
-          : (error?.message || 'Gagal menghubungi payment gateway.')
+    return json(res, 502, {
+      error: error?.name === 'AbortError' ? 'Payment gateway timeout.' : (error?.message || 'Gagal menghubungi payment gateway.')
     });
   }
 }

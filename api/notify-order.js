@@ -136,6 +136,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
+  // Hanya server internal setelah pembayaran terverifikasi yang boleh memicu
+  // email/Telegram. Kunci ini tidak pernah dikirim ke browser.
+  const internalKey = String(req.headers['x-internal-notify-key'] || '');
+  if (!internalKey || internalKey !== String(process.env.SUPABASE_SERVICE_ROLE_KEY || '')) {
+    return res.status(401).json({ success: false, error: 'Unauthorized.' });
+  }
+
   const order = req.body && typeof req.body === 'object' ? req.body : {};
   const result = {
     success: true,

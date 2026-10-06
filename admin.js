@@ -1123,8 +1123,11 @@ async function loadAnalytics() {
     setText('statProductClicks', Number(summary.clicksAll || 0).toLocaleString('id-ID'));
 
     const paidOrders = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()));
-    const units = paidOrders.reduce((sum,o)=>sum + Number(o.quantity || o.qty || 0),0);
-    setText('statUnitsSold', units.toLocaleString('id-ID'));
+    // 'quantity' pada produk followers adalah ukuran paket (mis. 100/500/1000), bukan jumlah paket terjual.
+    // Kartu Produk Terjual menghitung checkout pelanggan yang benar-benar membayar, bukan menjumlahkan ukuran paket.
+    // Checkout ADMIN_FREE/testing tidak dihitung sebagai penjualan pelanggan.
+    const customerPaidOrders = paidOrders.filter(o => String(o.payment_method || '').toUpperCase() !== 'ADMIN_FREE' && Number(o.amount || o.total || 0) > 0);
+    setText('statUnitsSold', customerPaidOrders.length.toLocaleString('id-ID'));
 
     const revenueSince = since => paidOrders.filter(o => new Date(o.created_at || o.checkout_at || 0) >= since)
       .reduce((sum,o)=>sum + Number(o.amount || o.total || 0),0);
@@ -1160,9 +1163,33 @@ function renderBars(containerId, points, money=false) {
 
 function bucketEvents(rows, range, money=false) {
   const now = new Date();
+  const filtered = rows.filter(r => new Date(r.created_at) >= analyticsSince(range));
+
+  // Untuk grafik 24 jam, gunakan bucket jam yang tetap (00:00, 02:00,
+  // 04:00, dst), bukan interval bergulir dari `now`. Dengan begitu order
+  // pukul 23:01 tidak lagi muncul di label 22:00 hanya karena sekarang
+  // sudah 00:xx.
+  if (range === '24h') {
+    const currentBucket = new Date(now);
+    currentBucket.setMinutes(0, 0, 0);
+    currentBucket.setHours(Math.floor(currentBucket.getHours() / 2) * 2);
+
+    return Array.from({length: 12}, (_, i) => {
+      const start = new Date(currentBucket.getTime() - (11 - i) * 2 * 60 * 60 * 1000);
+      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+      const value = filtered.filter(r => {
+        const t = new Date(r.created_at).getTime();
+        return t >= start.getTime() && t < end.getTime();
+      }).reduce((sum, r) => sum + Number(r.value || r.amount || 1), 0);
+      return {
+        label: String(start.getHours()).padStart(2, '0') + ':00',
+        value
+      };
+    });
+  }
+
   const since = analyticsSince(range);
-  const filtered = rows.filter(r => new Date(r.created_at) >= since);
-  const count = range === '24h' ? 12 : range === '7d' ? 7 : 10;
+  const count = range === '7d' ? 7 : 10;
   const step = (now - since) / count;
   return Array.from({length:count},(_,i)=>{
     const start = new Date(since.getTime() + step*i);
@@ -1171,7 +1198,7 @@ function bucketEvents(rows, range, money=false) {
       const t=new Date(r.created_at).getTime();
       return t>=start.getTime() && t<end.getTime();
     }).reduce((sum,r)=>sum + Number(r.value || r.amount || 1),0);
-    return {label: range==='24h' ? start.getHours()+':00' : (start.getDate()+'/'+(start.getMonth()+1)), value};
+    return {label: start.getDate()+'/'+(start.getMonth()+1), value};
   });
 }
 
