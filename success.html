@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pembayaran Berhasil - digitalEVO</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -385,6 +387,30 @@
   const data = JSON.parse(
     sessionStorage.getItem('digitalEVO_success') || '{}'
   );
+
+  // Track successful payment and ad click (best effort).
+  try {
+    const cfg = window.SUPABASE_CONFIG || {};
+    if (cfg.url && cfg.anonKey && window.supabase?.createClient) {
+      const c = window.supabase.createClient(cfg.url, cfg.anonKey);
+      const visitorId = localStorage.getItem('digitalEVO_visitor_id') || crypto.randomUUID();
+      localStorage.setItem('digitalEVO_visitor_id', visitorId);
+      const sessionId = localStorage.getItem('digitalEVO_session_id') || crypto.randomUUID();
+      localStorage.setItem('digitalEVO_session_id', sessionId);
+      c.from('analytics_events').insert({
+        visitor_id: visitorId, session_id: sessionId, event_type:'checkout_paid',
+        page_path:location.pathname, product_name:data.product || null,
+        quantity:Number(data.quantity||1), value:Number(data.amount||0)
+      }).then(()=>{});
+      document.querySelector('.checkout-ad-link')?.addEventListener('click',()=>{
+        c.from('analytics_events').insert({
+          visitor_id: visitorId, session_id: sessionId, event_type:'ad_click',
+          page_path:location.pathname, product_name:'Followers Indonesia', value:0
+        }).then(()=>{});
+      });
+    }
+  } catch {}
+
 
   const rupiah = value =>
     new Intl.NumberFormat('id-ID', {

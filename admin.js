@@ -177,6 +177,8 @@ async function loadAll() {
   renderProductSummary();
 
   await loadOrders();
+  populateAdminFreeProducts();
+  await loadAnalytics();
 }
 
 /* =========================
@@ -360,25 +362,27 @@ function renderOrders() {
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Transaksi</th>
+            <th>Invoice</th>
+            <th>WhatsApp</th>
             <th>Produk</th>
             <th>Jumlah</th>
-            <th>Nominal</th>
+            <th>Harga</th>
             <th>Pembayaran</th>
             <th>Status</th>
-            <th>Waktu</th>
+            <th>Checkout</th>
           </tr>
         </thead>
         <tbody>
           ${orders.map(order => `
             <tr>
-              <td>${escapeHtml(order.transaction_id || order.id || '-')}</td>
-              <td>${escapeHtml(order.product_name || '-')}</td>
-              <td>${Number(order.quantity || 0).toLocaleString('id-ID')}</td>
-              <td>${rupiah(order.amount)}</td>
-              <td>${orderStatus(order.payment_status)}</td>
-              <td>${orderStatus(order.order_status)}</td>
-              <td>${dateID(order.created_at)}</td>
+              <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
+              <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
+              <td>${escapeHtml(order.product_name || order.product || '-')}</td>
+              <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
+              <td>${rupiah(order.amount || order.total)}</td>
+              <td>${orderStatus(order.payment_status || order.status)}</td>
+              <td>${orderStatus(order.order_status || order.status)}</td>
+              <td>${dateID(order.created_at || order.checkout_at)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -533,7 +537,8 @@ function applyOrderFilters() {
     const matchesStatus =
       !status ||
       order.payment_status === status ||
-      order.order_status === status;
+      order.order_status === status ||
+      order.status === status;
 
     return matchesSearch && matchesStatus;
   });
@@ -544,20 +549,21 @@ function applyOrderFilters() {
 
   tbody.innerHTML = filtered.map(order => `
     <tr>
-      <td>${escapeHtml(order.transaction_id || order.id || '-')}</td>
-      <td>${escapeHtml(order.product_name || '-')}</td>
-      <td>${Number(order.quantity || 0).toLocaleString('id-ID')}</td>
-      <td>${rupiah(order.amount)}</td>
-      <td>${orderStatus(order.payment_status)}</td>
-      <td>${orderStatus(order.order_status)}</td>
-      <td>${dateID(order.created_at)}</td>
+      <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
+      <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
+      <td>${escapeHtml(order.product_name || order.product || '-')}</td>
+      <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
+      <td>${rupiah(order.amount || order.total)}</td>
+      <td>${orderStatus(order.payment_status || order.status)}</td>
+      <td>${orderStatus(order.order_status || order.status)}</td>
+      <td>${dateID(order.created_at || order.checkout_at)}</td>
     </tr>
   `).join('');
 
   if (!filtered.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7">Tidak ada pesanan yang cocok.</td>
+        <td colspan="8">Tidak ada pesanan yang cocok.</td>
       </tr>
     `;
   }
@@ -1003,6 +1009,167 @@ function escapeAttr(value) {
   return escapeHtml(value);
 }
 
+
+/* =========================
+   ANALYTICS V2
+========================= */
+
+let analyticsRange = '24h';
+
+function analyticsSince(range) {
+  const now = Date.now();
+  if (range === '24h') return new Date(now - 24 * 60 * 60 * 1000);
+  if (range === '7d') return new Date(now - 7 * 24 * 60 * 60 * 1000);
+  if (range === '30d') return new Date(now - 30 * 24 * 60 * 60 * 1000);
+  return new Date(0);
+}
+
+function setText(id, value) {
+  if ($(id)) $(id).textContent = value;
+}
+
+async function loadAnalytics() {
+  if (!client) return;
+
+  const since24 = analyticsSince('24h').toISOString();
+  const since7 = analyticsSince('7d').toISOString();
+  const since30 = analyticsSince('30d').toISOString();
+
+  try {
+    const [summaryResult, clicks, events] = await Promise.all([
+      client.rpc('analytics_summary'),
+      client.from('analytics_events').select('event_type,product_name,quantity,created_at').eq('event_type','product_click').gte('created_at', since30).limit(10000),
+      client.from('analytics_events').select('event_type,product_name,quantity,created_at,value').gte('created_at', since30).limit(20000)
+    ]);
+
+    const summary = summaryResult.data || {};
+    setText('statVisitors24h', Number(summary.visitors24h || 0).toLocaleString('id-ID'));
+    setText('statVisitors7d', Number(summary.visitors7d || 0).toLocaleString('id-ID'));
+    setText('statVisitors30d', Number(summary.visitors30d || 0).toLocaleString('id-ID'));
+    setText('statVisitorsAll', Number(summary.visitorsAll || 0).toLocaleString('id-ID'));
+
+    const clickRows = clicks.data || [];
+    setText('statProductClicks', Number(summary.clicksAll || 0).toLocaleString('id-ID'));
+
+    const paidOrders = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()));
+    const units = paidOrders.reduce((sum,o)=>sum + Number(o.quantity || o.qty || 0),0);
+    setText('statUnitsSold', units.toLocaleString('id-ID'));
+
+    const revenueSince = since => paidOrders.filter(o => new Date(o.created_at || o.checkout_at || 0) >= since)
+      .reduce((sum,o)=>sum + Number(o.amount || o.total || 0),0);
+
+    setText('statRevenue24h', rupiah(revenueSince(analyticsSince('24h'))));
+    setText('statRevenue7d', rupiah(revenueSince(analyticsSince('7d'))));
+    setText('statRevenue30d', rupiah(revenueSince(analyticsSince('30d'))));
+    setText('statRevenueAll', rupiah(revenueSince(new Date(0))));
+
+    renderAnalyticsCharts(events.data || [], analyticsRange);
+    renderFunnel(events.data || []);
+    renderTopProducts(clickRows);
+  } catch (error) {
+    console.warn('Analytics belum siap:', error);
+  }
+}
+
+function renderBars(containerId, points, money=false) {
+  const box = $(containerId);
+  if (!box) return;
+  if (!points.length || points.every(x => !x.value)) {
+    box.innerHTML = '<div class="chart-empty">Belum ada data pada periode ini.</div>';
+    return;
+  }
+  const max = Math.max(...points.map(x => x.value), 1);
+  box.innerHTML = points.map(p => {
+    const height = Math.max(4, Math.round((p.value / max) * 175));
+    const label = escapeHtml(p.label);
+    const value = money ? rupiah(p.value) : Number(p.value).toLocaleString('id-ID');
+    return `<div class="bar" style="height:${height}px" title="${value}"><span class="bar-value">${money ? (p.value >= 1000000 ? 'Rp'+(p.value/1000000).toFixed(1)+'jt' : 'Rp'+Math.round(p.value/1000)+'rb') : p.value}</span><span class="bar-label">${label}</span></div>`;
+  }).join('');
+}
+
+function bucketEvents(rows, range, money=false) {
+  const now = new Date();
+  const since = analyticsSince(range);
+  const filtered = rows.filter(r => new Date(r.created_at) >= since);
+  const count = range === '24h' ? 12 : range === '7d' ? 7 : 10;
+  const step = (now - since) / count;
+  return Array.from({length:count},(_,i)=>{
+    const start = new Date(since.getTime() + step*i);
+    const end = new Date(since.getTime() + step*(i+1));
+    const value = filtered.filter(r=>{
+      const t=new Date(r.created_at).getTime();
+      return t>=start.getTime() && t<end.getTime();
+    }).reduce((sum,r)=>sum + Number(r.value || r.amount || 1),0);
+    return {label: range==='24h' ? start.getHours()+':00' : (start.getDate()+'/'+(start.getMonth()+1)), value};
+  });
+}
+
+function renderAnalyticsCharts(events, range) {
+  const traffic = events.filter(e => e.event_type === 'page_view').map(e => ({...e,value:1}));
+  renderBars('trafficChart', bucketEvents(traffic, range), false);
+
+  const revenueRows = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()))
+    .map(o => ({created_at:o.created_at || o.checkout_at, value:Number(o.amount || o.total || 0)}));
+  renderBars('revenueChart', bucketEvents(revenueRows, range, true), true);
+}
+
+function renderFunnel(events) {
+  const views = events.filter(e=>e.event_type==='page_view').length;
+  const clicks = events.filter(e=>e.event_type==='product_click').length;
+  const checkouts = events.filter(e=>e.event_type==='checkout_started').length;
+  const paid = orders.filter(o=>['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase())).length;
+  const max = Math.max(views,1);
+  const rows = [['Pengunjung',views],['Klik Produk',clicks],['Checkout',checkouts],['Pembayaran',paid]];
+  const box=$('conversionFunnel'); if(!box)return;
+  box.innerHTML=rows.map(([name,val])=>`<div class="funnel-row"><span>${name}</span><div class="funnel-track"><div class="funnel-fill" style="width:${Math.min(100,(val/max)*100)}%"></div></div><strong>${Number(val).toLocaleString('id-ID')}</strong></div>`).join('');
+}
+
+function renderTopProducts(clickRows) {
+  const map = {};
+  clickRows.forEach(r=>{ const name=r.product_name||'Produk'; map[name]=(map[name]||0)+1; });
+  const rows=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const box=$('topProducts'); if(!box)return;
+  box.innerHTML=rows.length ? rows.map(([name,count],i)=>`<div class="rank-item"><span class="rank-number">${i+1}</span><div><div class="rank-name">${escapeHtml(name)}</div><div class="rank-meta">Klik produk</div></div><span class="rank-value">${count.toLocaleString('id-ID')}</span></div>`).join('') : '<div class="admin-empty">Belum ada klik produk.</div>';
+}
+
+async function adminFreeCheckout() {
+  const msgEl=$('adminFreeMsg');
+  try {
+    const {data:{session}}=await client.auth.getSession();
+    if(!session) throw new Error('Sesi admin tidak ditemukan.');
+    const productId=$('adminFreeProduct')?.value;
+    const quantity=Math.max(1,Number($('adminFreeQuantity')?.value||1));
+    const response=await fetch('/api/admin-free-checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
+      body:JSON.stringify({productId,quantity})
+    });
+    const data=await response.json();
+    if(!response.ok) throw new Error(data?.error||'Gagal membuat free checkout.');
+    if(msgEl) msgEl.textContent=`Berhasil: ${data.invoice} — ${data.product_name}`;
+    await loadOrders();
+    await loadAnalytics();
+  } catch(e) { if(msgEl) msgEl.textContent=e.message; }
+}
+
+function populateAdminFreeProducts() {
+  const select = $('adminFreeProduct');
+  if (!select) return;
+  select.innerHTML = products.map(p =>
+    `<option value="${escapeAttr(p.id)}">${escapeHtml(p.category === 'account' ? 'Akun' : 'Followers')} ${escapeHtml(p.qty)} — ${rupiah(p.price)}</option>`
+  ).join('');
+}
+
+function setupAnalytics() {
+  document.querySelectorAll('.range-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.range-btn').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active'); analyticsRange=btn.dataset.range; loadAnalytics();
+  }));
+  $('refreshAnalytics')?.addEventListener('click',loadAnalytics);
+  $('adminFreeCheckout')?.addEventListener('click',adminFreeCheckout);
+
+}
+
 /* =========================
    REFRESH
 ========================= */
@@ -1055,6 +1222,7 @@ async function showPanel() {
   setupNavigation();
   setupMobileMenu();
   setupProductTabs();
+  setupAnalytics();
 
   try {
     await loadAll();

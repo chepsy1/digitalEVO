@@ -280,7 +280,8 @@ function bindCheckout(){
         body:JSON.stringify({
           paymentId: currentPaymentId,
           amount:Number(currentPaymentAmount),
-          startTime:Number(currentPaymentStartTime)
+          startTime:Number(currentPaymentStartTime),
+          order: JSON.parse(sessionStorage.getItem('digitalEVO_pendingOrder') || '{}')
         })
       });
 
@@ -447,4 +448,54 @@ function initSalesIndicator(){
  el.textContent=data.value;
 }
 
-document.addEventListener('DOMContentLoaded',()=>{initSalesIndicator();renderSite();document.querySelector('.menu-toggle')?.addEventListener('click',()=>{const n=document.getElementById('mainNav'),b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav')?.classList.remove('open')));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();loadRemote();});
+
+/* =========================
+   PUBLIC ANALYTICS TRACKER
+========================= */
+function initAnalyticsTracking() {
+  const cfg = window.SUPABASE_CONFIG || {};
+  if (!cfg.url || !cfg.anonKey || !window.supabase?.createClient) return;
+  try {
+    const analyticsClient = window.supabase.createClient(cfg.url, cfg.anonKey);
+    const getId = (key) => {
+      let value = localStorage.getItem(key);
+      if (!value) { value = crypto.randomUUID(); localStorage.setItem(key, value); }
+      return value;
+    };
+    const visitorId = getId('digitalEVO_visitor_id');
+    const sessionId = getId('digitalEVO_session_id');
+    const send = (event_type, extra={}) => analyticsClient.from('analytics_events').insert({
+      visitor_id: visitorId,
+      session_id: sessionId,
+      event_type,
+      page_path: location.pathname,
+      ...extra
+    }).then(()=>{}).catch(()=>{});
+
+    // One page view per browser session + page, avoiding refresh inflation.
+    const viewKey = `digitalEVO_view_${location.pathname}`;
+    if (!sessionStorage.getItem(viewKey)) {
+      sessionStorage.setItem(viewKey, '1');
+      send('page_view');
+    }
+
+    document.addEventListener('click', (event) => {
+      const btn = event.target.closest?.('.order-btn, .account-order-btn');
+      if (btn) {
+        const qty = btn.dataset.qty || btn.dataset.accountQty || '';
+        send('product_click', {
+          product_name: `${qty} ${btn.classList.contains('account-order-btn') ? 'Account Premium' : 'Followers'}`,
+          quantity: Number(qty || 1),
+          value: 0
+        });
+        send('checkout_started', {
+          product_name: `${qty} ${btn.classList.contains('account-order-btn') ? 'Account Premium' : 'Followers'}`,
+          quantity: Number(qty || 1),
+          value: 0
+        });
+      }
+    });
+  } catch {}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{initAnalyticsTracking();initSalesIndicator();renderSite();document.querySelector('.menu-toggle')?.addEventListener('click',()=>{const n=document.getElementById('mainNav'),b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav')?.classList.remove('open')));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();loadRemote();});

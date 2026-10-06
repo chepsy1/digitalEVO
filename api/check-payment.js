@@ -71,9 +71,48 @@ export default async function handler(req, res) {
       data?.paid === true ||
       ['PAID', 'SUCCESS', 'SUCCEEDED', 'COMPLETED', 'SETTLED'].includes(status);
 
+    // Persist a paid order server-side when the browser supplies the pending order.
+    // The service-role key must only exist in Vercel environment variables.
+    let orderRecorded = false;
+    if (paid && body?.order && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const order = body.order || {};
+      const record = {
+        transaction_id: String(payload.paymentId || order.transaction || ''),
+        customer_whatsapp: order.customerWhatsapp || null,
+        account_contact: order.accountContact || null,
+        product_name: order.product || null,
+        category: order.category || null,
+        quantity: Number(order.quantity || 1),
+        amount: Number(payload.amount || order.amount || 0),
+        payment_status: 'paid',
+        order_status: 'processing',
+        payment_method: 'QRIS',
+        paid_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      if (record.transaction_id) {
+        const responseOrder = await fetch(
+          `${process.env.SUPABASE_URL.replace(/\/+$/, '')}/rest/v1/orders?on_conflict=transaction_id`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+              'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates,return=minimal'
+            },
+            body: JSON.stringify(record)
+          }
+        );
+        orderRecorded = responseOrder.ok;
+      }
+    }
+
     return res.status(200).json({
       ...data,
       paid,
+      orderRecorded,
       status: status || data?.status || null
     });
 

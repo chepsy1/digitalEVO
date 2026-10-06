@@ -71,6 +71,11 @@
         <span>Dashboard</span>
       </button>
 
+      <button class="nav-item" data-section="analytics">
+        <span>◔</span>
+        <span>Analytics</span>
+      </button>
+
       <button class="nav-item" data-section="products">
         <span>▣</span>
         <span>Produk</span>
@@ -184,6 +189,19 @@
 
       </div>
 
+      <div class="analytics-kpi-grid">
+        <div class="stat-card accent-blue"><div class="stat-icon">◷</div><div><span>Pengunjung 24 Jam</span><strong id="statVisitors24h">0</strong><small>visitor unik</small></div></div>
+        <div class="stat-card accent-violet"><div class="stat-icon">7D</div><div><span>Pengunjung 7 Hari</span><strong id="statVisitors7d">0</strong><small>visitor unik</small></div></div>
+        <div class="stat-card accent-green"><div class="stat-icon">30D</div><div><span>Pengunjung 30 Hari</span><strong id="statVisitors30d">0</strong><small>visitor unik</small></div></div>
+        <div class="stat-card accent-orange"><div class="stat-icon">∞</div><div><span>Total Pengunjung</span><strong id="statVisitorsAll">0</strong><small>sepanjang waktu</small></div></div>
+        <div class="stat-card"><div class="stat-icon">↗</div><div><span>Klik Produk</span><strong id="statProductClicks">0</strong><small>semua produk</small></div></div>
+        <div class="stat-card"><div class="stat-icon">🛒</div><div><span>Produk Terjual</span><strong id="statUnitsSold">0</strong><small>pesanan berhasil</small></div></div>
+        <div class="stat-card accent-green"><div class="stat-icon">24H</div><div><span>Pendapatan 24 Jam</span><strong id="statRevenue24h">Rp0</strong><small>transaksi berhasil</small></div></div>
+        <div class="stat-card accent-violet"><div class="stat-icon">7D</div><div><span>Pendapatan 7 Hari</span><strong id="statRevenue7d">Rp0</strong><small>transaksi berhasil</small></div></div>
+        <div class="stat-card accent-violet"><div class="stat-icon">30D</div><div><span>Pendapatan 30 Hari</span><strong id="statRevenue30d">Rp0</strong><small>transaksi berhasil</small></div></div>
+        <div class="stat-card accent-green"><div class="stat-icon">ALL</div><div><span>Pendapatan Selama Ini</span><strong id="statRevenueAll">Rp0</strong><small>transaksi berhasil</small></div></div>
+      </div>
+
       <div class="dashboard-grid">
 
         <section class="admin-card">
@@ -219,6 +237,57 @@
 
     </section>
 
+
+    <!-- ANALYTICS -->
+    <section id="section-analytics" class="admin-section">
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">BUSINESS INTELLIGENCE</span>
+          <h2>Analytics & Traffic</h2>
+          <p>Pantau pengunjung, perilaku produk, konversi, dan pendapatan secara real-time dari Supabase.</p>
+        </div>
+        <button id="refreshAnalytics" class="btn btn-primary">↻ Refresh Data</button>
+      </div>
+
+      <div class="analytics-toolbar">
+        <button class="range-btn active" data-range="24h">24 Jam</button>
+        <button class="range-btn" data-range="7d">7 Hari</button>
+        <button class="range-btn" data-range="30d">30 Hari</button>
+        <button class="range-btn" data-range="all">Semua</button>
+      </div>
+
+      <div class="analytics-layout">
+        <section class="admin-card analytics-chart-card">
+          <div class="admin-head"><div><span class="eyebrow">TRAFFIC</span><h2>Aktivitas Pengunjung</h2></div><span class="live-dot">LIVE</span></div>
+          <div id="trafficChart" class="bar-chart"><div class="chart-empty">Belum ada data traffic.</div></div>
+        </section>
+        <section class="admin-card analytics-chart-card">
+          <div class="admin-head"><div><span class="eyebrow">REVENUE</span><h2>Pendapatan</h2></div></div>
+          <div id="revenueChart" class="bar-chart"><div class="chart-empty">Belum ada data pendapatan.</div></div>
+        </section>
+      </div>
+
+      <div class="analytics-layout">
+        <section class="admin-card">
+          <div class="admin-head"><div><span class="eyebrow">CONVERSION FUNNEL</span><h2>Perjalanan Pembeli</h2></div></div>
+          <div id="conversionFunnel" class="funnel"></div>
+        </section>
+        <section class="admin-card">
+          <div class="admin-head"><div><span class="eyebrow">TOP PRODUCTS</span><h2>Produk Terpopuler</h2></div></div>
+          <div id="topProducts" class="rank-list"></div>
+        </section>
+      </div>
+
+      <section class="admin-card">
+        <div class="admin-head"><div><span class="eyebrow">ADMIN TOOLS</span><h2>Admin Free Checkout</h2><p>Untuk testing internal. Transaksi ditandai khusus dan tidak mengurangi saldo.</p></div></div>
+        <div class="free-checkout-grid">
+          <select id="adminFreeProduct"></select>
+          <input id="adminFreeQuantity" type="number" min="1" value="1" placeholder="Jumlah">
+          <button id="adminFreeCheckout" class="btn btn-primary">✓ Buat Free Checkout</button>
+        </div>
+        <p id="adminFreeMsg" class="admin-msg"></p>
+      </section>
+    </section>
 
     <!-- PRODUCTS -->
     <section id="section-products" class="admin-section">
@@ -287,7 +356,7 @@
       </div>
 
       <div class="filter-bar">
-        <input id="orderSearch" type="search" placeholder="Cari nomor transaksi...">
+        <input id="orderSearch" type="search" placeholder="Cari invoice, WhatsApp, atau produk...">
 
         <select id="orderStatusFilter">
           <option value="">Semua Status</option>
