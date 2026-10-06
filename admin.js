@@ -1204,10 +1204,9 @@ async function adminFreeCheckout() {
   try {
     const {data:{session}}=await client.auth.getSession();
     if(!session) throw new Error('Sesi admin tidak ditemukan.');
-    let productId=$('adminFreeProduct')?.value;
-    const selectedProduct = products.find(p => String(p.id) === String(productId))
-      || products.find(p => String(p.sort_order) === String(productId));
-    if (selectedProduct?.id) productId = selectedProduct.id;
+    const selectedValue=$('adminFreeProduct')?.value;
+    const selectedProduct = products.find(p => String(p.id) === String(selectedValue));
+    const productId = selectedProduct?.id || selectedValue;
     if (!productId) throw new Error('Pilih produk terlebih dahulu.');
     const quantity=Math.max(1,Number($('adminFreeQuantity')?.value||1));
     const response=await fetch('/api/admin-free-checkout',{

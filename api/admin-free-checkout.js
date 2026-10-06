@@ -50,24 +50,37 @@ export default async function handler(req, res) {
     // tetapi selalu gunakan UUID asli dari database saat membuat order.
     const rawProductId = String(productId).trim();
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    let productResponse;
+    let product = null;
 
     if (uuidPattern.test(rawProductId)) {
-      productResponse = await supabaseFetch(
+      // Hanya UUID yang boleh dikirim ke filter id=eq.
+      // Ini mencegah PostgREST pernah mencoba meng-cast angka seperti "5" ke UUID.
+      const productResponse = await supabaseFetch(
         `/rest/v1/products?id=eq.${encodeURIComponent(rawProductId)}&select=id,category,qty,price,sort_order`
       );
+      const products = await productResponse.json();
+      product = products?.[0] || null;
     } else if (/^\d+$/.test(rawProductId)) {
-      // Backward compatibility: angka diperlakukan sebagai sort_order.
-      productResponse = await supabaseFetch(
-        `/rest/v1/products?sort_order=eq.${encodeURIComponent(rawProductId)}&select=id,category,qty,price,sort_order&order=category.asc`
+      // Legacy frontend bisa mengirim "5" sebagai sort_order.
+      // JANGAN pernah membuat query products.id=eq.5 atau orders.product_id=5.
+      // Ambil daftar produk lalu cocokkan sort_order di JavaScript.
+      const productResponse = await supabaseFetch(
+        `/rest/v1/products?select=id,category,qty,price,sort_order&order=category.asc,sort_order.asc`
       );
+      const products = await productResponse.json();
+      if (!productResponse.ok) {
+        return json(res,500,{error:products?.message || products?.hint || 'Gagal membaca daftar produk.'});
+      }
+      const targetSortOrder = Number(rawProductId);
+      product = (products || []).find(p => Number(p.sort_order) === targetSortOrder) || null;
     } else {
       return json(res,400,{error:'ID produk tidak valid. Silakan refresh halaman admin lalu coba lagi.'});
     }
-
-    const products = await productResponse.json();
-    const product = products?.[0];
     if (!product) return json(res,404,{error:'Produk tidak ditemukan. Silakan refresh daftar produk admin.'});
+
+    if (!product?.id || !uuidPattern.test(String(product.id))) {
+      return json(res,500,{error:'Produk ditemukan tetapi UUID produk tidak valid. Silakan refresh produk admin.'});
+    }
 
     const qty = Math.max(1, Number(quantity) || 1);
     const invoice = `ADM-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random()*900+100)}`;
