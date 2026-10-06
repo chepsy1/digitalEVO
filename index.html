@@ -16,6 +16,136 @@
 <style id="digitalEVO-inline-feature-icons">
 .feature-icon{width:15px;height:15px;min-width:15px;display:block;color:#f15a24;flex:none;margin-top:3px;overflow:visible;}
 .feature-icon *{vector-effect:non-scaling-stroke;}
+
+.premium-simple-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.premium-point-icon,
+.premium-lock {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  color: #111 !important;
+}
+.premium-point-icon svg,
+.premium-lock svg {
+  display: block !important;
+  width: 28px !important;
+  height: 28px !important;
+  stroke: #111 !important;
+  fill: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.premium-simple-features li > div {
+  min-width: 0;
+}
+.premium-simple-benefits > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.premium-simple-benefits .premium-point-icon {
+  flex-basis: 30px;
+  width: 30px;
+  height: 30px;
+}
+.premium-simple-benefits .premium-point-icon svg {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+
+/* Final polish: clean, aligned benefit layout */
+.premium-simple-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.premium-simple-features {
+  align-items: stretch;
+}
+
+.premium-simple-features li {
+  min-height: 92px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.premium-simple-features li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.premium-simple-features li strong {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.premium-simple-features li span:not(.premium-point-icon) {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.premium-simple-benefits {
+  align-items: stretch;
+}
+
+.premium-simple-benefits > div {
+  min-height: 64px;
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
+
+.premium-simple-benefits b {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.premium-password-icon svg {
+  width: 27px !important;
+  height: 27px !important;
+}
+
+@media (max-width: 800px) {
+  .premium-simple-features li {
+    min-height: 82px;
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-simple-features li {
+    min-height: 70px;
+    padding: 14px 10px;
+  }
+
+  .premium-simple-benefits > div {
+    min-height: 58px;
+  }
+}
+
+
+/* Header judul premium Shopee: huruf kapital putih + tema kuning Shopee */
+#x2qqbj {
+  background: linear-gradient(135deg, #ffd400 0%, #ffbd00 100%) !important;
+}
+#x2qqbj .premium-simple-title h2,
+#x2qqbj .premium-simple-title p {
+  color: #fff !important;
+  text-transform: uppercase;
+}
+#x2qqbj .premium-simple-title h2 {
+  letter-spacing: 0.2px;
+}
 </style>
 
 <style>
@@ -154,6 +284,19 @@
     border-bottom: 0;
   }
 }
+
+/* Header judul premium Shopee: huruf kapital putih + tema kuning Shopee */
+#x2qqbj {
+  background: linear-gradient(135deg, #ffd400 0%, #ffbd00 100%) !important;
+}
+#x2qqbj .premium-simple-title h2,
+#x2qqbj .premium-simple-title p {
+  color: #fff !important;
+  text-transform: uppercase;
+}
+#x2qqbj .premium-simple-title h2 {
+  letter-spacing: 0.2px;
+}
 </style>
 
 </head>
@@ -215,36 +358,45 @@
           <!-- PREMIUM SHOPEE INFO - SIMPLE TEXT STYLE -->
           <div class="premium-simple-content">
             <div class="premium-simple-title">
-              <h2>Layanan Premium Shopee</h2>
-              <p>dengan proses mudah dan praktis.</p>
+              <h2>LAYANAN PREMIUM SHOPEE</h2>
+              <p>UNTUK TOKO ONLINE/AFFILIATE</p>
             </div>
 
             <ul class="premium-simple-features">
-              <li><strong>Real Human</strong> <span>(Bukan Bot &amp; Bukan Akun Fake)</span></li>
-              <li><strong>Permanent</strong> <span>(Jumlah Followers Tidak Drop)</span></li>
-              <li><strong>65 - 85%</strong> <span>Akun Aktif</span></li>
-              <li><strong>70 - 90%</strong> <span>Akun Followers Indonesia</span></li>
-              <li><strong>Proses hanya membutuhkan</strong> <span>Link/Username</span></li>
+              <li>
+                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6"/></svg></span>
+                <div><strong>Real Human</strong><span>(Bukan Bot &amp; Bukan Akun Fake)</span></div>
+              </li>
+              <li>
+                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+                <div><strong>Permanent</strong><span>(Jumlah Followers Tidak Drop)</span></div>
+              </li>
+              <li>
+                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                <div><strong>65 - 85%</strong><span>Akun Aktif</span></div>
+              </li>
+              <li>
+                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+                <div><strong>70 - 90%</strong><span>Akun Followers Indonesia</span></div>
+              </li>
+              <li>
+                <span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.2-1.2"/></svg></span>
+                <div><strong>Proses hanya membutuhkan</strong><span>Link/Username</span></div>
+              </li>
             </ul>
 
             <div class="premium-simple-benefits">
-              <div><strong>▪</strong> <b>Tanpa Membutuhkan Password</b></div>
-              <div><strong>▪</strong> <b>Tanpa Harus Menginstal Aplikasi</b></div>
-              <div><strong>▪</strong> <b>Tanpa Klik Link dan Tanpa Harus Login</b></div>
+              <div><span class="premium-point-icon premium-password-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="16" r="3.5"/><path d="M10.8 13.2 19 5v3h-3v3h-3l-2.2 2.2"/><path d="M8 14.5v3"/></svg></span><b>Tanpa Membutuhkan Password</b></div>
+              <div><span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 6h4M11 18h2"/></svg></span><b>Tanpa Harus Menginstal Aplikasi</b></div>
+              <div><span class="premium-point-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.2 1.2"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.2-1.2"/><path d="M4 4l16 16"/></svg></span><b>Tanpa Klik Link dan Tanpa Harus Login</b></div>
             </div>
 
             <div class="premium-simple-safe">
-              <span class="premium-lock" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="5" y="10" width="14" height="11" rx="2"></rect>
-                  <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-                  <circle cx="12" cy="15" r="1"></circle>
-                  <path d="M12 16v2"></path>
-                </svg>
-              </span>
+              <span class="premium-lock" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1"/><path d="M12 16v2"/></svg></span>
               <b>Akun Aman</b>
               <span>dengan metode yang kami gunakan.</span>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -389,3 +541,79 @@
   <script src="ticker.js"></script>
 </body>
 </html>
+
+<style id="digitalEVO-premium-compact-columns">
+/* Compact columns: make the Premium Shopee columns closer and tighter */
+.premium-simple-content {
+  padding: 22px 20px 24px;
+}
+.premium-simple-title {
+  margin-bottom: 16px;
+}
+.premium-simple-features li {
+  min-height: 76px;
+  padding: 12px 10px;
+  gap: 8px;
+}
+.premium-simple-benefits {
+  margin-top: 10px;
+}
+.premium-simple-benefits > div {
+  min-height: 52px;
+  padding: 9px 10px;
+  gap: 7px;
+}
+.premium-simple-safe {
+  margin-top: 10px;
+  gap: 6px;
+}
+@media (max-width: 800px) {
+  .premium-simple-features li {
+    min-height: 70px;
+    padding: 10px 8px;
+  }
+  .premium-simple-benefits > div {
+    min-height: 48px;
+    padding: 8px;
+  }
+}
+@media (max-width: 480px) {
+  .premium-simple-content {
+    padding: 18px 12px 20px;
+  }
+  .premium-simple-features li {
+    min-height: 64px;
+    padding: 10px 7px;
+    gap: 7px;
+  }
+  .premium-simple-benefits > div {
+    min-height: 46px;
+    padding: 7px;
+  }
+}
+
+/* Permintaan: header Layanan Premium Shopee berwarna kuning */
+#x2qqbj {
+  background: #ffd43b !important;
+}
+#x2qqbj .premium-simple-content,
+#x2qqbj .premium-simple-title,
+#x2qqbj .premium-simple-features,
+#x2qqbj .premium-simple-benefits,
+#x2qqbj .premium-simple-safe {
+  background: transparent !important;
+}
+
+/* Header judul premium Shopee: huruf kapital putih + tema kuning Shopee */
+#x2qqbj {
+  background: linear-gradient(135deg, #ffd400 0%, #ffbd00 100%) !important;
+}
+#x2qqbj .premium-simple-title h2,
+#x2qqbj .premium-simple-title p {
+  color: #fff !important;
+  text-transform: uppercase;
+}
+#x2qqbj .premium-simple-title h2 {
+  letter-spacing: 0.2px;
+}
+</style>
