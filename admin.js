@@ -200,49 +200,8 @@ async function loadAll() {
   renderProductSummary();
 
   await loadOrders();
-  renderActualSales();
   populateAdminFreeProducts();
   await loadAnalytics();
-}
-
-/* =========================
-   SALES HELPERS
-========================= */
-
-const PAID_STATUSES = new Set(['paid','processing','completed','success','succeeded','settled']);
-
-function isPaidOrder(order) {
-  const payment = String(order?.payment_status || '').toLowerCase();
-  const status = String(order?.order_status || '').toLowerCase();
-  return PAID_STATUSES.has(payment) || PAID_STATUSES.has(status);
-}
-
-function orderUnits(order) {
-  const n = Number(order?.quantity ?? order?.qty ?? 0);
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
-function orderAmount(order) {
-  const n = Number(order?.amount ?? order?.total ?? 0);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function getSalesSummary() {
-  const paid = orders.filter(isPaidOrder);
-  const units = paid.reduce((sum,o)=>sum + orderUnits(o),0);
-  const revenue = paid.reduce((sum,o)=>sum + orderAmount(o),0);
-  const byProduct = {};
-  paid.forEach(o=>{
-    const key = String(o.product_id || o.product_name || o.product || 'unknown');
-    if(!byProduct[key]) byProduct[key] = {
-      product_id:o.product_id || '',
-      name:o.product_name || o.product || 'Produk',
-      units:0, revenue:0
-    };
-    byProduct[key].units += orderUnits(o);
-    byProduct[key].revenue += orderAmount(o);
-  });
-  return {paid,units,revenue,byProduct};
 }
 
 /* =========================
@@ -262,14 +221,13 @@ function updateDashboard() {
     $('statProducts').textContent = totalProducts;
   }
 
-  const sales = getSalesSummary();
-
   if ($('statPaid')) {
-    $('statPaid').textContent = sales.paid.length.toLocaleString('id-ID');
-  }
-
-  if ($('statUnitsSold')) {
-    $('statUnitsSold').textContent = sales.units.toLocaleString('id-ID');
+    $('statPaid').textContent =
+      orders.filter(o =>
+        ['paid', 'processing', 'completed'].includes(
+          o.payment_status || o.status
+        )
+      ).length;
   }
 
   if ($('statOrders')) {
@@ -277,7 +235,15 @@ function updateDashboard() {
   }
 
   if ($('statRevenue')) {
-    $('statRevenue').textContent = rupiah(sales.revenue);
+    const revenue = orders
+      .filter(o =>
+        ['paid', 'processing', 'completed'].includes(
+          o.payment_status || o.status
+        )
+      )
+      .reduce((sum, o) => sum + Number(o.amount || 0), 0);
+
+    $('statRevenue').textContent = rupiah(revenue);
   }
 
   if ($('dashboardDate')) {
@@ -295,41 +261,6 @@ function updateDashboard() {
   if ($('accountProductCount')) {
     $('accountProductCount').textContent = accountCount;
   }
-}
-
-function renderActualSales() {
-  const box = $('actualSalesTable');
-  if (!box) return;
-
-  const sales = getSalesSummary();
-  const rows = Object.values(sales.byProduct).sort((a,b) => b.units - a.units);
-
-  if (!rows.length) {
-    box.innerHTML = `
-      <div class="admin-empty">
-        <strong>Belum ada penjualan berhasil.</strong>
-        <br>Setelah pembayaran terkonfirmasi, angka akan bertambah otomatis.
-      </div>
-    `;
-    return;
-  }
-
-  box.innerHTML = `
-    <div class="admin-table-wrap">
-      <table class="admin-table">
-        <thead><tr><th>Produk</th><th>Terjual</th><th>Pendapatan</th></tr></thead>
-        <tbody>
-          ${rows.map(row => `
-            <tr>
-              <td><strong>${escapeHtml(row.name)}</strong></td>
-              <td><strong>${row.units.toLocaleString('id-ID')} unit</strong></td>
-              <td>${rupiah(row.revenue)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
 }
 
 function renderProductSummary() {
@@ -372,8 +303,7 @@ async function loadOrders() {
     const { data, error } = await client
       .from('orders')
       .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10000);
+      .order('created_at', { ascending: false });
 
     if (error) {
       orders = [];
@@ -389,7 +319,6 @@ async function loadOrders() {
     renderPayments();
     updateDashboard();
     renderRecentOrders();
-    renderActualSales();
 
   } catch (error) {
     orders = [];
@@ -1189,7 +1118,7 @@ async function loadAnalytics() {
     const clickRows = clicks.data || [];
     setText('statProductClicks', Number(summary.clicksAll || 0).toLocaleString('id-ID'));
 
-    const paidOrders = orders.filter(isPaidOrder);
+    const paidOrders = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()));
     const units = paidOrders.reduce((sum,o)=>sum + Number(o.quantity || o.qty || 0),0);
     setText('statUnitsSold', units.toLocaleString('id-ID'));
 
@@ -1246,7 +1175,7 @@ function renderAnalyticsCharts(events, range) {
   const traffic = events.filter(e => e.event_type === 'page_view').map(e => ({...e,value:1}));
   renderBars('trafficChart', bucketEvents(traffic, range), false);
 
-  const revenueRows = orders.filter(isPaidOrder)
+  const revenueRows = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()))
     .map(o => ({created_at:o.created_at || o.checkout_at, value:Number(o.amount || o.total || 0)}));
   renderBars('revenueChart', bucketEvents(revenueRows, range, true), true);
 }
@@ -1273,27 +1202,19 @@ function renderTopProducts(clickRows) {
 async function adminFreeCheckout() {
   const msgEl=$('adminFreeMsg');
   try {
-    let {data:{session}}=await client.auth.getSession();
-    if(!session) throw new Error('Sesi admin tidak ditemukan. Silakan login ulang.');
-    // Refresh once so the server receives a current access token.
-    const refreshed=await client.auth.refreshSession();
-    if(refreshed?.data?.session) session=refreshed.data.session;
-    const productId=$('adminFreeProduct')?.value;
+    const {data:{session}}=await client.auth.getSession();
+    if(!session) throw new Error('Sesi admin tidak ditemukan.');
+    let productId=$('adminFreeProduct')?.value;
+    const selectedProduct = products.find(p => String(p.id) === String(productId))
+      || products.find(p => String(p.sort_order) === String(productId));
+    if (selectedProduct?.id) productId = selectedProduct.id;
+    if (!productId) throw new Error('Pilih produk terlebih dahulu.');
     const quantity=Math.max(1,Number($('adminFreeQuantity')?.value||1));
-    const call=()=>fetch('/api/admin-free-checkout',{
+    const response=await fetch('/api/admin-free-checkout',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
       body:JSON.stringify({productId,quantity})
     });
-    let response=await call();
-    // If the token was rejected, refresh once more and retry before reporting an invalid session.
-    if(response.status===401){
-      const retry=await client.auth.refreshSession();
-      if(retry?.data?.session){
-        session=retry.data.session;
-        response=await call();
-      }
-    }
     const data=await response.json();
     if(!response.ok) throw new Error(data?.error||'Gagal membuat free checkout.');
     if(msgEl) msgEl.textContent=`Berhasil: ${data.invoice} — ${data.product_name}`;
@@ -1316,7 +1237,6 @@ function setupAnalytics() {
     btn.classList.add('active'); analyticsRange=btn.dataset.range; loadAnalytics();
   }));
   $('refreshAnalytics')?.addEventListener('click',loadAnalytics);
-  $('refreshSales')?.addEventListener('click', async()=>{ await loadOrders(); renderActualSales(); await loadAnalytics(); });
   $('adminFreeCheckout')?.addEventListener('click',adminFreeCheckout);
 
 }

@@ -80,10 +80,9 @@ export default async function handler(req, res) {
         transaction_id: String(payload.paymentId || order.transaction || ''),
         customer_whatsapp: order.customerWhatsapp || null,
         account_contact: order.accountContact || null,
-        product_id: order.productId || null,
         product_name: order.product || null,
         category: order.category || null,
-        quantity: Math.max(1, Number(order.quantity || 1)),
+        quantity: Number(order.quantity || 1),
         amount: Number(payload.amount || order.amount || 0),
         payment_status: 'paid',
         order_status: 'processing',
@@ -107,10 +106,6 @@ export default async function handler(req, res) {
           }
         );
         orderRecorded = responseOrder.ok;
-        if (!responseOrder.ok) {
-          const errorBody = await responseOrder.text().catch(()=>'');
-          console.error('Gagal menyimpan order:', responseOrder.status, errorBody);
-        }
       }
     }
 

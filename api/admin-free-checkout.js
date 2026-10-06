@@ -26,12 +26,9 @@ export default async function handler(req, res) {
     if (!token) return json(res,401,{error:'Sesi admin tidak ditemukan.'});
 
     const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
-    // Validate the user's access token with the project's PUBLIC API key.
-    // The service-role/secret key is intentionally used only for server-side DB writes.
-    const publicKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nEOiV5pcYp1PqxSYtoj_5A_vE5IyyUm';
     const userResponse = await fetch(`${base}/auth/v1/user`, {
       headers: {
-        apikey: publicKey,
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
         Authorization: `Bearer ${token}`
       }
     });
@@ -43,12 +40,34 @@ export default async function handler(req, res) {
     if (!adminResponse.ok || !admins?.length) return json(res,403,{error:'Akses admin ditolak.'});
 
     const {productId, quantity=1} = req.body || {};
-    if (!productId) return json(res,400,{error:'Pilih produk terlebih dahulu.'});
+    if (productId === undefined || productId === null || String(productId).trim() === '') {
+      return json(res,400,{error:'Pilih produk terlebih dahulu.'});
+    }
 
-    const productResponse = await supabaseFetch(`/rest/v1/products?id=eq.${encodeURIComponent(productId)}&select=id,category,qty,price`);
+    // products.id dan orders.product_id adalah UUID. Beberapa versi frontend lama
+    // pernah mengirim angka seperti "5" (sort_order) sehingga PostgREST menolak
+    // nilai tersebut dengan "invalid input syntax for type uuid". Terima keduanya,
+    // tetapi selalu gunakan UUID asli dari database saat membuat order.
+    const rawProductId = String(productId).trim();
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    let productResponse;
+
+    if (uuidPattern.test(rawProductId)) {
+      productResponse = await supabaseFetch(
+        `/rest/v1/products?id=eq.${encodeURIComponent(rawProductId)}&select=id,category,qty,price,sort_order`
+      );
+    } else if (/^\d+$/.test(rawProductId)) {
+      // Backward compatibility: angka diperlakukan sebagai sort_order.
+      productResponse = await supabaseFetch(
+        `/rest/v1/products?sort_order=eq.${encodeURIComponent(rawProductId)}&select=id,category,qty,price,sort_order&order=category.asc`
+      );
+    } else {
+      return json(res,400,{error:'ID produk tidak valid. Silakan refresh halaman admin lalu coba lagi.'});
+    }
+
     const products = await productResponse.json();
     const product = products?.[0];
-    if (!product) return json(res,404,{error:'Produk tidak ditemukan.'});
+    if (!product) return json(res,404,{error:'Produk tidak ditemukan. Silakan refresh daftar produk admin.'});
 
     const qty = Math.max(1, Number(quantity) || 1);
     const invoice = `ADM-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random()*900+100)}`;

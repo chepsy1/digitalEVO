@@ -1124,11 +1124,3 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
   .image-admin-grid{grid-template-columns:1fr 1fr}
   .free-checkout-grid{grid-template-columns:1fr}
 }
-
-
-/* LIVE SALES */
-.sales-live-card{margin:18px 0 20px}
-.admin-card-subtitle{margin:4px 0 0;color:#7b8495;font-size:12px}
-.actual-sales-table{margin-top:14px}
-.actual-sales-table .admin-table-wrap{box-shadow:none}
-.actual-sales-table strong{color:#111827}
