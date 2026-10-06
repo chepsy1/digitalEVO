@@ -35,6 +35,20 @@ create table if not exists public.products (
   updated_at timestamptz not null default now()
 );
 
+-- MIGRASI AMAN: memastikan instalasi lama tetap memiliki kolom produk yang dibutuhkan admin.
+alter table public.products add column if not exists qty integer;
+alter table public.products add column if not exists original integer;
+alter table public.products add column if not exists price integer;
+alter table public.products add column if not exists sold text default '';
+alter table public.products add column if not exists image_url text;
+alter table public.products add column if not exists sort_order integer default 0;
+alter table public.products add column if not exists updated_at timestamptz default now();
+update public.products set qty = coalesce(qty, 0), original = coalesce(original, 0), price = coalesce(price, 0), sort_order = coalesce(sort_order, 0), updated_at = coalesce(updated_at, now());
+
+-- Hak dasar PostgREST untuk client Supabase; akses tulis tetap dikunci oleh RLS/policy admin.
+grant select on public.products to anon, authenticated;
+grant insert, update, delete on public.products to authenticated;
+
 -- Helper yang dipakai RLS. Hanya user yang tercatat di public.admins yang dianggap admin.
 create or replace function public.is_admin()
 returns boolean

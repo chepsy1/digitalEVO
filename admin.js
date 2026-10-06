@@ -776,198 +776,242 @@ function setupProductTabs() {
     });
 }
 
+function productImageFallback(product) {
+  const category = product?.category || 'followers';
+  const qty = Number(product?.qty || 0);
+
+  if (category === 'account') return 'assets/akun-premium-product.webp';
+
+  const known = {
+    100: 'assets/100.webp',
+    200: 'assets/200.webp',
+    300: 'assets/300.webp',
+    500: 'assets/500.webp',
+    1000: 'assets/1000.webp',
+    1500: 'assets/1500.webp',
+    2000: 'assets/2000.webp',
+    3000: 'assets/3000.webp',
+    5000: 'assets/5000.webp'
+  };
+
+  return known[qty] || 'assets/100.webp';
+}
+
+function productImageSrc(product) {
+  return product?.image_url || productImageFallback(product);
+}
+
 function renderProducts(category, box) {
   if (!box) return;
 
-  const rows =
-    products.filter(p => p.category === category);
+  const rows = products.filter(p => p.category === category);
 
-  box.innerHTML =
-    rows.map(product => `
-      <div
-        class="product-row"
-        data-id="${escapeAttr(product.id)}"
-      >
+  box.innerHTML = rows.map(product => `
+    <div class="product-row" data-id="${escapeAttr(product.id)}">
+      <div class="product-preview">
         <img
-          src="${escapeAttr(product.image_url || '')}"
-          alt=""
+          class="product-thumb"
+          src="${escapeAttr(productImageSrc(product))}"
+          data-fallback="${escapeAttr(productImageFallback(product))}"
+          alt="Foto produk"
+          onerror="this.onerror=null;this.src=this.dataset.fallback;"
         >
-
-        <label>
-          Jumlah
-          <input
-            class="f-qty"
-            type="number"
-            value="${Number(product.qty || 0)}"
-          >
-        </label>
-
-        <label>
-          Harga asli
-          <input
-            class="f-original"
-            type="number"
-            value="${Number(product.original || 0)}"
-          >
-        </label>
-
-        <label>
-          Harga promo
-          <input
-            class="f-price"
-            type="number"
-            value="${Number(product.price || 0)}"
-          >
-        </label>
-
-        <label>
-          Terjual/bln
-          <input
-            class="f-sold"
-            value="${escapeAttr(product.sold || '')}"
-          >
-        </label>
-
-        <div class="actions">
-          <button
-            class="btn btn-primary save-product"
-          >
-            Simpan
-          </button>
-
-          <button
-            class="btn btn-danger delete-product"
-          >
-            Hapus
-          </button>
-
-          <input
-            class="file-input product-file"
-            type="file"
-            accept="image/*"
-          >
-        </div>
+        <span class="product-photo-state">${product.image_url ? 'Foto tersimpan' : 'Foto bawaan'}</span>
       </div>
-    `).join('') || `
-      <div class="admin-empty">
-        Belum ada produk.
+
+      <label>
+        Jumlah
+        <input class="f-qty" type="number" min="0" value="${Number(product.qty || 0)}">
+      </label>
+
+      <label>
+        Harga asli
+        <input class="f-original" type="number" min="0" value="${Number(product.original || 0)}">
+      </label>
+
+      <label>
+        Harga promo
+        <input class="f-price" type="number" min="0" value="${Number(product.price || 0)}">
+      </label>
+
+      <label>
+        Terjual/bln
+        <input class="f-sold" value="${escapeAttr(product.sold || '')}" placeholder="Contoh: 1.2K">
+      </label>
+
+      <div class="actions">
+        <button class="btn btn-primary save-product" type="button">Simpan</button>
+        <button class="btn btn-danger delete-product" type="button">Hapus</button>
+        <label class="btn btn-secondary product-upload-label">
+          Ganti Foto
+          <input class="file-input product-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+        </label>
+        <span class="product-action-msg" aria-live="polite"></span>
       </div>
-    `;
+    </div>
+  `).join('') || `<div class="admin-empty">Belum ada produk.</div>`;
 
-  box
-    .querySelectorAll('.save-product')
-    .forEach(button => {
-      button.onclick = () =>
-        saveProduct(
-          button.closest('.product-row')
-        );
-    });
+  box.querySelectorAll('.save-product').forEach(button => {
+    button.onclick = () => saveProduct(button.closest('.product-row'), button);
+  });
 
-  box
-    .querySelectorAll('.delete-product')
-    .forEach(button => {
-      button.onclick = () =>
-        deleteProduct(
-          button.closest('.product-row')
-        );
-    });
+  box.querySelectorAll('.delete-product').forEach(button => {
+    button.onclick = () => deleteProduct(button.closest('.product-row'), button);
+  });
 
-  box
-    .querySelectorAll('.product-file')
-    .forEach(input => {
-      input.onchange = () =>
-        uploadProductImage(
-          input.closest('.product-row'),
-          input.files[0]
-        );
-    });
+  box.querySelectorAll('.product-file').forEach(input => {
+    input.onchange = () => uploadProductImage(
+      input.closest('.product-row'),
+      input.files[0],
+      input
+    );
+  });
 }
 
-async function saveProduct(row) {
+async function saveProduct(row, button) {
   if (!row) return;
 
   const id = row.dataset.id;
-
-  const current =
-    products.find(p => String(p.id) === String(id));
-
+  const current = products.find(p => String(p.id) === String(id));
   if (!current) return;
 
-  const payload = {
-    category: current.category,
-    qty: Number(
-      row.querySelector('.f-qty')?.value || 0
-    ),
-    original: Number(
-      row.querySelector('.f-original')?.value || 0
-    ),
-    price: Number(
-      row.querySelector('.f-price')?.value || 0
-    ),
-    sold:
-      row.querySelector('.f-sold')?.value || '',
-    sort_order: current.sort_order,
-    updated_at: new Date().toISOString()
-  };
+  const qty = Number(row.querySelector('.f-qty')?.value || 0);
+  const original = Number(row.querySelector('.f-original')?.value || 0);
+  const price = Number(row.querySelector('.f-price')?.value || 0);
+  const sold = row.querySelector('.f-sold')?.value || '';
 
-  const { error } = await client
-    .from('products')
-    .update(payload)
-    .eq('id', id);
-
-  if (error) {
-    alert(error.message);
+  if (![qty, original, price].every(Number.isFinite) || qty < 0 || original < 0 || price < 0) {
+    alert('Jumlah dan harga harus berupa angka yang valid.');
     return;
   }
 
-  await loadAll();
+  const oldText = button?.textContent || 'Simpan';
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Menyimpan...';
+  }
+
+  const { data, error } = await client
+    .from('products')
+    .update({
+      category: current.category,
+      qty,
+      original,
+      price,
+      sold,
+      sort_order: Number(current.sort_order || 0),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select('*');
+
+  if (error) {
+    alert('Gagal menyimpan produk: ' + error.message + '\n\nPastikan akun Anda terdaftar di public.admins dan SQL RLS terbaru sudah dijalankan.');
+    if (button) {
+      button.disabled = false;
+      button.textContent = oldText;
+    }
+    return;
+  }
+
+  if (!data?.length) {
+    alert('Produk tidak berubah. Supabase tidak mengembalikan baris yang diperbarui. Periksa login admin/RLS.');
+    if (button) {
+      button.disabled = false;
+      button.textContent = oldText;
+    }
+    return;
+  }
+
+  const msgEl = row.querySelector('.product-action-msg');
+  if (msgEl) msgEl.textContent = 'Tersimpan ✓';
+
+  products = products.map(p => String(p.id) === String(id) ? data[0] : p);
+  renderProducts(current.category, current.category === 'followers' ? $('followersTable') : $('accountsTable'));
+  updateDashboard();
+  renderProductSummary();
+  populateAdminFreeProducts();
 }
 
-async function uploadProductImage(row, file) {
+async function uploadProductImage(row, file, input) {
   if (!row || !file) return;
 
+  if (!file.type.startsWith('image/')) {
+    alert('File harus berupa gambar.');
+    if (input) input.value = '';
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Ukuran foto maksimal 5 MB.');
+    if (input) input.value = '';
+    return;
+  }
+
   const id = row.dataset.id;
+  const current = products.find(p => String(p.id) === String(id));
+  const button = row.querySelector('.product-upload-label');
+  const msgEl = row.querySelector('.product-action-msg');
+  const thumb = row.querySelector('.product-thumb');
 
-  const ext =
-    (file.name.split('.').pop() || 'jpg')
-      .toLowerCase();
+  if (button) button.classList.add('is-uploading');
+  if (msgEl) msgEl.textContent = 'Mengunggah foto...';
 
-  const path =
-    `products/${id}-${Date.now()}.${ext}`;
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const path = `products/${id}.${ext}`;
 
-  const { error } = await client.storage
+  const { error: uploadError } = await client.storage
     .from('site-assets')
     .upload(path, file, {
-      upsert: false,
-      contentType: file.type
+      upsert: true,
+      contentType: file.type,
+      cacheControl: '3600'
     });
 
-  if (error) {
-    alert(error.message);
+  if (uploadError) {
+    alert('Gagal mengunggah foto: ' + uploadError.message + '\n\nPastikan bucket site-assets bersifat public dan policy upload admin sudah dijalankan.');
+    if (button) button.classList.remove('is-uploading');
+    if (msgEl) msgEl.textContent = '';
+    if (input) input.value = '';
     return;
   }
 
-  const url =
-    client.storage
-      .from('site-assets')
-      .getPublicUrl(path)
-      .data.publicUrl;
+  const url = client.storage.from('site-assets').getPublicUrl(path).data.publicUrl;
+  const cacheBustedUrl = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
 
-  const { error: updateError } =
-    await client
-      .from('products')
-      .update({
-        image_url: url,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
+  const { data, error: updateError } = await client
+    .from('products')
+    .update({
+      image_url: cacheBustedUrl,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select('*');
 
   if (updateError) {
-    alert(updateError.message);
+    alert('Foto berhasil diunggah tetapi gagal disimpan ke produk: ' + updateError.message);
+    if (button) button.classList.remove('is-uploading');
+    if (msgEl) msgEl.textContent = '';
+    if (input) input.value = '';
     return;
   }
 
-  await loadAll();
+  if (!data?.length) {
+    alert('Foto terunggah tetapi produk tidak ter-update. Periksa RLS admin pada tabel products.');
+    if (button) button.classList.remove('is-uploading');
+    return;
+  }
+
+  products = products.map(p => String(p.id) === String(id) ? data[0] : p);
+  if (thumb) {
+    thumb.src = cacheBustedUrl;
+    thumb.dataset.fallback = productImageFallback(data[0] || current);
+  }
+  if (msgEl) msgEl.textContent = 'Foto tersimpan ✓';
+  if (button) button.classList.remove('is-uploading');
+  if (input) input.value = '';
+
+  renderProducts(current?.category || data[0].category, (current?.category || data[0].category) === 'followers' ? $('followersTable') : $('accountsTable'));
 }
 
 async function deleteProduct(row) {
