@@ -551,7 +551,8 @@ function applyOrderFilters() {
     const text = [
       order.transaction_id,
       order.product_name,
-      order.customer_whatsapp
+      order.customer_whatsapp,
+      order.shopee_link
     ]
       .join(' ')
       .toLowerCase();
@@ -576,6 +577,7 @@ function applyOrderFilters() {
     <tr>
       <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
       <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
+      <td class="order-shopee-link">${order.shopee_link ? `<a href="${escapeAttr(order.shopee_link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(order.shopee_link)}</a>` : '-'}</td>
       <td>${escapeHtml(order.product_name || order.product || '-')}</td>
       <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
       <td>${rupiah(order.amount || order.total)}</td>
@@ -588,7 +590,7 @@ function applyOrderFilters() {
   if (!filtered.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8">Tidak ada pesanan yang cocok.</td>
+        <td colspan="9">Tidak ada pesanan yang cocok.</td>
       </tr>
     `;
   }
