@@ -1273,15 +1273,27 @@ function renderTopProducts(clickRows) {
 async function adminFreeCheckout() {
   const msgEl=$('adminFreeMsg');
   try {
-    const {data:{session}}=await client.auth.getSession();
-    if(!session) throw new Error('Sesi admin tidak ditemukan.');
+    let {data:{session}}=await client.auth.getSession();
+    if(!session) throw new Error('Sesi admin tidak ditemukan. Silakan login ulang.');
+    // Refresh once so the server receives a current access token.
+    const refreshed=await client.auth.refreshSession();
+    if(refreshed?.data?.session) session=refreshed.data.session;
     const productId=$('adminFreeProduct')?.value;
     const quantity=Math.max(1,Number($('adminFreeQuantity')?.value||1));
-    const response=await fetch('/api/admin-free-checkout',{
+    const call=()=>fetch('/api/admin-free-checkout',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
       body:JSON.stringify({productId,quantity})
     });
+    let response=await call();
+    // If the token was rejected, refresh once more and retry before reporting an invalid session.
+    if(response.status===401){
+      const retry=await client.auth.refreshSession();
+      if(retry?.data?.session){
+        session=retry.data.session;
+        response=await call();
+      }
+    }
     const data=await response.json();
     if(!response.ok) throw new Error(data?.error||'Gagal membuat free checkout.');
     if(msgEl) msgEl.textContent=`Berhasil: ${data.invoice} — ${data.product_name}`;

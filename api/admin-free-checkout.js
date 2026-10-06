@@ -26,9 +26,12 @@ export default async function handler(req, res) {
     if (!token) return json(res,401,{error:'Sesi admin tidak ditemukan.'});
 
     const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+    // Validate the user's access token with the project's PUBLIC API key.
+    // The service-role/secret key is intentionally used only for server-side DB writes.
+    const publicKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_nEOiV5pcYp1PqxSYtoj_5A_vE5IyyUm';
     const userResponse = await fetch(`${base}/auth/v1/user`, {
       headers: {
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        apikey: publicKey,
         Authorization: `Bearer ${token}`
       }
     });
