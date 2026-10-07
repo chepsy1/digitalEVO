@@ -2,10 +2,11 @@
   const track = document.getElementById("deTickerTrack");
   if (!track) return;
 
-  // Prefix nomor random sesuai bobot yang ditentukan.
+  // Digit terakhir prefix nomor random sesuai bobot:
+  // 5=20%, 1=20%, 8=15%, 2=15%, 7=15%, 9=15%.
   const phonePrefixes = [
-    { prefix: "1", weight: 20 },
     { prefix: "5", weight: 20 },
+    { prefix: "1", weight: 20 },
     { prefix: "8", weight: 15 },
     { prefix: "2", weight: 15 },
     { prefix: "7", weight: 15 },
@@ -25,14 +26,14 @@
   }
 
   function generatePhone() {
-    const prefix = weightedRandom(phonePrefixes);
+    const digit = weightedRandom(phonePrefixes);
     const maskedMiddle = "******";
     const randomLastThree = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
 
-    return `+62${prefix}${maskedMiddle}${randomLastThree}`;
+    // Contoh: +6285******123
+    return `+628${digit}${maskedMiddle}${randomLastThree}`;
   }
 
-  // Paket followers biasa. Label mengikuti paket produk yang tersedia di website.
   const normalPackages = [
     { label: "500 Followers", weight: 24 },
     { label: "100 Followers", weight: 22 },
@@ -44,7 +45,6 @@
     { label: "5000 Followers", weight: 10 }
   ];
 
-  // Paket Akun: hanya 10.000 / 20.000 / 30.000 / 50.000 Followers.
   const accountPackages = [
     { label: "Akun 10000 Followers", weight: 4 },
     { label: "Akun 20000 Followers", weight: 3 },
@@ -53,11 +53,9 @@
   ];
 
   function getRandomProduct() {
-    // 90% Followers, 10% Akun.
     if (Math.random() < 0.10) {
       return weightedRandom(accountPackages);
     }
-
     return weightedRandom(normalPackages);
   }
 
@@ -72,7 +70,6 @@
       if (Math.random() < 0.60) {
         return `${Math.floor(Math.random() * 21) + 3} jam yang lalu`;
       }
-
       return `${Math.floor(Math.random() * 2) + 1} jam yang lalu`;
     }
 
@@ -100,22 +97,16 @@
       const phone = generatePhone();
       const productLabel = getRandomProduct();
       const time = generateTime();
-
       const orderText = `memesan <strong>${productLabel}</strong>`;
 
       html += `<div class="de-ticker-item">
         ${cartIcon()}
-
         <span class="de-ticker-content">
           <span class="de-ticker-top">
             <span class="de-ticker-link">${phone}</span>
           </span>
-
           <span class="de-ticker-bottom">
-            <span class="de-ticker-order">
-              ${orderText}
-            </span>
-
+            <span class="de-ticker-order">${orderText}</span>
             <span class="de-ticker-time">
               <span class="de-ticker-clock" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none"
