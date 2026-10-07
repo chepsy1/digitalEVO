@@ -759,3 +759,7 @@
     margin-top:12px !important;
   }
 }
+
+/* Managed header/banner: hidden by default to prevent refresh flicker. */
+.top-banner-managed[hidden]{display:none !important;}
+.top-banner-managed img{display:block;width:100%;height:auto;}

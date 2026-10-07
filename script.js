@@ -21,7 +21,7 @@ const DEFAULT_SITE={
  accountEyebrow:'KATEGORI PRODUK', accountTitle:'Akun Shopee Premium', accountDescription:'',
  contactEyebrow:'BUTUH BANTUAN?', contactTitle:'Hubungi admin digitalEVO', contactWhatsapp:'0851 8535 3434'
 };
-const DEFAULT_IMAGES={logo:'assets/logo.webp',header:'assets/header-utama.webp',footer:'assets/footer-cta.webp',followersBanner:'assets/promo-500-5000.webp',accountBanner:'assets/banner-akun-shopee-kuning.webp'};
+const DEFAULT_IMAGES={logo:'assets/logo.webp',header:'',footer:'assets/footer-cta.webp',followersBanner:'assets/promo-500-5000.webp',accountBanner:'assets/banner-akun-shopee-kuning.webp'};
 let products=DEFAULT_FOLLOWERS.map(x=>({...x}));
 let accountProducts=DEFAULT_ACCOUNTS.map(x=>({...x}));
 let site={...DEFAULT_SITE};
@@ -35,6 +35,17 @@ function renderSite(){
  if(grid){grid.innerHTML='';products.forEach(p=>{grid.insertAdjacentHTML('beforeend',`<article class="product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="${Number(p.qty).toLocaleString('id-ID')} Followers Shopee Premium" loading="lazy"><div class="product-info"><h3>${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="sold-month">🔥 ${escapeHtml(p.sold||'')} terjual/bln</div><div class="product-actions"><button class="btn btn-primary order-btn" data-qty="${p.qty}">Order Sekarang</button></div></div></article>`)});}
  if(accountGrid){accountGrid.innerHTML='';accountProducts.forEach(p=>accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  document.querySelector('.brand img')?.setAttribute('src',images.logo);
+ const headerBanner=document.querySelector('.top-banner-managed');
+ const headerBannerImg=headerBanner?.querySelector('img');
+ if(headerBanner && headerBannerImg){
+   if(images.header){
+     headerBannerImg.src=images.header;
+     headerBanner.hidden=false;
+   }else{
+     headerBannerImg.removeAttribute('src');
+     headerBanner.hidden=true;
+   }
+ }
  document.querySelector('.bottom-cta-image img')?.setAttribute('src',images.footer);
  const set=(sel,val)=>{const el=document.querySelector(sel);if(el&&val!=null)el.textContent=val};
  set('.product-head .eyebrow',site.followerEyebrow);set('.product-head h2',site.followerTitle);set('.section-subtitle',site.followerSubtitle);set('.head-badge',site.followerDiscount);

@@ -662,7 +662,7 @@ async function saveSiteContent() {
 
 const imageLabels = {
   logo: 'Logo',
-  header: 'Header',
+  header: 'Header / Banner Utama',
   followersBanner: 'Banner Followers',
   accountBanner: 'Banner Akun Premium',
   footer: 'Footer'
@@ -704,6 +704,10 @@ function renderImages() {
 
 async function uploadSiteImage(key, file) {
   if (!file) return;
+  if (!client) {
+    msg('imageMsg', 'Supabase belum terhubung. Periksa supabase-config.js.');
+    return;
+  }
 
   msg(
     'imageMsg',
