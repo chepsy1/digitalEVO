@@ -1,48 +1,58 @@
-/* digitalEVO social/contact icons directly below the activity ticker */
+/* digitalEVO social/contact icons - black, transparent, clean */
 .de-social-links {
   width: 100%;
-  padding: 2px 0 10px;
+  padding: 11px 0 10px;
   background: transparent;
+  box-sizing: border-box;
 }
 
 .de-social-links-inner {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 17px;
+  gap: 20px;
 }
 
 .de-social-link {
-  width: 28px;
-  height: 28px;
+  width: 29px;
+  height: 29px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   color: #111;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   text-decoration: none;
+  box-shadow: none;
   transition: transform .18s ease, opacity .18s ease;
 }
+
+.de-social-link::after { display: none; }
 
 .de-social-link svg {
   width: 27px;
   height: 27px;
   display: block;
+  color: #111;
+  filter: none;
 }
 
 .de-social-link:hover,
 .de-social-link:focus-visible {
-  transform: translateY(-2px) scale(1.06);
-  opacity: .72;
+  transform: translateY(-1px) scale(1.05);
+  opacity: .65;
 }
 
 .de-social-link:focus-visible {
-  outline: 2px solid #111;
+  outline: 1px solid #111;
   outline-offset: 3px;
-  border-radius: 5px;
 }
 
 @media (max-width: 600px) {
-  .de-social-links { padding: 1px 0 9px; }
-  .de-social-links-inner { gap: 14px; }
-  .de-social-link, .de-social-link svg { width: 26px; height: 26px; }
+  .de-social-links { padding: 10px 0 9px; }
+  .de-social-links-inner { gap: 16px; }
+  .de-social-link,
+  .de-social-link svg { width: 27px; height: 27px; }
 }
