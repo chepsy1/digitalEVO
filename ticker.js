@@ -4,12 +4,12 @@
 
   // Prefix nomor random sesuai bobot yang ditentukan.
   const phonePrefixes = [
-    { prefix: "085", weight: 30 },
-    { prefix: "081", weight: 25 },
-    { prefix: "082", weight: 10 },
-    { prefix: "087", weight: 15 },
-    { prefix: "088", weight: 10 },
-    { prefix: "089", weight: 10 }
+    { prefix: "1", weight: 20 },
+    { prefix: "5", weight: 20 },
+    { prefix: "8", weight: 15 },
+    { prefix: "2", weight: 15 },
+    { prefix: "7", weight: 15 },
+    { prefix: "9", weight: 15 }
   ];
 
   function weightedRandom(list) {
@@ -26,16 +26,10 @@
 
   function generatePhone() {
     const prefix = weightedRandom(phonePrefixes);
-    const maskedMiddle = "xxxxxx";
+    const maskedMiddle = "******";
     const randomLastThree = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
 
-    // 50% tampil lokal, 50% tampil +62 tanpa spasi.
-    if (Math.random() < 0.5) {
-      return `${prefix}${maskedMiddle}${randomLastThree}`;
-    }
-
-    // 085xxxxxx123 -> +6285xxxxxx123
-    return `+62${prefix.slice(1)}${maskedMiddle}${randomLastThree}`;
+    return `+62${prefix}${maskedMiddle}${randomLastThree}`;
   }
 
   // Paket followers biasa. Label mengikuti paket produk yang tersedia di website.
