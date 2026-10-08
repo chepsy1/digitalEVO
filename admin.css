@@ -1126,3 +1126,22 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 }
 
 .order-shopee-link a{display:inline-block;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--primary,#2563eb);font-weight:700;text-decoration:none}.order-shopee-link a:hover{text-decoration:underline}
+
+
+/* Header slider manager */
+.slider-settings-card{margin-top:18px}
+.slider-admin-list{display:grid;gap:14px;margin-top:18px}
+.slider-admin-item{display:grid;grid-template-columns:minmax(180px,300px) 1fr;gap:16px;padding:14px;border:1px solid var(--border,#e5e7eb);border-radius:16px;background:var(--card,#fff)}
+.slider-admin-preview{aspect-ratio:1400/733;overflow:hidden;border-radius:12px;background:#f3f4f6;display:flex;align-items:center;justify-content:center}
+.slider-admin-preview img{width:100%;height:100%;object-fit:cover;display:block}
+.slider-admin-empty{font-size:13px;color:#6b7280}
+.slider-admin-fields{display:grid;gap:10px;align-content:start}
+.slider-admin-title{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.slider-admin-title span{font-size:12px;color:#6b7280}
+.slider-admin-fields label{display:grid;gap:6px;font-size:12px;font-weight:700}
+.slider-admin-fields input[type=text]{width:100%;box-sizing:border-box}
+.slider-file-label{display:inline-flex!important;align-items:center;gap:8px;padding:10px 12px;border:1px dashed #cbd5e1;border-radius:10px;cursor:pointer}
+.slider-file-label input[type=file]{font-weight:400;font-size:12px}
+.slider-admin-actions{display:flex;gap:8px;flex-wrap:wrap}
+.admin-actions-row{display:flex;justify-content:flex-end;margin-top:16px}
+@media(max-width:700px){.slider-admin-item{grid-template-columns:1fr}.admin-actions-row{justify-content:stretch}.admin-actions-row .btn{width:100%}}

@@ -26,9 +26,29 @@ let products=DEFAULT_FOLLOWERS.map(x=>({...x}));
 let accountProducts=DEFAULT_ACCOUNTS.map(x=>({...x}));
 let site={...DEFAULT_SITE};
 let images={...DEFAULT_IMAGES};
+let sliderSettings={interval:5000,effect:'fade',slides:[]};
 const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 const discountPct=p=>Math.round((1-(Number(p.price)||0)/(Number(p.original)||1))*100);
 const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+function renderHeaderSlider(){
+ const slider=document.querySelector('.devo-header-slider');
+ if(!slider) return;
+ const configured=(Array.isArray(sliderSettings.slides)?sliderSettings.slides:[]).filter(x=>x?.image);
+ const fallback=[
+  {image:images.header||'assets/header.webp',alt:'digitalEVO'},
+  {image:'assets/header-utama.webp',alt:'digitalEVO'},
+  {image:'assets/promo-500-5000.webp',alt:'Promo digitalEVO'}
+ ];
+ const slidesData=configured.length?configured:fallback;
+ slider.dataset.effect = sliderSettings.effect === 'slide' ? 'slide' : 'fade';
+ const wrap=slider.querySelector('.devo-header-slides');
+ const dotsWrap=slider.querySelector('.devo-header-dots');
+ if(!wrap||!dotsWrap)return;
+ wrap.innerHTML=slidesData.map((x,i)=>`<div class="devo-header-slide${i===0?' is-active':''}"><img class="devo-header-img${i===0?' devo-header-admin':''}" src="${escapeHtml(x.image)}" alt="${escapeHtml(x.alt||'Banner digitalEVO')}" loading="${i===0?'eager':'lazy'}" decoding="async"></div>`).join('');
+ dotsWrap.innerHTML=slidesData.map((_,i)=>`<button type="button" class="${i===0?'is-active':''}" aria-label="Banner ${i+1}" aria-selected="${i===0?'true':'false'}"></button>`).join('');
+ initDevoHeaderSlider(true);
+}
 
 function renderSite(){
  const grid=document.getElementById('productGrid'); const accountGrid=document.getElementById('accountProductGrid');
@@ -36,15 +56,9 @@ function renderSite(){
  if(accountGrid){accountGrid.innerHTML='';accountProducts.forEach(p=>accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  document.querySelector('.brand img')?.setAttribute('src',images.logo);
  const headerBanner=document.querySelector('.top-banner-managed');
- const headerBannerImg=headerBanner?.querySelector('img');
- if(headerBanner && headerBannerImg){
-   if(images.header){
-     headerBannerImg.src=images.header;
-     headerBanner.hidden=false;
-   }else{
-     headerBannerImg.removeAttribute('src');
-     headerBanner.hidden=true;
-   }
+ if(headerBanner){
+   renderHeaderSlider();
+   headerBanner.hidden=false;
  }
  document.querySelector('.bottom-cta-image img')?.setAttribute('src',images.footer);
  const set=(sel,val)=>{const el=document.querySelector(sel);if(el&&val!=null)el.textContent=val};
@@ -442,7 +456,7 @@ function bindCheckout(){
 
 async function loadRemote(){
  const cfg=window.SUPABASE_CONFIG||{};if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient)return;
- try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
+ try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow)sliderSettings={...sliderSettings,...sliderRow.value,slides:Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[]}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
 }
 
 function initSalesIndicator(){
@@ -512,3 +526,31 @@ function initAnalyticsTracking() {
 }
 
 document.addEventListener('DOMContentLoaded',()=>{initAnalyticsTracking();initSalesIndicator();renderSite();document.querySelector('.menu-toggle')?.addEventListener('click',()=>{const n=document.getElementById('mainNav'),b=document.querySelector('.menu-toggle');n.classList.toggle('open');b.setAttribute('aria-expanded',n.classList.contains('open'))});document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>document.getElementById('mainNav')?.classList.remove('open')));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();loadRemote();});
+
+
+/* ===== digitalEVO HEADER SLIDER ===== */
+let devoHeaderSliderCleanup=null;
+function initDevoHeaderSlider(force=false){
+  const slider=document.querySelector('.devo-header-slider');
+  if(!slider) return;
+  if(devoHeaderSliderCleanup){devoHeaderSliderCleanup();devoHeaderSliderCleanup=null;}
+  const slides=[...slider.querySelectorAll('.devo-header-slide')];
+  const dots=[...slider.querySelectorAll('.devo-header-dots button')];
+  const prev=slider.querySelector('.devo-header-prev');
+  const next=slider.querySelector('.devo-header-next');
+  if(slides.length<2) return;
+  let current=0,timer;
+  const show=(index,restart=true)=>{
+    current=(index+slides.length)%slides.length;
+    slides.forEach((el,i)=>el.classList.toggle('is-active',i===current));
+    dots.forEach((el,i)=>{el.classList.toggle('is-active',i===current);el.setAttribute('aria-selected',i===current?'true':'false');});
+    if(restart)start();
+  };
+  const start=()=>{clearInterval(timer);timer=setInterval(()=>show(current+1,false),Math.max(1000,Number(sliderSettings.interval)||5000));};
+  const onPrev=()=>show(current-1), onNext=()=>show(current+1), onEnter=()=>clearInterval(timer), onLeave=start, onTouchStart=()=>clearInterval(timer), onTouchEnd=start;
+  prev?.addEventListener('click',onPrev);next?.addEventListener('click',onNext);dots.forEach((dot,i)=>dot.addEventListener('click',()=>show(i)));
+  slider.addEventListener('mouseenter',onEnter);slider.addEventListener('mouseleave',onLeave);slider.addEventListener('touchstart',onTouchStart,{passive:true});slider.addEventListener('touchend',onTouchEnd,{passive:true});
+  show(0,false);start();
+  devoHeaderSliderCleanup=()=>{clearInterval(timer);prev?.removeEventListener('click',onPrev);next?.removeEventListener('click',onNext);dots.forEach((dot,i)=>dot.removeEventListener('click',()=>show(i)));slider.removeEventListener('mouseenter',onEnter);slider.removeEventListener('mouseleave',onLeave);};
+}
+

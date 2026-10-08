@@ -143,6 +143,18 @@ insert into public.site_settings(key, value) values
 on conflict (key) do nothing;
 
 insert into public.site_settings(key, value) values
+('slider', '{
+  "interval":5000,
+  "effect":"fade",
+  "slides":[
+    {"image":"assets/header.webp","alt":"digitalEVO"},
+    {"image":"assets/header-utama.webp","alt":"digitalEVO"},
+    {"image":"assets/promo-500-5000.webp","alt":"Promo digitalEVO"}
+  ]
+}'::jsonb)
+on conflict (key) do nothing;
+
+insert into public.site_settings(key, value) values
 ('images', '{
   "logo":"assets/logo.webp",
   "header":"assets/header-utama.webp",

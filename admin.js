@@ -7,6 +7,7 @@ let products = [];
 let settings = {};
 let images = {};
 let orders = [];
+let sliderSettings = { interval: 5000, effect: 'fade', slides: [] };
 
 const $ = id => document.getElementById(id);
 
@@ -189,10 +190,13 @@ async function loadAll() {
   images =
     rows.find(row => row.key === 'images')?.value || {};
 
+  sliderSettings = normalizeSliderSettings(rows.find(row => row.key === 'slider')?.value);
+
   products = productsResult.data || [];
 
   fillSettings();
   renderImages();
+  renderSliderSettings();
   renderProducts('followers', $('followersTable'));
   renderProducts('account', $('accountsTable'));
 
@@ -752,6 +756,130 @@ async function uploadSiteImage(key, file) {
     );
   } catch (error) {
     msg('imageMsg', error.message);
+  }
+}
+
+/* =========================
+   HEADER SLIDER
+========================= */
+const MAX_SLIDES = 6;
+const DEFAULT_SLIDER = {
+  interval: 5000,
+  effect: 'fade',
+  slides: [
+    { image: 'assets/header.webp', alt: 'digitalEVO' },
+    { image: 'assets/header-utama.webp', alt: 'digitalEVO' },
+    { image: 'assets/promo-500-5000.webp', alt: 'Promo digitalEVO' }
+  ]
+};
+
+function normalizeSliderSettings(value) {
+  const v = value && typeof value === 'object' ? value : {};
+  const slides = Array.isArray(v.slides) ? v.slides : DEFAULT_SLIDER.slides;
+  return {
+    interval: Math.min(30000, Math.max(1000, Number(v.interval) || 5000)),
+    effect: v.effect === 'slide' ? 'slide' : 'fade',
+    slides: slides.slice(0, MAX_SLIDES).map(x => ({
+      image: String(x?.image || ''),
+      alt: String(x?.alt || 'Banner digitalEVO')
+    }))
+  };
+}
+
+function renderSliderSettings() {
+  const box = $('sliderSettings');
+  if (!box) return;
+  sliderSettings = normalizeSliderSettings(sliderSettings);
+  const slides = Array.from({length: MAX_SLIDES}, (_, i) => sliderSettings.slides[i] || {image:'', alt:`Banner ${i+1}`});
+  if ($('sliderInterval')) $('sliderInterval').value = String(sliderSettings.interval);
+  if ($('sliderEffect')) $('sliderEffect').value = sliderSettings.effect;
+  box.innerHTML = slides.map((slide, i) => `
+    <div class="slider-admin-item" data-slider-index="${i}">
+      <div class="slider-admin-preview">
+        ${slide.image ? `<img src="${escapeAttr(slide.image)}" alt="${escapeAttr(slide.alt)}">` : '<div class="slider-admin-empty">Belum ada gambar</div>'}
+      </div>
+      <div class="slider-admin-fields">
+        <div class="slider-admin-title"><strong>Banner ${i+1}</strong><span>${slide.image ? 'Aktif' : 'Kosong'}</span></div>
+        <label class="slider-file-label">Ganti foto
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-slider-file="${i}">
+        </label>
+        <label>Alt text
+          <input type="text" value="${escapeAttr(slide.alt)}" data-slider-alt="${i}" maxlength="120" placeholder="Deskripsi banner">
+        </label>
+        <div class="slider-admin-actions">
+          <button type="button" class="btn btn-secondary slider-move" data-dir="up" data-index="${i}" ${i===0 || i>=sliderSettings.slides.length?'disabled':''}>↑</button>
+          <button type="button" class="btn btn-secondary slider-move" data-dir="down" data-index="${i}" ${i===MAX_SLIDES-1 || i>=sliderSettings.slides.length-1?'disabled':''}>↓</button>
+          <button type="button" class="btn btn-secondary slider-clear" data-index="${i}" ${slide.image?'':'disabled'}>Hapus</button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  box.querySelectorAll('[data-slider-file]').forEach(input => {
+    input.onchange = () => uploadSliderImage(Number(input.dataset.sliderFile), input.files?.[0]);
+  });
+  box.querySelectorAll('.slider-move').forEach(btn => {
+    btn.onclick = () => moveSlider(Number(btn.dataset.index), btn.dataset.dir);
+  });
+  box.querySelectorAll('.slider-clear').forEach(btn => {
+    btn.onclick = () => clearSlider(Number(btn.dataset.index));
+  });
+  box.querySelectorAll('[data-slider-alt]').forEach(input => {
+    input.oninput = () => { sliderSettings.slides[Number(input.dataset.sliderAlt)].alt = input.value; };
+  });
+}
+
+function moveSlider(index, direction) {
+  if (index < 0 || index >= sliderSettings.slides.length) return;
+  const target = direction === 'up' ? index - 1 : index + 1;
+  if (target < 0 || target >= sliderSettings.slides.length) return;
+  [sliderSettings.slides[index], sliderSettings.slides[target]] = [sliderSettings.slides[target], sliderSettings.slides[index]];
+  renderSliderSettings();
+}
+
+function clearSlider(index) {
+  if (!sliderSettings.slides[index]) return;
+  sliderSettings.slides[index] = { image: '', alt: `Banner ${index+1}` };
+  while (sliderSettings.slides.length && !sliderSettings.slides[sliderSettings.slides.length - 1].image) sliderSettings.slides.pop();
+  renderSliderSettings();
+}
+
+async function uploadSliderImage(index, file) {
+  if (!file) return;
+  if (!client) { msg('sliderMsg', 'Supabase belum terhubung.'); return; }
+  if (file.size > 8 * 1024 * 1024) { msg('sliderMsg', 'Ukuran banner maksimal 8 MB.'); return; }
+  if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) { msg('sliderMsg', 'Format banner harus JPG, PNG, WEBP, atau GIF.'); return; }
+  msg('sliderMsg', `Mengunggah Banner ${index+1}...`);
+  const ext = (file.name.split('.').pop() || 'webp').toLowerCase();
+  const path = `slider/banner-${Date.now()}-${index}.${ext}`;
+  const { error } = await client.storage.from('site-assets').upload(path, file, { upsert: false, contentType: file.type, cacheControl: '3600' });
+  if (error) { msg('sliderMsg', error.message); return; }
+  const url = client.storage.from('site-assets').getPublicUrl(path).data.publicUrl;
+  while (sliderSettings.slides.length <= index) sliderSettings.slides.push({image:'', alt:`Banner ${sliderSettings.slides.length+1}`});
+  sliderSettings.slides[index].image = url;
+  if (!sliderSettings.slides[index].alt) sliderSettings.slides[index].alt = `Banner ${index+1}`;
+  renderSliderSettings();
+  msg('sliderMsg', `Banner ${index+1} berhasil diunggah. Klik Simpan Pengaturan Slider untuk menerapkannya.`);
+}
+
+async function saveSliderSettings() {
+  if (!client) { msg('sliderMsg', 'Supabase belum terhubung.'); return; }
+  const btn = $('saveSlider');
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+  try {
+    const cleaned = normalizeSliderSettings({
+      interval: Number($('sliderInterval')?.value || 5000),
+      effect: $('sliderEffect')?.value || 'fade',
+      slides: sliderSettings.slides.filter(x => x?.image).map(x => ({ image: x.image, alt: x.alt || 'Banner digitalEVO' }))
+    });
+    if (!cleaned.slides.length) throw new Error('Minimal 1 banner harus tersedia.');
+    await saveSetting('slider', cleaned);
+    sliderSettings = cleaned;
+    renderSliderSettings();
+    msg('sliderMsg', 'Pengaturan slider berhasil disimpan.');
+  } catch (error) {
+    msg('sliderMsg', error.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Simpan Pengaturan Slider'; }
   }
 }
 
@@ -1373,6 +1501,8 @@ $('refreshAdmin')?.addEventListener(
   'click',
   refreshAdmin
 );
+
+$('saveSlider')?.addEventListener('click', saveSliderSettings);
 
 $('orderSearch')?.addEventListener(
   'input',

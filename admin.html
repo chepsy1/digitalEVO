@@ -579,8 +579,46 @@
         <div id="imageSettings" class="image-admin-grid"></div>
 
         <p class="hint">
-          Gambar baru akan disimpan ke Supabase Storage dan digunakan website setelah halaman diperbarui.
+          Banner slider dan pengaturannya dikelola di bawah. Perubahan tersimpan ke Supabase dan langsung dipakai halaman utama setelah dimuat ulang.
         </p>
+
+        <section class="admin-card slider-settings-card">
+          <div class="admin-head">
+            <div>
+              <span class="eyebrow">HEADER SLIDER</span>
+              <h2>Pengaturan Slider</h2>
+              <p class="hint">Upload sampai 6 banner, aktifkan/nonaktifkan banner, dan atur urutannya.</p>
+            </div>
+          </div>
+          <div class="form-grid">
+            <label>
+              Waktu pergantian
+              <select id="sliderInterval">
+                <option value="2000">2 detik</option>
+                <option value="3000">3 detik</option>
+                <option value="4000">4 detik</option>
+                <option value="5000">5 detik</option>
+                <option value="6000">6 detik</option>
+                <option value="8000">8 detik</option>
+                <option value="10000">10 detik</option>
+                <option value="15000">15 detik</option>
+                <option value="20000">20 detik</option>
+              </select>
+            </label>
+            <label>
+              Efek transisi
+              <select id="sliderEffect">
+                <option value="fade">Fade</option>
+                <option value="slide">Slide</option>
+              </select>
+            </label>
+          </div>
+          <div id="sliderSettings" class="slider-admin-list"></div>
+          <div class="admin-actions-row">
+            <button id="saveSlider" class="btn btn-primary" type="button">Simpan Pengaturan Slider</button>
+          </div>
+          <p id="sliderMsg" class="admin-msg"></p>
+        </section>
 
         <p id="imageMsg" class="admin-msg"></p>
 

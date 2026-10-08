@@ -439,9 +439,26 @@
       <div id="deTickerTrack" class="de-ticker-track"></div>
     </section>
 
-    <!-- Header/Banner utama: tampil hanya jika diunggah dari Admin Panel -->
-    <section class="top-banner top-banner-managed" id="home" aria-label="Banner digitalEVO" hidden>
-      <img src="" alt="digitalEVO" loading="eager" decoding="async" />
+    <!-- Header/Banner utama: slider -->
+    <section class="top-banner top-banner-managed devo-header-slider" id="home" aria-label="Banner digitalEVO">
+      <div class="devo-header-slides">
+        <div class="devo-header-slide is-active">
+          <img class="devo-header-img devo-header-admin" src="assets/header.webp" alt="digitalEVO" loading="eager" decoding="async" />
+        </div>
+        <div class="devo-header-slide">
+          <img class="devo-header-img" src="assets/header-utama.webp" alt="digitalEVO" loading="lazy" decoding="async" />
+        </div>
+        <div class="devo-header-slide">
+          <img class="devo-header-img" src="assets/promo-500-5000.webp" alt="Promo digitalEVO" loading="lazy" decoding="async" />
+        </div>
+      </div>
+      <button class="devo-header-prev" type="button" aria-label="Banner sebelumnya">‹</button>
+      <button class="devo-header-next" type="button" aria-label="Banner berikutnya">›</button>
+      <div class="devo-header-dots" role="tablist" aria-label="Pilihan banner">
+        <button type="button" class="is-active" aria-label="Banner 1" aria-selected="true"></button>
+        <button type="button" aria-label="Banner 2" aria-selected="false"></button>
+        <button type="button" aria-label="Banner 3" aria-selected="false"></button>
+      </div>
     </section>
 
     <section class="de-social-links" aria-label="Media sosial dan kontak digitalEVO">
