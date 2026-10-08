@@ -43,10 +43,8 @@ function renderHeaderSlider(){
  const slidesData=configured.length?configured:fallback;
  slider.dataset.effect = sliderSettings.effect === 'slide' ? 'slide' : 'fade';
  const wrap=slider.querySelector('.devo-header-slides');
- const dotsWrap=slider.querySelector('.devo-header-dots');
- if(!wrap||!dotsWrap)return;
+ if(!wrap)return;
  wrap.innerHTML=slidesData.map((x,i)=>`<div class="devo-header-slide${i===0?' is-active':''}"><img class="devo-header-img${i===0?' devo-header-admin':''}" src="${escapeHtml(x.image)}" alt="${escapeHtml(x.alt||'Banner digitalEVO')}" loading="${i===0?'eager':'lazy'}" decoding="async"></div>`).join('');
- dotsWrap.innerHTML=slidesData.map((_,i)=>`<button type="button" class="${i===0?'is-active':''}" aria-label="Banner ${i+1}" aria-selected="${i===0?'true':'false'}"></button>`).join('');
  initDevoHeaderSlider(true);
 }
 
@@ -535,22 +533,18 @@ function initDevoHeaderSlider(force=false){
   if(!slider) return;
   if(devoHeaderSliderCleanup){devoHeaderSliderCleanup();devoHeaderSliderCleanup=null;}
   const slides=[...slider.querySelectorAll('.devo-header-slide')];
-  const dots=[...slider.querySelectorAll('.devo-header-dots button')];
-  const prev=slider.querySelector('.devo-header-prev');
-  const next=slider.querySelector('.devo-header-next');
   if(slides.length<2) return;
   let current=0,timer;
-  const show=(index,restart=true)=>{
+  const show=(index)=>{
     current=(index+slides.length)%slides.length;
     slides.forEach((el,i)=>el.classList.toggle('is-active',i===current));
-    dots.forEach((el,i)=>{el.classList.toggle('is-active',i===current);el.setAttribute('aria-selected',i===current?'true':'false');});
-    if(restart)start();
   };
-  const start=()=>{clearInterval(timer);timer=setInterval(()=>show(current+1,false),Math.max(1000,Number(sliderSettings.interval)||5000));};
-  const onPrev=()=>show(current-1), onNext=()=>show(current+1), onEnter=()=>clearInterval(timer), onLeave=start, onTouchStart=()=>clearInterval(timer), onTouchEnd=start;
-  prev?.addEventListener('click',onPrev);next?.addEventListener('click',onNext);dots.forEach((dot,i)=>dot.addEventListener('click',()=>show(i)));
-  slider.addEventListener('mouseenter',onEnter);slider.addEventListener('mouseleave',onLeave);slider.addEventListener('touchstart',onTouchStart,{passive:true});slider.addEventListener('touchend',onTouchEnd,{passive:true});
-  show(0,false);start();
-  devoHeaderSliderCleanup=()=>{clearInterval(timer);prev?.removeEventListener('click',onPrev);next?.removeEventListener('click',onNext);dots.forEach((dot,i)=>dot.removeEventListener('click',()=>show(i)));slider.removeEventListener('mouseenter',onEnter);slider.removeEventListener('mouseleave',onLeave);};
+  const start=()=>{
+    clearInterval(timer);
+    timer=setInterval(()=>show(current+1),Math.max(1000,Number(sliderSettings.interval)||5000));
+  };
+  show(0);
+  start();
+  devoHeaderSliderCleanup=()=>clearInterval(timer);
 }
 
