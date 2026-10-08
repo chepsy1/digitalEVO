@@ -27,6 +27,7 @@ let accountProducts=DEFAULT_ACCOUNTS.map(x=>({...x}));
 let site={...DEFAULT_SITE};
 let images={...DEFAULT_IMAGES};
 let sliderSettings={interval:5000,effect:'fade',slides:[]};
+const BUILTIN_SLIDER_IMAGES=new Set(['assets/header.webp','assets/header-utama.webp','assets/promo-500-5000.webp']);
 const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 const discountPct=p=>Math.round((1-(Number(p.price)||0)/(Number(p.original)||1))*100);
 const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -35,15 +36,12 @@ function renderHeaderSlider(){
  const slider=document.querySelector('.devo-header-slider');
  if(!slider) return;
  const configured=(Array.isArray(sliderSettings.slides)?sliderSettings.slides:[]).filter(x=>x?.image);
- const fallback=[
-  {image:images.header||'assets/header.webp',alt:'digitalEVO'},
-  {image:'assets/header-utama.webp',alt:'digitalEVO'},
-  {image:'assets/promo-500-5000.webp',alt:'Promo digitalEVO'}
- ];
- const slidesData=configured.length?configured:fallback;
+ const slidesData=configured;
  slider.dataset.effect = sliderSettings.effect === 'slide' ? 'slide' : 'fade';
  const wrap=slider.querySelector('.devo-header-slides');
  if(!wrap)return;
+ if(!slidesData.length){ wrap.innerHTML=''; slider.hidden=true; return; }
+ slider.hidden=false;
  wrap.innerHTML=slidesData.map((x,i)=>`<div class="devo-header-slide${i===0?' is-active':''}"><img class="devo-header-img${i===0?' devo-header-admin':''}" src="${escapeHtml(x.image)}" alt="${escapeHtml(x.alt||'Banner digitalEVO')}" loading="${i===0?'eager':'lazy'}" decoding="async"></div>`).join('');
  initDevoHeaderSlider(true);
 }
@@ -56,7 +54,7 @@ function renderSite(){
  const headerBanner=document.querySelector('.top-banner-managed');
  if(headerBanner){
    renderHeaderSlider();
-   headerBanner.hidden=false;
+   headerBanner.hidden = !(Array.isArray(sliderSettings.slides) && sliderSettings.slides.some(x => x?.image));
  }
  document.querySelector('.bottom-cta-image img')?.setAttribute('src',images.footer);
  const set=(sel,val)=>{const el=document.querySelector(sel);if(el&&val!=null)el.textContent=val};
@@ -454,7 +452,7 @@ function bindCheckout(){
 
 async function loadRemote(){
  const cfg=window.SUPABASE_CONFIG||{};if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient)return;
- try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow)sliderSettings={...sliderSettings,...sliderRow.value,slides:Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[]}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
+ try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow){const remoteSlides=Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[];sliderSettings={...sliderSettings,...sliderRow.value,slides:remoteSlides.filter(x=>x?.image&&!BUILTIN_SLIDER_IMAGES.has(String(x.image).trim()))}}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
 }
 
 function initSalesIndicator(){

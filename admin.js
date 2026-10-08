@@ -766,16 +766,19 @@ const MAX_SLIDES = 6;
 const DEFAULT_SLIDER = {
   interval: 5000,
   effect: 'fade',
-  slides: [
-    { image: 'assets/header.webp', alt: 'digitalEVO' },
-    { image: 'assets/header-utama.webp', alt: 'digitalEVO' },
-    { image: 'assets/promo-500-5000.webp', alt: 'Promo digitalEVO' }
-  ]
+  slides: []
 };
+
+const BUILTIN_SLIDER_IMAGES = new Set([
+  'assets/header.webp',
+  'assets/header-utama.webp',
+  'assets/promo-500-5000.webp'
+]);
 
 function normalizeSliderSettings(value) {
   const v = value && typeof value === 'object' ? value : {};
-  const slides = Array.isArray(v.slides) ? v.slides : DEFAULT_SLIDER.slides;
+  const slides = (Array.isArray(v.slides) ? v.slides : DEFAULT_SLIDER.slides)
+    .filter(x => x?.image && !BUILTIN_SLIDER_IMAGES.has(String(x.image).trim()));
   return {
     interval: Math.min(30000, Math.max(1000, Number(v.interval) || 5000)),
     effect: v.effect === 'slide' ? 'slide' : 'fade',

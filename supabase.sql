@@ -146,11 +146,7 @@ insert into public.site_settings(key, value) values
 ('slider', '{
   "interval":5000,
   "effect":"fade",
-  "slides":[
-    {"image":"assets/header.webp","alt":"digitalEVO"},
-    {"image":"assets/header-utama.webp","alt":"digitalEVO"},
-    {"image":"assets/promo-500-5000.webp","alt":"Promo digitalEVO"}
-  ]
+  "slides":[]
 }'::jsonb)
 on conflict (key) do nothing;
 
