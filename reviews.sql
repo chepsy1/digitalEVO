@@ -16,6 +16,7 @@ alter table public.comments add column if not exists rating integer not null def
 alter table public.comments add column if not exists store_url text;
 alter table public.comments add column if not exists photo_url text;
 alter table public.comments add column if not exists pinned boolean not null default false;
+alter table public.comments add column if not exists admin_reply text;
 alter table public.comments add column if not exists order_id uuid references public.orders(id) on delete cascade;
 create unique index if not exists comments_order_id_unique_idx on public.comments(order_id) where order_id is not null;
 create index if not exists comments_public_pinned_idx on public.comments(status,pinned desc,created_at desc);

@@ -7,9 +7,9 @@ module.exports = async (req,res)=>{
   if(!base||!key||!secret)return res.status(503).json({error:'Konfigurasi review server belum lengkap.'});
   let f;try{f=await parseMultipart(req);}catch(e){return res.status(400).json({error:e.message||'File tidak dapat dibaca.'});}
   const payload=verify(f.token,secret);if(!payload)return res.status(401).json({error:'Sesi verifikasi kedaluwarsa. Silakan verifikasi ulang.'});
-  const name=String(f.name||'').trim(),body=String(f.body||'').trim(),store=String(f.store_url||'').trim(),rating=Number(f.rating)||5;
+  const name=String(f.name||'').trim(),body=String(f.body||'').trim(),storeInput=String(f.store_url||'').trim(),rating=Number(f.rating)||5;
+  let store=''; if(storeInput){try{const candidate=/^[a-z][a-z0-9+.-]*:\/\//i.test(storeInput)?storeInput:'https://'+storeInput;const u=new URL(candidate);if(!['http:','https:'].includes(u.protocol)||!u.hostname.includes('.'))throw Error();store=u.href;}catch{return res.status(400).json({error:'Link toko/akun harus berupa alamat web yang valid.'});}}
   if(name.length<2||name.length>60||body.length<3||body.length>1000||rating<1||rating>5)return res.status(400).json({error:'Periksa nama, rating, dan isi komentar.'});
-  if(store){try{const u=new URL(store);if(!['http:','https:'].includes(u.protocol))throw Error();}catch{return res.status(400).json({error:'Link toko/akun harus berupa URL http atau https yang valid.'});}}
   const auth={apikey:key,Authorization:`Bearer ${key}`};
   const orderResponse=await fetch(`${base}/rest/v1/orders?id=eq.${encodeURIComponent(payload.order)}&select=id,customer_whatsapp,payment_status&limit=1`,{headers:auth});
   if(!orderResponse.ok)return res.status(500).json({error:'Database pesanan belum dapat diperiksa.'});

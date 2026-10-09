@@ -7,7 +7,7 @@ module.exports = async (req, res) => {
   const limit = Math.max(1, Math.min(6, Number(req.query.limit) || 6));
   const headers = { apikey: key, Authorization: `Bearer ${key}`, Range: `${(page - 1) * limit}-${page * limit - 1}`, Prefer: 'count=exact' };
   try {
-    const url = `${base}/rest/v1/comments?select=id,name,body,rating,store_url,photo_url,pinned,created_at&status=eq.approved&order=pinned.desc,created_at.desc`;
+    const url = `${base}/rest/v1/comments?select=id,name,body,rating,store_url,photo_url,pinned,admin_reply,created_at&status=eq.approved&order=pinned.desc,created_at.desc`;
     const [response, ratingResponse] = await Promise.all([
       fetch(url, { headers }),
       fetch(`${base}/rest/v1/comments?select=rating&status=eq.approved`, { headers: { apikey: key, Authorization: `Bearer ${key}` } })

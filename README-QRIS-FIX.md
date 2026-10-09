@@ -22,3 +22,6 @@ Jangan memasukkan secret ke `script.js`, HTML, atau repository GitHub.
 ## Catatan
 
 Project ini tetap membutuhkan payment gateway ShopeePay/QRIS yang memang menyediakan endpoint `/create-qris`, `/check-payment`, dan `/qr/:id`. Patch ini memperbaiki sisi website/proxy; kredensial atau layanan gateway eksternal tidak dibuat ulang dari secret yang tidak tersedia.
+
+## Balasan Admin pada Ulasan
+Setelah deploy file terbaru, buka Supabase SQL Editor dan jalankan isi file `add-admin-reply-column.sql` satu kali. Setelah itu buka Admin Panel > Ulasan & Komentar Pembeli, isi kolom **Balasan admin (ditampilkan di website)** pada ulasan yang diinginkan, lalu klik **Simpan edit**. Balasan muncul di website pada ulasan yang sudah disetujui.
