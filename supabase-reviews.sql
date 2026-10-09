@@ -15,6 +15,7 @@ create table if not exists public.comments (
 alter table public.comments add column if not exists rating integer not null default 5;
 alter table public.comments add column if not exists store_url text;
 alter table public.comments add column if not exists photo_url text;
+alter table public.comments add column if not exists photo_urls text[] not null default '{}';
 alter table public.comments add column if not exists pinned boolean not null default false;
 alter table public.comments add column if not exists admin_reply text;
 alter table public.comments add column if not exists order_id uuid references public.orders(id) on delete cascade;

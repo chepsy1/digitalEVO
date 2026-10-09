@@ -25,3 +25,11 @@ Project ini tetap membutuhkan payment gateway ShopeePay/QRIS yang memang menyedi
 
 ## Balasan Admin pada Ulasan
 Setelah deploy file terbaru, buka Supabase SQL Editor dan jalankan isi file `add-admin-reply-column.sql` satu kali. Setelah itu buka Admin Panel > Ulasan & Komentar Pembeli, isi kolom **Balasan admin (ditampilkan di website)** pada ulasan yang diinginkan, lalu klik **Simpan edit**. Balasan muncul di website pada ulasan yang sudah disetujui.
+
+## Perbaikan ulasan dan unggah hingga 3 foto
+1. Buka Supabase Dashboard → SQL Editor.
+2. Jalankan seluruh isi file `fix-review-columns-and-3-photos.sql` satu kali untuk menambahkan kolom balasan admin dan daftar foto serta memuat ulang schema cache.
+3. Deploy ulang seluruh isi proyek ke GitHub/Vercel.
+4. Formulir ulasan menerima maksimal 3 foto JPG/PNG/WebP, masing-masing maksimal 3 MB. Foto akan tampil pada kartu ulasan setelah admin menyetujui komentar.
+
+API daftar ulasan memiliki fallback supaya komentar yang sudah ada tetap bisa tampil jika kolom tambahan belum tersedia; fitur balasan admin dan penyimpanan banyak foto tetap memerlukan langkah SQL di atas.
