@@ -95,6 +95,12 @@
         <span>Pembayaran</span>
       </button>
 
+
+      <button class="nav-item" data-section="comments">
+        <span>★</span>
+        <span>Ulasan &amp; Komentar</span>
+      </button>
+
       <button class="nav-item" data-section="content">
         <span>✎</span>
         <span>Konten Website</span>
@@ -438,6 +444,24 @@
 
 
     <!-- CONTENT -->
+
+    <!-- ULASAN / KOMENTAR -->
+    <section id="section-comments" class="admin-section">
+      <div class="section-intro">
+        <h2>Ulasan &amp; Komentar Pembeli</h2>
+        <p>Setujui ulasan, edit isi, hapus, dan sematkan ulasan pilihan agar tampil di bagian atas website.</p>
+      </div>
+      <div class="admin-tabs review-admin-tabs">
+        <button class="btn btn-secondary active" type="button" data-review-status="pending">Menunggu</button>
+        <button class="btn btn-secondary" type="button" data-review-status="approved">Disetujui</button>
+        <button class="btn btn-secondary" type="button" data-review-status="rejected">Ditolak</button>
+        <button class="btn btn-secondary" type="button" data-review-status="all">Semua</button>
+        <button class="btn btn-primary" type="button" id="refreshReviews">Muat ulang</button>
+      </div>
+      <p id="reviewAdminMsg" class="admin-msg" role="status"></p>
+      <section class="admin-card"><div id="reviewAdminList" class="review-admin-list"><p>Ulasan akan tampil setelah database dihubungkan.</p></div></section>
+    </section>
+
     <section id="section-content" class="admin-section">
 
       <div class="section-intro">

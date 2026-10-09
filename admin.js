@@ -1463,9 +1463,38 @@ async function showPanel() {
 
   try {
     await loadAll();
+    await loadReviewAdmin();
   } catch (error) {
     msg('siteMsg', error.message);
   }
+}
+
+/* =========================
+   ULASAN & KOMENTAR
+========================= */
+let reviewAdminStatus = 'pending';
+async function loadReviewAdmin() {
+  const box = $('reviewAdminList'); if (!box || !client) return;
+  box.innerHTML = '<p>Memuat ulasan...</p>';
+  let query = client.from('comments').select('*').order('pinned', {ascending:false}).order('created_at',{ascending:false});
+  if (reviewAdminStatus !== 'all') query = query.eq('status', reviewAdminStatus);
+  const {data,error} = await query.limit(200);
+  if (error) { box.innerHTML = '<p>Gagal memuat ulasan. Pastikan migrasi SQL review sudah dijalankan.</p>'; msg('reviewAdminMsg', error.message); return; }
+  msg('reviewAdminMsg', `${data.length} ulasan ditampilkan.`);
+  if (!data.length) { box.innerHTML = '<p>Belum ada ulasan pada kategori ini.</p>'; return; }
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  box.innerHTML = data.map(item => `<article class="review-admin-card" data-review-id="${esc(item.id)}"><div class="review-admin-head"><div><strong>${esc(item.name)}</strong> <span class="review-admin-badge">${esc(item.status)}</span>${item.pinned?' <span class="review-admin-badge pinned">📌 Pinned</span>':''}<div class="review-admin-meta">${esc(new Date(item.created_at).toLocaleString('id-ID'))} · ${'★'.repeat(Math.max(1,Math.min(5,Number(item.rating)||5)))}</div></div>${item.photo_url?`<a href="${esc(item.photo_url)}" target="_blank" rel="noopener">Lihat foto</a>`:''}</div><label>Nama<input data-field="name" value="${esc(item.name)}" maxlength="60"></label><label>Link toko/akun<input data-field="store_url" value="${esc(item.store_url||'')}" placeholder="https://..."></label><label>Komentar<textarea data-field="body" rows="3" maxlength="1000">${esc(item.body)}</textarea></label><label>Rating<select data-field="rating">${[5,4,3,2,1].map(n=>`<option value="${n}" ${Number(item.rating)===n?'selected':''}>${n}/5</option>`).join('')}</select></label><div class="review-admin-actions">${item.status!=='approved'?'<button type="button" data-action="approve">Setujui</button>':''}${item.status!=='rejected'?'<button type="button" data-action="reject">Tolak</button>':''}<button type="button" data-action="save">Simpan edit</button><button type="button" data-action="pin">${item.pinned?'Lepas pin':'Sematkan'}</button><button type="button" class="danger" data-action="delete">Hapus</button></div></article>`).join('');
+  box.querySelectorAll('.review-admin-card').forEach(card => card.querySelectorAll('[data-action]').forEach(button => button.addEventListener('click', async () => {
+    const id=card.dataset.reviewId, action=button.dataset.action; button.disabled=true;
+    try {
+      let result;
+      if(action==='approve'||action==='reject') result=await client.from('comments').update({status:action==='approve'?'approved':'rejected'}).eq('id',id);
+      else if(action==='pin') result=await client.from('comments').update({pinned:!card.querySelector('.review-admin-badge.pinned')}).eq('id',id);
+      else if(action==='save') { const name=card.querySelector('[data-field="name"]').value.trim(), body=card.querySelector('[data-field="body"]').value.trim(), store_url=card.querySelector('[data-field="store_url"]').value.trim(), rating=Number(card.querySelector('[data-field="rating"]').value); if(name.length<2||body.length<3)throw Error('Nama minimal 2 karakter dan komentar minimal 3 karakter.'); if(store_url){const u=new URL(store_url);if(!['http:','https:'].includes(u.protocol))throw Error('Link harus menggunakan http/https.');} result=await client.from('comments').update({name,body,store_url:store_url||null,rating}).eq('id',id); }
+      else if(action==='delete'){if(!confirm('Hapus ulasan ini secara permanen?')){button.disabled=false;return;}result=await client.from('comments').delete().eq('id',id);}
+      if(result?.error)throw result.error; msg('reviewAdminMsg','Perubahan ulasan berhasil disimpan.','success'); await loadReviewAdmin();
+    } catch(e){msg('reviewAdminMsg',e.message||'Perubahan gagal disimpan.','error');button.disabled=false;}
+  })));
 }
 
 /* =========================
@@ -1516,6 +1545,9 @@ $('orderStatusFilter')?.addEventListener(
   'change',
   applyOrderFilters
 );
+
+$('refreshReviews')?.addEventListener('click', loadReviewAdmin);
+document.querySelectorAll('[data-review-status]').forEach(button => button.addEventListener('click', () => { reviewAdminStatus=button.dataset.reviewStatus; document.querySelectorAll('[data-review-status]').forEach(b=>b.classList.toggle('active',b===button)); loadReviewAdmin(); }));
 
 client?.auth.onAuthStateChange(
   (_event, session) => {

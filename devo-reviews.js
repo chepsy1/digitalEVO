@@ -1,0 +1,27 @@
+(() => {
+  const $ = id => document.getElementById(id);
+  const list = $('devoReviewsList'); if (!list) return;
+  let reviewToken = '', page = 1, totalPages = 1, rating = 5;
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const msg = (id, text, type='') => { const el=$(id); if(el){el.textContent=text;el.dataset.type=type;} };
+  const date = v => { try{return new Date(v).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}catch{return '';} };
+  function renderPagination(){const el=$('devoReviewPagination'); if(!el)return; let html=''; for(let n=1;n<=Math.min(totalPages,10);n++)html+=`<button type="button" data-page="${n}" class="${n===page?'active':''}">${n}</button>`;html+='<button type="button" data-next> NEXT </button>';el.innerHTML=html;el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=Number(b.dataset.page);loadReviews();});el.querySelector('[data-next]')?.addEventListener('click',()=>{if(page<totalPages){page++;loadReviews();}});}
+  async function loadReviews(){
+    try{const r=await fetch(`/api/reviews?page=${page}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
+      totalPages=Math.max(1,Math.ceil((d.total||0)/6));$('devoReviewCount').textContent=`Berdasarkan ${d.total||148} ulasan`; $('devoReviewScore').textContent=`${String(d.average||'5').replace(/\.0$/, '')}/5`;
+      if(!d.items?.length){list.innerHTML='<p class="devo-review-message">Belum ada ulasan yang disetujui.</p>';renderPagination();return;}
+      list.innerHTML=d.items.map(x=>`<article class="devo-review-card ${x.pinned?'is-pinned':''}">${x.pinned?'<span class="devo-pinned-label">📌 Disematkan</span>':''}<div class="devo-review-meta"><h3>${esc(x.name)}${x.store_url?` · <a href="${esc(x.store_url)}" target="_blank" rel="noopener noreferrer">Link toko/akun</a>`:''}</h3><time>${esc(date(x.created_at))}</time></div><div class="devo-stars" aria-label="Rating ${Number(x.rating)||5} dari 5">${'★'.repeat(Math.max(1,Math.min(5,Number(x.rating)||5)))}${'☆'.repeat(5-Math.max(1,Math.min(5,Number(x.rating)||5)))}</div><p>${esc(x.body)}</p>${x.photo_url?`<a href="${esc(x.photo_url)}" target="_blank" rel="noopener noreferrer"><img class="devo-review-photo" loading="lazy" src="${esc(x.photo_url)}" alt="Foto ulasan dari ${esc(x.name)}"></a>`:''}</article>`).join('');renderPagination();
+    }catch(e){list.innerHTML='<p class="devo-review-message">Ulasan belum dapat dimuat. Silakan coba lagi nanti.</p>';}
+  }
+  $('devoVerifyForm')?.addEventListener('submit',async e=>{e.preventDefault();const button=$('devoVerifyButton');button.disabled=true;msg('devoVerifyMessage','Memeriksa nomor dan status pembayaran...');
+    try{const digits=$('devoWhatsapp').value.replace(/\D/g,'');if(digits.length<8||digits.length>15)throw Error('Masukkan nomor WhatsApp yang valid.');const r=await fetch('/api/verify-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({whatsapp:digits})});const d=await r.json();if(!r.ok)throw Error(d.error||'Nomor belum dapat diverifikasi.');reviewToken=d.token;$('devoReviewForm').hidden=false;$('devoVerifyForm').hidden=true;msg('devoReviewMessage','Nomor berhasil diverifikasi. Silakan tulis ulasan.','success');
+    }catch(err){msg('devoVerifyMessage',err.message,'error');}finally{button.disabled=false;}
+  });
+  document.querySelectorAll('.devo-rating-picker [data-rating]').forEach(b=>b.addEventListener('click',()=>{rating=Number(b.dataset.rating);$('devoReviewRating').value=rating;document.querySelectorAll('.devo-rating-picker [data-rating]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.rating)<=rating));}));
+  document.querySelectorAll('.devo-rating-picker [data-rating]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.rating)<=rating));
+  $('devoReviewForm')?.addEventListener('submit',async e=>{e.preventDefault();if(!reviewToken){msg('devoReviewMessage','Silakan verifikasi nomor WhatsApp terlebih dahulu.','error');return;}const button=$('devoReviewSubmit'),file=$('devoReviewPhoto').files[0];if(file&&(file.size>3*1024*1024||!['image/jpeg','image/png','image/webp'].includes(file.type))){msg('devoReviewMessage','Foto harus JPG, PNG, atau WebP dengan ukuran maksimal 3 MB.','error');return;}button.disabled=true;msg('devoReviewMessage','Mengirim ulasan...');
+    try{const form=new FormData();form.append('token',reviewToken);form.append('name',$('devoReviewName').value.trim());form.append('store_url',$('devoReviewLink').value.trim());form.append('rating',String(rating));form.append('body',$('devoReviewBody').value.trim());if(file)form.append('photo',file);const r=await fetch('/api/submit-review',{method:'POST',body:form});const d=await r.json();if(!r.ok)throw Error(d.error||'Ulasan gagal dikirim.');$('devoReviewForm').reset();$('devoReviewForm').hidden=true;msg('devoVerifyMessage','Ulasan dikirim dan menunggu persetujuan admin.','success');$('devoVerifyForm').hidden=false;reviewToken='';rating=5;document.querySelectorAll('.devo-rating-picker [data-rating]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.rating)<=5));msg('devoVerifyMessage','Ulasan berhasil dikirim dan menunggu persetujuan admin.','success');
+    }catch(err){msg('devoReviewMessage',err.message,'error');}finally{button.disabled=false;}
+  });
+  loadReviews();
+})();

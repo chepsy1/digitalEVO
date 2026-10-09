@@ -594,9 +594,41 @@
       </div>
     </section>
 
+    <!-- ULASAN PEMBELI digitalEVO -->
+    <section class="section devo-reviews" id="ulasan">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">ULASAN PEMBELI</span><h2>Review &amp; Testimoni</h2><p>Berikan Pendapat &amp; Ulasan Tentang Produk Kami</p></div></div>
+        <div class="devo-review-summary"><div class="devo-review-score"><strong id="devoReviewScore">5/5</strong><span class="devo-stars" aria-label="5 dari 5 bintang">★★★★★</span></div><div><strong id="devoReviewCount">Berdasarkan 148 ulasan</strong><p>Ulasan dari pembeli digitalEVO</p></div></div>
+        <div id="devoReviewsList" class="devo-reviews-list" aria-live="polite"><p class="devo-review-message">Memuat ulasan...</p></div>
+        <div class="devo-review-pagination" id="devoReviewPagination" aria-label="Halaman ulasan"></div>
+        <div class="devo-review-login-card">
+          <h3>Tulis ulasan Anda</h3>
+          <p>Login dengan nomor <strong>WhatsApp</strong> yang pernah digunakan saat checkout. <strong>(Nomor Anda Tidak Akan Ditampilkan Dalam Komentar).</strong></p>
+          <form id="devoVerifyForm" class="devo-review-form">
+            <label for="devoWhatsapp">Nomor WA Yang Anda Gunakan Saat Checkout</label>
+            <div class="devo-phone-field"><span>+62</span><input id="devoWhatsapp" name="whatsapp" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="Masukkan Nomor WhatsApp" required minlength="8" maxlength="15"></div>
+            <button class="btn btn-primary" type="submit" id="devoVerifyButton">Verifikasi Nomor WhatsApp</button>
+            <p class="devo-review-message" id="devoVerifyMessage" role="status"></p>
+          </form>
+          <form id="devoReviewForm" class="devo-review-form" hidden>
+            <p class="devo-verified-note">✓ Nomor WhatsApp dan pembayaran terverifikasi.</p>
+            <label for="devoReviewName">Nama Anda *</label><input id="devoReviewName" name="name" required maxlength="60" placeholder="Nama yang ditampilkan">
+            <label for="devoReviewLink">Link Toko/Link Akun Anda (boleh dikosongkan)</label><input id="devoReviewLink" name="store_url" type="url" placeholder="https://...">
+            <label>Rating Anda *</label><div class="devo-rating-picker" role="radiogroup" aria-label="Pilih rating"> <button type="button" data-rating="1" aria-label="1 bintang">★</button><button type="button" data-rating="2" aria-label="2 bintang">★</button><button type="button" data-rating="3" aria-label="3 bintang">★</button><button type="button" data-rating="4" aria-label="4 bintang">★</button><button type="button" data-rating="5" aria-label="5 bintang">★</button></div><input id="devoReviewRating" type="hidden" value="5">
+            <label for="devoReviewBody">Isi Komentar *</label><textarea id="devoReviewBody" name="body" rows="4" required minlength="3" maxlength="1000" placeholder="Ceritakan pengalaman Anda..."></textarea>
+            <label for="devoReviewPhoto">Upload Foto (opsional, maks. 3 MB)</label><input id="devoReviewPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp">
+            <button class="btn btn-primary" type="submit" id="devoReviewSubmit">Kirim Ulasan</button><p class="devo-review-message" id="devoReviewMessage" role="status"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <section class="bottom-cta-image" aria-label="Promo Akun Shopee">
       <img src="assets/footer-cta.webp" alt="Dapatkan Akun Shopee Sekarang" loading="lazy" />
     </section>
+
+
+
 
     <section class="contact-band" id="kontak">
       <div class="container contact-inner">
@@ -658,6 +690,7 @@
   <script src="supabase-config.js"></script>
   <script src="script.js"></script>
   <script src="ticker.js"></script>
+  <script src="devo-reviews.js"></script>
 </body>
 </html>
 
