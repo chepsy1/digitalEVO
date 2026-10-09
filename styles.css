@@ -855,3 +855,22 @@
 .devo-review-photo-viewer-stage img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;transform-origin:center center;transition:transform .12s ease;cursor:zoom-in}
 body.devo-photo-viewer-open{overflow:hidden}
 @media(max-width:640px){.devo-review-photo-gallery{gap:6px;margin:8px 0}.devo-review-photo-button{width:clamp(56px,22vw,88px);height:clamp(56px,22vw,88px)}.devo-review-photo-viewer{padding:8px}.devo-review-photo-viewer-toolbar{gap:5px}.devo-review-photo-viewer-toolbar button{padding:7px 9px;font-size:12px}.devo-review-photo-viewer-hint{width:100%;margin:0 0 2px}}
+
+/* digitalEVO review cards: compact and mobile-friendly */
+.devo-review-photo-gallery{display:flex;flex-wrap:nowrap;gap:7px;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:2px 1px 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.devo-review-photo-button{scroll-snap-align:start;width:clamp(62px,8vw,96px);height:clamp(62px,8vw,96px);flex:0 0 auto}
+.devo-review-card{min-width:0;overflow-wrap:anywhere}
+.devo-review-card p{overflow-wrap:anywhere}
+@media(max-width:640px){
+  .devo-reviews-list{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+  .devo-review-card{padding:12px!important;border-radius:12px!important}
+  .devo-review-card h3{font-size:13px!important;line-height:1.35}
+  .devo-review-card p{font-size:13px!important;line-height:1.45;margin:6px 0!important}
+  .devo-review-meta{display:flex;align-items:flex-start;gap:6px}
+  .devo-review-photo-gallery{gap:7px;margin:7px 0 2px}
+  .devo-review-photo-button{width:72px;height:72px}
+  .devo-review-admin-reply{margin-top:8px;padding:8px 10px}
+  .devo-review-admin-reply p{font-size:12px!important}
+  .devo-review-pagination{flex-wrap:wrap;justify-content:center}
+  .devo-review-photo-viewer-stage img{max-width:100%;max-height:calc(100dvh - 100px)}
+}
