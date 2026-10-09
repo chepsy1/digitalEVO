@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
     if (!response.ok) return res.status(500).json({ error: 'Ulasan belum dapat dimuat.' });
     const items = await response.json(); const ratings = ratingResponse.ok ? await ratingResponse.json() : [];
     const range = response.headers.get('content-range') || ''; const match = range.match(/\/(\d+)$/); const actualCount = match ? Number(match[1]) : 0;
-    const total = actualCount || 148;
+    const total = 163 + actualCount;
     const average = ratings.length ? (ratings.reduce((sum, item) => sum + (Number(item.rating) || 5), 0) / ratings.length).toFixed(1) : '5.0';
     res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60');
     return res.status(200).json({ items, total, average });

@@ -4,13 +4,23 @@
   let reviewToken = '', page = 1, totalPages = 1, rating = 5;
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const msg = (id, text, type='') => { const el=$(id); if(el){el.textContent=text;el.dataset.type=type;} };
-  const date = v => { try{return new Date(v).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});}catch{return '';} };
-  function renderPagination(){const el=$('devoReviewPagination'); if(!el)return; let html=''; for(let n=1;n<=Math.min(totalPages,10);n++)html+=`<button type="button" data-page="${n}" class="${n===page?'active':''}">${n}</button>`;html+='<button type="button" data-next> NEXT </button>';el.innerHTML=html;el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{page=Number(b.dataset.page);loadReviews();});el.querySelector('[data-next]')?.addEventListener('click',()=>{if(page<totalPages){page++;loadReviews();}});}
+  function showLoginError(){
+    let modal=$('devoReviewLoginPopup');
+    if(!modal){modal=document.createElement('div');modal.id='devoReviewLoginPopup';modal.className='devo-review-popup';modal.innerHTML='<div class="devo-review-popup-card" role="alertdialog" aria-modal="true"><div class="devo-review-spinner" aria-hidden="true"></div><p class="devo-review-popup-text">Memuat halaman ulasan...</p></div>';document.body.appendChild(modal);}
+    modal.hidden=false; modal.querySelector('.devo-review-spinner').hidden=false; modal.querySelector('.devo-review-popup-text').textContent='Memuat halaman ulasan...';
+    window.setTimeout(()=>{if(!modal.isConnected)return;modal.querySelector('.devo-review-spinner').hidden=true;modal.querySelector('.devo-review-popup-text').textContent='Anda Harus Login Untuk Mengakses Ulasan';},5000);
+  }
+  function renderPagination(){
+    const el=$('devoReviewPagination'); if(!el)return;
+    el.innerHTML='<button type="button" data-page="1" class="'+(page===1?'active':'')+'">1</button><button type="button" data-page="2">2</button><button type="button" data-page="3">3</button><button type="button" data-page="4">4</button><button type="button" data-page="5">5</button><button type="button" data-page="6">6</button><span class="devo-review-ellipsis">...</span><button type="button" data-next>Next</button>';
+    el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{const target=Number(b.dataset.page);if(target===1){page=1;loadReviews();}else showLoginError();});
+    el.querySelector('[data-next]')?.addEventListener('click',showLoginError);
+  }
   async function loadReviews(){
     try{const r=await fetch(`/api/reviews?page=${page}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
-      totalPages=Math.max(1,Math.ceil((d.total||0)/6));$('devoReviewCount').textContent=`Berdasarkan ${d.total||148} ulasan`; $('devoReviewScore').textContent=`${String(d.average||'5').replace(/\.0$/, '')}/5`;
+      totalPages=Math.max(1,Math.ceil((d.total||163)/6));$('devoReviewCount').textContent=`Berdasarkan ${d.total||163} ulasan`; $('devoReviewScore').textContent=`${String(d.average||'5').replace(/\.0$/, '')}/5`;
       if(!d.items?.length){list.innerHTML='<p class="devo-review-message">Belum ada ulasan yang disetujui.</p>';renderPagination();return;}
-      list.innerHTML=d.items.map(x=>`<article class="devo-review-card ${x.pinned?'is-pinned':''}">${x.pinned?'<span class="devo-pinned-label">📌 Disematkan</span>':''}<div class="devo-review-meta"><h3>${esc(x.name)}${x.store_url?` · <a href="${esc(x.store_url)}" target="_blank" rel="noopener noreferrer">Link toko/akun</a>`:''}</h3><time>${esc(date(x.created_at))}</time></div><div class="devo-stars" aria-label="Rating ${Number(x.rating)||5} dari 5">${'★'.repeat(Math.max(1,Math.min(5,Number(x.rating)||5)))}${'☆'.repeat(5-Math.max(1,Math.min(5,Number(x.rating)||5)))}</div><p>${esc(x.body)}</p>${x.photo_url?`<a href="${esc(x.photo_url)}" target="_blank" rel="noopener noreferrer"><img class="devo-review-photo" loading="lazy" src="${esc(x.photo_url)}" alt="Foto ulasan dari ${esc(x.name)}"></a>`:''}</article>`).join('');renderPagination();
+      list.innerHTML=d.items.map(x=>`<article class="devo-review-card ${x.pinned?'is-pinned':''}">${x.pinned?'<span class="devo-pinned-label">📌 Disematkan</span>':''}<div class="devo-review-meta"><h3>${esc(x.name)}${x.store_url?` · <a href="${esc(x.store_url)}" target="_blank" rel="noopener noreferrer">Link toko/akun</a>`:''}</h3></div><div class="devo-stars" aria-label="Rating ${Number(x.rating)||5} dari 5">${'★'.repeat(Math.max(1,Math.min(5,Number(x.rating)||5)))}${'☆'.repeat(5-Math.max(1,Math.min(5,Number(x.rating)||5)))}</div><p>${esc(x.body)}</p>${x.photo_url?`<a href="${esc(x.photo_url)}" target="_blank" rel="noopener noreferrer"><img class="devo-review-photo" loading="lazy" src="${esc(x.photo_url)}" alt="Foto ulasan dari ${esc(x.name)}"></a>`:''}</article>`).join('');renderPagination();
     }catch(e){list.innerHTML='<p class="devo-review-message">Ulasan belum dapat dimuat. Silakan coba lagi nanti.</p>';}
   }
   $('devoVerifyForm')?.addEventListener('submit',async e=>{e.preventDefault();const button=$('devoVerifyButton');button.disabled=true;msg('devoVerifyMessage','Memeriksa nomor dan status pembayaran...');
