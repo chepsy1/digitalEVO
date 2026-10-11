@@ -487,11 +487,50 @@ function initAnalyticsTracking() {
     };
     const visitorId = getId('digitalEVO_visitor_id');
     const sessionId = getId('digitalEVO_session_id');
+
+    // Simpan sumber kunjungan. UTM lebih diutamakan karena beberapa aplikasi
+    // media sosial tidak mengirim referrer ke browser.
+    const params = new URLSearchParams(location.search);
+    const referrer = document.referrer || '';
+    const referrerHost = (() => {
+      try { return referrer ? new URL(referrer).hostname.replace(/^www\./, '').toLowerCase() : ''; }
+      catch { return ''; }
+    })();
+    const utmSource = (params.get('utm_source') || '').trim().toLowerCase();
+    const utmMedium = (params.get('utm_medium') || '').trim();
+    const utmCampaign = (params.get('utm_campaign') || '').trim();
+
+    function classifyTrafficSource() {
+      const source = utmSource || referrerHost;
+      if (!source) return 'Direct / Tidak diketahui';
+      if (/tiktok|vm\.tiktok/.test(source)) return 'TikTok';
+      if (/instagram|l\.instagram/.test(source)) return 'Instagram';
+      if (/facebook|fb\.com|m\.facebook/.test(source)) return 'Facebook';
+      if (/whatsapp|wa\.me/.test(source)) return 'WhatsApp';
+      if (/youtube|youtu\.be/.test(source)) return 'YouTube';
+      if (/google/.test(source)) return 'Google';
+      if (/bing/.test(source)) return 'Bing';
+      if (/twitter|x\.com|t\.co/.test(source)) return 'X / Twitter';
+      if (/telegram|t\.me/.test(source)) return 'Telegram';
+      if (utmSource) return utmSource;
+      return referrerHost || 'Direct / Tidak diketahui';
+    }
+
+    const trafficMetadata = {
+      source: classifyTrafficSource(),
+      referrer: referrer.slice(0, 500),
+      referrer_host: referrerHost,
+      utm_source: utmSource,
+      utm_medium: utmMedium,
+      utm_campaign: utmCampaign
+    };
+
     const send = (event_type, extra={}) => analyticsClient.from('analytics_events').insert({
       visitor_id: visitorId,
       session_id: sessionId,
       event_type,
       page_path: location.pathname,
+      metadata: trafficMetadata,
       ...extra
     }).then(()=>{}).catch(()=>{});
 

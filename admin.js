@@ -1245,7 +1245,7 @@ async function loadAnalytics() {
     const [summaryResult, clicks, events] = await Promise.all([
       client.rpc('analytics_summary'),
       client.from('analytics_events').select('event_type,product_name,quantity,created_at').eq('event_type','product_click').gte('created_at', since30).limit(10000),
-      client.from('analytics_events').select('event_type,product_name,quantity,created_at,value').gte('created_at', since30).limit(20000)
+      client.from('analytics_events').select('event_type,product_name,quantity,created_at,value,metadata,page_path').gte('created_at', since30).limit(20000)
     ]);
 
     const summary = summaryResult.data || {};
@@ -1273,6 +1273,7 @@ async function loadAnalytics() {
     setText('statRevenueAll', rupiah(revenueSince(new Date(0))));
 
     renderAnalyticsCharts(events.data || [], analyticsRange);
+    renderTrafficSources(events.data || []);
     renderFunnel(events.data || []);
     renderTopProducts(clickRows);
   } catch (error) {
@@ -1344,6 +1345,42 @@ function renderAnalyticsCharts(events, range) {
   const revenueRows = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()))
     .map(o => ({created_at:o.created_at || o.checkout_at, value:Number(o.amount || o.total || 0)}));
   renderBars('revenueChart', bucketEvents(revenueRows, range, true), true);
+}
+
+function renderTrafficSources(events) {
+  const box = $('trafficSources');
+  if (!box) return;
+
+  const views = events.filter(e => e.event_type === 'page_view');
+  const counts = {};
+  const details = {};
+  views.forEach(event => {
+    const meta = event.metadata && typeof event.metadata === 'object' ? event.metadata : {};
+    const source = String(meta.source || (meta.referrer_host || 'Direct / Tidak diketahui')).slice(0, 120);
+    counts[source] = (counts[source] || 0) + 1;
+    if (!details[source]) details[source] = { referrer: meta.referrer || '', campaign: meta.utm_campaign || '', medium: meta.utm_medium || '' };
+  });
+
+  const rows = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+  if (!rows.length) {
+    box.innerHTML = '<div class="chart-empty">Belum ada data sumber pengunjung. Setelah deploy, kunjungan baru akan mulai tercatat.</div>';
+    return;
+  }
+
+  const max = Math.max(...rows.map(row => row[1]), 1);
+  const total = rows.reduce((sum, row) => sum + row[1], 0);
+  box.innerHTML = rows.slice(0, 12).map(([source, count]) => {
+    const safeSource = escapeHtml(source);
+    const percent = Math.round(count / total * 100);
+    const detail = details[source] || {};
+    const sub = detail.campaign ? `Kampanye: ${escapeHtml(detail.campaign)}` :
+      detail.medium ? `Medium: ${escapeHtml(detail.medium)}` : '';
+    return `<div class="traffic-source-row">
+      <div class="traffic-source-top"><strong>${safeSource}</strong><span>${count.toLocaleString('id-ID')} kunjungan · ${percent}%</span></div>
+      <div class="traffic-source-track"><div class="traffic-source-fill" style="width:${Math.max(2, count / max * 100)}%"></div></div>
+      ${sub ? `<small>${sub}</small>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function renderFunnel(events) {

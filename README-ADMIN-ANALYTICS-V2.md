@@ -70,3 +70,21 @@ Upload seluruh isi ZIP ke GitHub/Vercel seperti website sebelumnya. Setelah depl
 
 ### Pencatatan pembayaran QRIS
 Setelah pembayaran berstatus PAID, `/api/check-payment` menyimpan order ke `orders` menggunakan `SUPABASE_SERVICE_ROLE_KEY` dan memperbarui `products.sold` jika nilai sold saat ini berupa angka.
+
+
+## Tambahan: sumber traffic (TikTok, Instagram, Facebook, dll.)
+
+Versi ini mencatat sumber kunjungan pada `analytics_events.metadata`, lalu menampilkannya di Admin Panel > Analytics > Asal Pengunjung. Tidak ada perubahan pada endpoint checkout atau QRIS.
+
+- Sumber diambil dari parameter UTM jika tersedia, atau domain `document.referrer`.
+- Sebagian browser/aplikasi sosial dapat menyembunyikan referrer; untuk atribusi lebih akurat gunakan link UTM.
+- Tidak perlu menjalankan SQL tambahan jika tabel `analytics_events` dibuat dari `supabase.sql` yang disertakan, karena kolom `metadata jsonb` sudah tersedia.
+- Data sumber mulai tercatat setelah versi ini di-deploy. Kunjungan lama tidak memiliki metadata sumber sehingga tidak bisa diklasifikasikan secara retroaktif.
+
+Contoh link promosi:
+- TikTok: `https://digitalevo.store/?utm_source=tiktok&utm_medium=social&utm_campaign=promo`
+- Instagram: `https://digitalevo.store/?utm_source=instagram&utm_medium=social&utm_campaign=promo`
+- Facebook: `https://digitalevo.store/?utm_source=facebook&utm_medium=social&utm_campaign=promo`
+- WhatsApp: `https://digitalevo.store/?utm_source=whatsapp&utm_medium=chat&utm_campaign=promo`
+
+Gunakan link yang sesuai untuk masing-masing platform. Jangan menaruh secret key Supabase di frontend.

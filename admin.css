@@ -1148,3 +1148,16 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 
 /* Review moderation admin */
 .review-admin-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.review-admin-tabs [data-review-status].active{background:#ea580c!important;color:#fff!important}.review-admin-list{display:grid;gap:14px}.review-admin-card{border:1px solid #e5e7eb;border-radius:14px;padding:16px;background:#fff;display:grid;gap:10px}.review-admin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.review-admin-meta{font-size:12px;color:#6b7280;margin-top:4px}.review-admin-badge{font-size:10px;background:#f3f4f6;border-radius:99px;padding:4px 7px;text-transform:uppercase}.review-admin-badge.pinned{background:#fef3c7;color:#92400e}.review-admin-card label{display:grid;gap:5px;font-size:12px;font-weight:700}.review-admin-card input,.review-admin-card textarea,.review-admin-card select{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:9px;font:inherit;font-weight:400;box-sizing:border-box}.review-admin-actions{display:flex;flex-wrap:wrap;gap:7px}.review-admin-actions button{border:1px solid #d1d5db;background:#f9fafb;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}.review-admin-actions button:first-child{background:#dcfce7;border-color:#86efac}.review-admin-actions button.danger{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+
+/* Traffic source analytics */
+.traffic-sources-card{margin-top:18px}
+.traffic-sources-list{display:grid;gap:16px}
+.traffic-source-row{display:grid;gap:7px}
+.traffic-source-top{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.traffic-source-top strong{font-weight:750;color:#111827}
+.traffic-source-top span{color:#6b7280;text-align:right;font-size:12px;white-space:nowrap}
+.traffic-source-track{height:8px;border-radius:999px;background:#f3f4f6;overflow:hidden}
+.traffic-source-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#f97316,#fb923c)}
+.traffic-source-row small,.admin-help-text{font-size:12px;color:#6b7280;line-height:1.5}
+.admin-help-text{margin:16px 0 0}
+@media(max-width:520px){.traffic-source-top{align-items:flex-start;flex-direction:column;gap:3px}.traffic-source-top span{text-align:left}}
