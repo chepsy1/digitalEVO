@@ -1221,6 +1221,8 @@ function escapeAttr(value) {
 ========================= */
 
 let analyticsRange = '24h';
+let analyticsLoading = false;
+let analyticsRefreshTimer = null;
 
 function analyticsSince(range) {
   const now = Date.now();
@@ -1235,7 +1237,8 @@ function setText(id, value) {
 }
 
 async function loadAnalytics() {
-  if (!client) return;
+  if (!client || analyticsLoading) return;
+  analyticsLoading = true;
 
   const since24 = analyticsSince('24h').toISOString();
   const since7 = analyticsSince('7d').toISOString();
@@ -1278,6 +1281,8 @@ async function loadAnalytics() {
     renderTopProducts(clickRows);
   } catch (error) {
     console.warn('Analytics belum siap:', error);
+  } finally {
+    analyticsLoading = false;
   }
 }
 
@@ -1441,6 +1446,18 @@ function setupAnalytics() {
   $('refreshAnalytics')?.addEventListener('click',loadAnalytics);
   $('adminFreeCheckout')?.addEventListener('click',adminFreeCheckout);
 
+  // Perbarui Analytics otomatis setiap 60 detik saat admin sedang melihat tab Analytics.
+  // Tidak menyentuh alur checkout atau pembayaran QRIS.
+  if (analyticsRefreshTimer) clearInterval(analyticsRefreshTimer);
+  analyticsRefreshTimer = setInterval(() => {
+    const panel = $('panelView');
+    const analyticsSection = $('section-analytics');
+    if (document.visibilityState === 'visible' &&
+        panel && !panel.hidden &&
+        analyticsSection && analyticsSection.classList.contains('active')) {
+      loadAnalytics();
+    }
+  }, 60 * 1000);
 }
 
 /* =========================
