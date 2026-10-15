@@ -59,8 +59,12 @@ export default async function handler(req, res) {
     // Normalisasi beberapa bentuk respons gateway tanpa mengubah kontrak frontend lama.
     const d = data?.data || data?.result || data;
     const qrisUrl = d?.qris_url || d?.qr_url || d?.qrUrl || d?.qrImageUrl || data?.qris_url || data?.qr_url;
-    const transactionId = d?.paymentId || d?.payment_id || d?.transactionId || d?.transaction_id || d?.id;
-    const finalAmount = Number(d?.amount || data?.amount || amount);
+    // Some gateway responses expose the payment reference only in the QR URL.
+    // Match the frontend's existing fallback so pending orders can be recorded
+    // under the same ID that /api/check-payment will later receive.
+    const transactionId = d?.paymentId || d?.payment_id || d?.transactionId || d?.transaction_id || d?.id ||
+      (qrisUrl ? String(qrisUrl).split('/').filter(Boolean).pop() : null);
+    const finalAmount = Number(d?.amount ?? data?.amount ?? amount);
 
     if (!qrisUrl && !d?.qrContent && !d?.qr_content && !d?.qrImage && !d?.qr_image) {
       return res.status(502).json({ error: 'Gateway tidak mengembalikan QRIS.', details: data });
