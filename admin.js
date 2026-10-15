@@ -310,8 +310,28 @@ function renderProductSummary() {
    ORDERS
 ========================= */
 
+async function adminOrderAction(payload) {
+  const { data: { session } } = await client.auth.getSession();
+  if (!session?.access_token) throw new Error('Sesi admin berakhir. Silakan login kembali.');
+  const response = await fetch('/api/admin-orders', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || 'Permintaan pesanan gagal.');
+  return result;
+}
+
 async function loadOrders() {
   try {
+    // Simpan status kedaluwarsa ke database, bukan hanya menampilkannya di layar.
+    try { await adminOrderAction({ action: 'expire' }); } catch (expireError) {
+      console.warn('Pembaruan kedaluwarsa belum berhasil:', expireError.message);
+    }
     const { data, error } = await client
       .from('orders')
       .select('*')
@@ -400,8 +420,9 @@ async function deleteOrder(orderId) {
     return;
   }
   if (!confirm('Hapus pesanan yang belum dibayar/kedaluwarsa ini? Tindakan tidak dapat dibatalkan.')) return;
-  const { error } = await client.from('orders').delete().eq('id', order.id);
-  if (error) {
+  try {
+    await adminOrderAction({ action: 'delete', id: order.id });
+  } catch (error) {
     alert('Gagal menghapus pesanan: ' + error.message);
     return;
   }
