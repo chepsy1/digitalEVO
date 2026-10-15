@@ -7,6 +7,7 @@ let products = [];
 let settings = {};
 let images = {};
 let orders = [];
+let orderRefreshTimer = null;
 let activeOrderTab = 'incoming';
 let sliderSettings = { interval: 5000, effect: 'fade', slides: [] };
 
@@ -1587,6 +1588,8 @@ async function showPanel() {
   try {
     await loadAll();
     await loadReviewAdmin();
+    if (orderRefreshTimer) clearInterval(orderRefreshTimer);
+    orderRefreshTimer = setInterval(() => { if (client && !document.hidden) loadOrders(); }, 30000);
   } catch (error) {
     msg('siteMsg', error.message);
   }
