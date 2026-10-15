@@ -375,6 +375,11 @@
         </div>
       </div>
 
+      <div class="admin-tabs order-admin-tabs">
+        <button class="btn btn-secondary active" type="button" data-order-tab="incoming">Pesanan Masuk</button>
+        <button class="btn btn-secondary" type="button" data-order-tab="paid">Pembayaran Berhasil</button>
+      </div>
+
       <div class="filter-bar">
         <input id="orderSearch" type="search" placeholder="Cari invoice, WhatsApp, atau produk...">
 
@@ -383,6 +388,8 @@
           <option value="paid">Dibayar</option>
           <option value="processing">Diproses</option>
           <option value="completed">Selesai</option>
+          <option value="pending">Belum Dibayar</option>
+          <option value="expired">Kedaluwarsa</option>
           <option value="cancelled">Dibatalkan</option>
         </select>
       </div>

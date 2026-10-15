@@ -66,6 +66,43 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: 'Gateway tidak mengembalikan QRIS.', details: data });
     }
 
+    // Simpan data pesanan saat QRIS berhasil dibuat, sebelum pelanggan membayar.
+    // Jika gateway tidak memberi transaction ID, jangan membuat record yang tidak bisa direkonsiliasi.
+    if (transactionId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const order = body.order && typeof body.order === 'object' ? body.order : {};
+      const now = new Date().toISOString();
+      const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+      const record = {
+        transaction_id: String(transactionId),
+        customer_whatsapp: order.customerWhatsapp || null,
+        account_contact: order.accountContact || null,
+        shopee_link: category === 'followers' ? (order.shopeeLink || null) : null,
+        photo_url: category === 'followers' ? (order.photoUrl || null) : null,
+        photo_path: category === 'followers' ? (order.photoPath || null) : null,
+        product_id: isUuid(product.id) ? product.id : null,
+        product_name: category === 'account' ? `Akun Shopee ${qty.toLocaleString('id-ID')} Followers` : `${qty.toLocaleString('id-ID')} Followers`,
+        category,
+        quantity: 1,
+        amount: Number.isSafeInteger(finalAmount) && finalAmount > 0 ? finalAmount : amount,
+        payment_status: 'pending',
+        order_status: 'pending',
+        payment_method: 'QRIS',
+        updated_at: now
+      };
+      const base = String(process.env.SUPABASE_URL).replace(/\/+$/, '');
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const saved = await fetch(`${base}/rest/v1/orders?on_conflict=transaction_id`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify(record)
+      });
+      if (!saved.ok) {
+        const detail = await saved.text();
+        console.error('Gagal menyimpan pesanan pending:', saved.status, detail);
+        return res.status(502).json({ error: 'QRIS berhasil dibuat, tetapi pesanan gagal disimpan. Jangan tutup halaman; hubungi admin sebelum mencoba membayar lagi.' });
+      }
+    }
+
     return res.status(200).json({
       success: true,
       data: {

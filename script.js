@@ -395,7 +395,16 @@ function bindCheckout(){
           category: payload.category,
           qty: Number(payload.qty),
           productId: payload.productId || null,
-          productSortOrder: payload.productSortOrder || null
+          productSortOrder: payload.productSortOrder || null,
+          order: {
+            customerWhatsapp: payload.customerWhatsapp || null,
+            accountContact: payload.accountContact || null,
+            accountName: payload.accountName || null,
+            shopeeLink: payload.shopeeLink || null,
+            photoUrl: payload.photoUrl || null,
+            photoPath: payload.photoPath || null,
+            photoName: payload.photoName || null
+          }
         })
       });
 

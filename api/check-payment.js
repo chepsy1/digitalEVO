@@ -125,8 +125,23 @@ export default async function handler(req, res) {
       if (!existingResponse.ok) {
         orderError = existing?.message || 'Gagal memeriksa order yang sudah ada.';
       } else if (existing?.[0]) {
-        orderRecorded = true;
-        orderWasNew = false;
+        const current = existing[0];
+        if (String(current.payment_status || '').toLowerCase() !== 'paid') {
+          const update = await supabaseFetch(`/rest/v1/orders?transaction_id=eq.${encodeURIComponent(transactionId)}`, {
+            method: 'PATCH',
+            headers: { Prefer: 'return=minimal' },
+            body: JSON.stringify({ payment_status: 'paid', order_status: 'completed', paid_at: now, updated_at: now, amount: expectedAmount })
+          });
+          if (!update.ok) {
+            orderError = await update.text();
+          } else {
+            orderRecorded = true;
+            orderWasNew = true;
+          }
+        } else {
+          orderRecorded = true;
+          orderWasNew = false;
+        }
       } else {
         const record = {
           transaction_id: transactionId,

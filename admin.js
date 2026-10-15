@@ -7,6 +7,7 @@ let products = [];
 let settings = {};
 let images = {};
 let orders = [];
+let activeOrderTab = 'incoming';
 let sliderSettings = { interval: 5000, effect: 'fade', slides: [] };
 
 const $ = id => document.getElementById(id);
@@ -90,6 +91,13 @@ async function logout() {
 ========================= */
 
 function setupNavigation() {
+  document.querySelectorAll('[data-order-tab]').forEach(button => {
+    button.addEventListener('click', () => {
+      activeOrderTab = button.dataset.orderTab;
+      document.querySelectorAll('[data-order-tab]').forEach(item => item.classList.toggle('active', item === button));
+      renderOrders();
+    });
+  });
   const buttons = document.querySelectorAll('[data-section]');
 
   buttons.forEach(button => {
@@ -357,6 +365,7 @@ function orderStatus(status) {
 
   const labels = {
     pending: 'Menunggu',
+    expired: 'Kedaluwarsa',
     paid: 'Dibayar',
     processing: 'Diproses',
     completed: 'Selesai',
@@ -371,11 +380,44 @@ function orderStatus(status) {
   `;
 }
 
+function effectivePaymentStatus(order) {
+  const status = String(order.payment_status || order.status || 'pending').toLowerCase();
+  if (status === 'pending' && order.created_at) {
+    const age = Date.now() - new Date(order.created_at).getTime();
+    if (Number.isFinite(age) && age >= 15 * 60 * 1000) return 'expired';
+  }
+  return status;
+}
+
+function canDeleteOrder(order) {
+  return ['pending', 'expired'].includes(effectivePaymentStatus(order));
+}
+
+async function deleteOrder(orderId) {
+  const order = orders.find(item => String(item.id) === String(orderId));
+  if (!order || !canDeleteOrder(order)) {
+    alert('Hanya pesanan belum dibayar atau kedaluwarsa yang boleh dihapus.');
+    return;
+  }
+  if (!confirm('Hapus pesanan yang belum dibayar/kedaluwarsa ini? Tindakan tidak dapat dibatalkan.')) return;
+  const { error } = await client.from('orders').delete().eq('id', order.id);
+  if (error) {
+    alert('Gagal menghapus pesanan: ' + error.message);
+    return;
+  }
+  orders = orders.filter(item => String(item.id) !== String(order.id));
+  renderOrders(); renderPayments(); updateDashboard(); renderRecentOrders();
+}
+
 function renderOrders() {
   const box = $('ordersTable');
   if (!box) return;
 
-  if (!orders.length) {
+  const tabOrders = orders.filter(order => activeOrderTab === 'paid'
+    ? ['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase())
+    : !['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()));
+
+  if (!tabOrders.length) {
     box.innerHTML = `
       <div class="admin-empty">
         Belum ada pesanan.
@@ -398,10 +440,11 @@ function renderOrders() {
             <th>Pembayaran</th>
             <th>Status</th>
             <th>Checkout</th>
+            <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
-          ${orders.map(order => `
+          ${tabOrders.map(order => `
             <tr>
               <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
               <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
@@ -409,9 +452,10 @@ function renderOrders() {
               <td>${escapeHtml(order.product_name || order.product || '-')}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>
-              <td>${orderStatus(order.payment_status || order.status)}</td>
+              <td>${orderStatus(effectivePaymentStatus(order))}</td>
               <td>${orderStatus(order.order_status || order.status)}</td>
               <td>${dateID(order.created_at || order.checkout_at)}</td>
+              <td>${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : '—'}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -419,6 +463,9 @@ function renderOrders() {
     </div>
   `;
 
+  box.querySelectorAll('[data-delete-order]').forEach(button => {
+    button.addEventListener('click', () => deleteOrder(button.dataset.deleteOrder));
+  });
   applyOrderFilters();
 }
 
@@ -564,13 +611,11 @@ function applyOrderFilters() {
     const matchesSearch =
       !search || text.includes(search);
 
-    const matchesStatus =
-      !status ||
-      order.payment_status === status ||
-      order.order_status === status ||
-      order.status === status;
+    const isPaid = ['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase());
+    const matchesTab = activeOrderTab === 'paid' ? isPaid : !isPaid;
+    const matchesStatus = !status || effectivePaymentStatus(order) === status || order.order_status === status || order.status === status;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesTab;
   });
 
   const tbody = box.querySelector('tbody');
@@ -588,13 +633,16 @@ function applyOrderFilters() {
       <td>${orderStatus(order.payment_status || order.status)}</td>
       <td>${orderStatus(order.order_status || order.status)}</td>
       <td>${dateID(order.created_at || order.checkout_at)}</td>
+      <td>${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : '—'}</td>
     </tr>
   `).join('');
+
+  box.querySelectorAll('[data-delete-order]').forEach(button => button.addEventListener('click', () => deleteOrder(button.dataset.deleteOrder)));
 
   if (!filtered.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="9">Tidak ada pesanan yang cocok.</td>
+        <td colspan="10">Tidak ada pesanan yang cocok.</td>
       </tr>
     `;
   }
