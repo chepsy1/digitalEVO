@@ -59,16 +59,29 @@ export default async function handler(req, res) {
     // Normalisasi beberapa bentuk respons gateway tanpa mengubah kontrak frontend lama.
     const d = data?.data || data?.result || data;
     const qrisUrl = d?.qris_url || d?.qr_url || d?.qrUrl || d?.qrImageUrl || data?.qris_url || data?.qr_url;
-    const transactionId = d?.paymentId || d?.payment_id || d?.transactionId || d?.transaction_id || d?.id;
+    const transactionId = d?.paymentId || d?.payment_id || d?.transactionId || d?.transaction_id ||
+      d?.partnerReferenceNo || d?.partner_reference_no || d?.referenceNo || d?.reference_no || d?.id ||
+      (qrisUrl ? String(qrisUrl).split('?')[0].split('/').filter(Boolean).pop() : null);
     const finalAmount = Number(d?.amount || data?.amount || amount);
 
     if (!qrisUrl && !d?.qrContent && !d?.qr_content && !d?.qrImage && !d?.qr_image) {
       return res.status(502).json({ error: 'Gateway tidak mengembalikan QRIS.', details: data });
     }
 
+    // Tanpa ID transaksi yang bisa dipakai untuk rekonsiliasi, jangan tampilkan QRIS
+    // seolah-olah pesanan sudah tercatat.
+    if (!transactionId) {
+      console.error('Gateway mengembalikan QRIS tanpa ID transaksi:', JSON.stringify({
+        keys: Object.keys(d || {}),
+        hasQrisUrl: Boolean(qrisUrl)
+      }));
+      return res.status(502).json({
+        error: 'QRIS dibuat, tetapi ID transaksi tidak ditemukan sehingga pesanan belum bisa dicatat. Silakan hubungi admin sebelum mencoba membayar.'
+      });
+    }
+
     // Simpan data pesanan saat QRIS berhasil dibuat, sebelum pelanggan membayar.
-    // Jika gateway tidak memberi transaction ID, jangan membuat record yang tidak bisa direkonsiliasi.
-    if (transactionId && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const order = body.order && typeof body.order === 'object' ? body.order : {};
       const now = new Date().toISOString();
       const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
