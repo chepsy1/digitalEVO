@@ -58,7 +58,7 @@ export default async function handler(req, res) {
         `${base}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&payment_status=in.(pending,expired)&select=*`,
         { method: 'PATCH', headers, body: JSON.stringify({
           payment_status: 'paid',
-          order_status: 'processing',
+          order_status: 'completed',
           updated_at: new Date().toISOString()
         }) }
       );
