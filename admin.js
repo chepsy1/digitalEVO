@@ -680,6 +680,11 @@ function applyOrderFilters() {
   `).join('');
 
   box.querySelectorAll('[data-delete-order]').forEach(button => button.addEventListener('click', () => deleteOrder(button.dataset.deleteOrder)));
+  // applyOrderFilters mengganti isi tbody, jadi tombol Pembayaran Berhasil
+  // harus dipasangi event listener kembali setelah baris dirender ulang.
+  box.querySelectorAll('[data-mark-paid-order]').forEach(button => {
+    button.addEventListener('click', () => markOrderPaid(button.dataset.markPaidOrder));
+  });
 
   if (!filtered.length) {
     tbody.innerHTML = `
