@@ -414,6 +414,23 @@ function canDeleteOrder(order) {
   return ['pending', 'expired'].includes(effectivePaymentStatus(order));
 }
 
+async function markOrderPaid(orderId) {
+  const order = orders.find(item => String(item.id) === String(orderId));
+  if (!order || ['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase())) {
+    alert('Pesanan ini sudah berstatus berhasil atau tidak ditemukan.');
+    return;
+  }
+  if (!confirm('Tandai pesanan ini sebagai Pembayaran Berhasil? Pendapatan dan analytics akan ikut diperbarui. Gunakan hanya jika pembayaran sudah Anda pastikan.')) return;
+  try {
+    await adminOrderAction({ action: 'mark_paid', id: order.id });
+    await loadOrders();
+    await loadAnalytics();
+    alert('Status pesanan berhasil diperbarui.');
+  } catch (error) {
+    alert('Gagal memperbarui pesanan: ' + error.message);
+  }
+}
+
 async function deleteOrder(orderId) {
   const order = orders.find(item => String(item.id) === String(orderId));
   if (!order || !canDeleteOrder(order)) {
@@ -477,7 +494,7 @@ function renderOrders() {
               <td>${orderStatus(effectivePaymentStatus(order))}</td>
               <td>${orderStatus(order.order_status || order.status)}</td>
               <td>${dateID(order.created_at || order.checkout_at)}</td>
-              <td>${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : '—'}</td>
+              <td><div class="order-action-buttons">${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
             </tr>
           `).join('')}
         </tbody>
@@ -487,6 +504,9 @@ function renderOrders() {
 
   box.querySelectorAll('[data-delete-order]').forEach(button => {
     button.addEventListener('click', () => deleteOrder(button.dataset.deleteOrder));
+  });
+  box.querySelectorAll('[data-mark-paid-order]').forEach(button => {
+    button.addEventListener('click', () => markOrderPaid(button.dataset.markPaidOrder));
   });
   applyOrderFilters();
 }
@@ -655,7 +675,7 @@ function applyOrderFilters() {
       <td>${orderStatus(order.payment_status || order.status)}</td>
       <td>${orderStatus(order.order_status || order.status)}</td>
       <td>${dateID(order.created_at || order.checkout_at)}</td>
-      <td>${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : '—'}</td>
+      <td><div class="order-action-buttons">${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
     </tr>
   `).join('');
 

@@ -1161,3 +1161,18 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 .traffic-source-row small,.admin-help-text{font-size:12px;color:#6b7280;line-height:1.5}
 .admin-help-text{margin:16px 0 0}
 @media(max-width:520px){.traffic-source-top{align-items:flex-start;flex-direction:column;gap:3px}.traffic-source-top span{text-align:left}}
+
+
+/* Tombol aksi pesanan: status manual dan hapus */
+.order-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 210px;
+}
+.order-action-buttons .btn {
+  white-space: nowrap;
+  font-size: 12px;
+  padding: 8px 10px;
+}

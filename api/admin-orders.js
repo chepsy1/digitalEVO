@@ -49,6 +49,50 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, updated: text ? JSON.parse(text).length : 0 });
     }
 
+    if (action === 'mark_paid') {
+      const id = String(req.body?.id || '');
+      if (!id) return res.status(400).json({ error: 'ID pesanan tidak valid.' });
+
+      // Hanya pesanan yang belum berstatus berhasil yang dapat ditandai manual.
+      const response = await fetch(
+        `${base}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&payment_status=in.(pending,expired)&select=*`,
+        { method: 'PATCH', headers, body: JSON.stringify({
+          payment_status: 'paid',
+          order_status: 'processing',
+          updated_at: new Date().toISOString()
+        }) }
+      );
+      const text = await response.text();
+      if (!response.ok) return res.status(500).json({ error: 'Gagal memperbarui status pesanan.', details: text });
+      const updated = text ? JSON.parse(text) : [];
+      if (!updated.length) return res.status(409).json({ error: 'Pesanan tidak ditemukan atau sudah berstatus berhasil.' });
+
+      // Catat ke analytics agar grafik pendapatan ikut terbarui.
+      const order = updated[0];
+      const analyticsResponse = await fetch(`${base}/rest/v1/analytics_events`, {
+        method: 'POST',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({
+          visitor_id: `admin-manual-${String(order.id)}`.slice(0, 120),
+          event_type: 'checkout_paid',
+          page_path: '/admin.html',
+          product_name: String(order.product_name || order.product || 'Pesanan manual'),
+          quantity: Number(order.quantity || order.qty || 1),
+          value: Number(order.amount || order.total || 0),
+          metadata: { source: 'admin_manual_mark_paid', order_id: String(order.id) }
+        })
+      });
+      if (!analyticsResponse.ok) {
+        console.error('Order ditandai berhasil, tetapi analytics event gagal:', await analyticsResponse.text());
+      }
+      return res.status(200).json({ success: true, order: updated[0] });
+    }
+
     if (action === 'delete') {
       const id = String(req.body?.id || '');
       if (!id) return res.status(400).json({ error: 'ID pesanan tidak valid.' });
