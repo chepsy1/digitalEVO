@@ -1176,3 +1176,5 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
   font-size: 12px;
   padding: 8px 10px;
 }
+
+.admin-order-status-label{display:block;margin-top:7px;font-size:11px;color:#64748b}.admin-order-status-select{max-width:150px;margin-top:4px;padding:6px 8px;border:1px solid #d1d5db;border-radius:7px;background:#fff;color:#111827;font:inherit;font-size:12px}

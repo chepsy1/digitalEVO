@@ -130,7 +130,7 @@ export default async function handler(req, res) {
           const update = await supabaseFetch(`/rest/v1/orders?transaction_id=eq.${encodeURIComponent(transactionId)}`, {
             method: 'PATCH',
             headers: { Prefer: 'return=minimal' },
-            body: JSON.stringify({ payment_status: 'paid', order_status: 'completed', paid_at: now, updated_at: now, amount: expectedAmount })
+            body: JSON.stringify({ payment_status: 'paid', order_status: 'queued', paid_at: now, updated_at: now, amount: expectedAmount })
           });
           if (!update.ok) {
             orderError = await update.text();
@@ -158,7 +158,7 @@ export default async function handler(req, res) {
           quantity: 1,
           amount: expectedAmount,
           payment_status: 'paid',
-          order_status: 'completed',
+          order_status: 'queued',
           payment_method: 'QRIS',
           paid_at: now,
           updated_at: now

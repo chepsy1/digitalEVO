@@ -8,8 +8,11 @@ export default async function handler(req, res) {
     const authHeader = String(req.headers.authorization || '');
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
 
-    if (!base || !serviceKey || !anonKey || !token) {
-      return res.status(401).json({ error: 'Sesi admin tidak valid.' });
+    if (!base || !serviceKey || !anonKey) {
+      return res.status(500).json({ error: 'Konfigurasi server belum lengkap. Periksa SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, dan SUPABASE_ANON_KEY pada deployment Preview.' });
+    }
+    if (!token) {
+      return res.status(401).json({ error: 'Token sesi admin tidak terkirim. Muat ulang halaman admin lalu login kembali.' });
     }
 
     const userResponse = await fetch(`${base}/auth/v1/user`, {
@@ -49,6 +52,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, updated: text ? JSON.parse(text).length : 0 });
     }
 
+    if (action === 'set_order_status') {
+      const id = String(req.body?.id || '');
+      const orderStatus = String(req.body?.order_status || '').toLowerCase();
+      if (!id) return res.status(400).json({ error: 'ID pesanan tidak valid.' });
+      if (!['queued', 'processing', 'completed'].includes(orderStatus)) {
+        return res.status(400).json({ error: 'Status pengerjaan tidak valid.' });
+      }
+      const response = await fetch(
+        base + '/rest/v1/orders?id=eq.' + encodeURIComponent(id) + '&payment_status=in.(paid,processing,completed)&select=id,order_status',
+        { method: 'PATCH', headers, body: JSON.stringify({ order_status: orderStatus, updated_at: new Date().toISOString() }) }
+      );
+      const text = await response.text();
+      if (!response.ok) return res.status(500).json({ error: 'Gagal memperbarui status pengerjaan.', details: text });
+      const updated = text ? JSON.parse(text) : [];
+      if (!updated.length) return res.status(409).json({ error: 'Pesanan belum dibayar atau tidak ditemukan.' });
+      return res.status(200).json({ success: true, order: updated[0] });
+    }
+
     if (action === 'mark_paid') {
       const id = String(req.body?.id || '');
       if (!id) return res.status(400).json({ error: 'ID pesanan tidak valid.' });
@@ -58,7 +79,7 @@ export default async function handler(req, res) {
         `${base}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&payment_status=in.(pending,expired)&select=*`,
         { method: 'PATCH', headers, body: JSON.stringify({
           payment_status: 'paid',
-          order_status: 'completed',
+          order_status: 'queued',
           updated_at: new Date().toISOString()
         }) }
       );
