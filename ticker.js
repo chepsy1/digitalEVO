@@ -52,7 +52,25 @@
     { label: "Akun 50000 Followers", weight: 1 }
   ];
 
+  // Peluang kemunculan produk video di ticker (persentase dari seluruh item).
+  const videoPackages = [
+    { label: "Shopee Video 500 Views", weight: 7 },
+    { label: "Shopee Video 1000 Views", weight: 5 },
+    { label: "Shopee Video 100 Likes", weight: 7 },
+    { label: "Shopee Video 200 Likes", weight: 7 },
+    { label: "Shopee Video 500 Likes", weight: 7 },
+    { label: "Shopee Video 1000 Likes", weight: 3 }
+  ];
+
   function getRandomProduct() {
+    const roll = Math.random() * 100;
+    let cumulative = 0;
+    for (const item of videoPackages) {
+      cumulative += item.weight;
+      if (roll < cumulative) return item.label;
+    }
+
+    // 64% sisanya tetap memakai format produk ticker yang sudah ada.
     if (Math.random() < 0.10) {
       return weightedRandom(accountPackages);
     }
