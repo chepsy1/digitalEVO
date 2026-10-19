@@ -715,6 +715,14 @@
   box-sizing:border-box;
 }
 
+/* Pusatkan poin ke-4 pada baris terakhir di desktop agar seimbang */
+@media (min-width:1051px){
+  .devo-premium-benefits > div:last-child{
+    grid-column:2 !important;
+    justify-self:stretch !important;
+  }
+}
+
 @media (min-width:700px) and (max-width:1050px){
   .devo-premium-features{
     grid-template-columns:repeat(3,minmax(0,1fr)) !important;
