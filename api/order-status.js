@@ -40,8 +40,9 @@ export default async function handler(req, res) {
     const inList = candidates.map(value => encodeURIComponent(value)).join(',');
     const filter = 'or=(customer_whatsapp.in.(' + inList + '),account_contact.in.(' + inList + '))';
     const url = base + '/rest/v1/orders?' + filter + '&select=id,transaction_id,product_name,amount,payment_status,order_status,payment_method,created_at,paid_at&order=created_at.desc&limit=50';
-    const response = await fetch(url, {headers:{apikey:key,Authorization:'Bearer '+key,Accept:'application/json'}});
-    const raw = await response.text();
+    const headers = {apikey:key,Authorization:'Bearer '+key,Accept:'application/json'};
+    let response = await fetch(url, {headers});
+    let raw = await response.text();
     let rows;
     try { rows = raw ? JSON.parse(raw) : []; } catch { rows = []; }
     if (!response.ok) {
@@ -49,9 +50,31 @@ export default async function handler(req, res) {
       return json(res, 500, {error:'Tidak dapat memeriksa pesanan saat ini. Silakan coba lagi.'});
     }
     const normalized = new Set(candidates.map(value => value.replace(/\D/g, '')));
-    const matches = (Array.isArray(rows) ? rows : []).filter(order =>
-      [order.customer_whatsapp, order.account_contact].some(value => normalized.has(String(value || '').replace(/\D/g, '')))
-    ).map(order => ({
+    let matches = Array.isArray(rows) ? rows : [];
+    // Fallback untuk nomor lama yang tersimpan dengan format berbeda (spasi, tanda hubung, atau kode negara).
+    if (!matches.length) {
+      const digits = String(req.body && req.body.phone || '').replace(/\D/g, '');
+      const suffix = digits.slice(-8);
+      if (suffix.length >= 8) {
+        const encodedSuffix = encodeURIComponent('*' + suffix + '*');
+        const fallbackFilter = 'or=(customer_whatsapp.ilike.' + encodedSuffix + ',account_contact.ilike.' + encodedSuffix + ')';
+        const fallbackUrl = base + '/rest/v1/orders?' + fallbackFilter + '&select=id,transaction_id,product_name,amount,payment_status,order_status,payment_method,created_at,paid_at,customer_whatsapp,account_contact&order=created_at.desc&limit=100';
+        response = await fetch(fallbackUrl, {headers});
+        raw = await response.text();
+        try { rows = raw ? JSON.parse(raw) : []; } catch { rows = []; }
+        if (!response.ok) {
+          console.error('Order status fallback lookup failed:', response.status, raw);
+          return json(res, 500, {error:'Tidak dapat memeriksa pesanan saat ini. Silakan coba lagi.'});
+        }
+        matches = (Array.isArray(rows) ? rows : []).filter(order =>
+          [order.customer_whatsapp, order.account_contact].some(value => {
+            const stored = String(value || '').replace(/\D/g, '');
+            return normalized.has(stored) || stored.endsWith(suffix);
+          })
+        );
+      }
+    }
+    matches = matches.map(order => ({
       invoice:String(order.transaction_id || order.id || '-'),
       product:String(order.product_name || 'Pesanan DigitalEVO'),
       amount:Number(order.amount || 0),
