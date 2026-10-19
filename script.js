@@ -464,8 +464,10 @@ function bindCheckout(){
       }
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
-        product: payload.category === 'account' ? 'Account Premium' : 'Followers Indonesia',
-        quantity: Number(payload.items.length || 0),
+        product: payload.items.map(item => item.productName).join(' + '),
+        productType: payload.category === 'account' ? 'Account Premium' : 'Followers Indonesia',
+        quantity: payload.items.reduce((sum,item)=>sum+Number(item.qty||0),0),
+        itemCount: payload.items.length,
         qty: Number(payload.qty || 0),
         amount: Number(data.data.amount || payload.amount),
         transaction: paymentId,
