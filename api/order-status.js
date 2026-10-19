@@ -30,7 +30,11 @@ export default async function handler(req, res) {
   try {
     const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!base || !key) return json(res, 500, {error:'Layanan cek pesanan belum dikonfigurasi.'});
+    if (!base || !key) {
+      const missing = [!base && 'SUPABASE_URL', !key && 'SUPABASE_SERVICE_ROLE_KEY'].filter(Boolean);
+      console.error('Order status config missing:', missing.join(', '));
+      return json(res, 500, {error:'Konfigurasi server belum lengkap: ' + missing.join(', ') + '. Periksa Environment Variables pada deployment Preview.'});
+    }
     const candidates = phoneCandidates(req.body && req.body.phone);
     if (!candidates.length) return json(res, 400, {error:'Masukkan nomor handphone yang valid.'});
     const inList = candidates.map(value => encodeURIComponent(value)).join(',');
