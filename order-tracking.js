@@ -32,7 +32,23 @@
       head.appendChild(node('span','devo-order-status devo-order-status-'+status.key,status.label));
       card.appendChild(head);
       var details = node('div','devo-order-details');
-      detail(details,'Produk / Paket',order.product);
+      if (Array.isArray(order.items) && order.items.length) {
+        var itemList = node('div','devo-order-items');
+        itemList.appendChild(node('strong','devo-order-items-title','Rincian produk dan status pengerjaan'));
+        order.items.forEach(function (item) {
+          var itemRow = node('div','devo-order-item-row');
+          var itemInfo = node('div','devo-order-item-info');
+          itemInfo.appendChild(node('strong','',item.product));
+          itemInfo.appendChild(node('small','',money(item.amount)));
+          itemRow.appendChild(itemInfo);
+          var itemStatus = item.orderStatus || {label:'Dalam Antrian',key:'queued'};
+          itemRow.appendChild(node('span','devo-order-status devo-order-status-'+itemStatus.key,itemStatus.label));
+          itemList.appendChild(itemRow);
+        });
+        details.appendChild(itemList);
+      } else {
+        detail(details,'Produk / Paket',order.product);
+      }
       detail(details,'Total Pembayaran',money(order.amount));
       detail(details,'Status Pembayaran',order.paymentStatus,order.paymentKey === 'paid' ? 'devo-payment-paid' : 'devo-payment-pending');
       detail(details,'Metode Pembayaran',order.paymentMethod);
