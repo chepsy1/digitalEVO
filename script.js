@@ -65,7 +65,7 @@ function renderSite(){
  document.querySelector('.bottom-cta-image img')?.setAttribute('src',images.footer);
  const set=(sel,val)=>{const el=document.querySelector(sel);if(el&&val!=null)el.textContent=val};
  set('.product-head .eyebrow',site.followerEyebrow);set('.product-head h2',site.followerTitle);set('.section-subtitle',site.followerSubtitle);set('.head-badge',site.followerDiscount);
- set('.account-category-head .eyebrow',site.accountEyebrow);set('.account-category-head h2',site.accountTitle);set('.account-category-head p',site.accountDescription);
+ set('#akun-shopee-premium .account-category-head .eyebrow',site.accountEyebrow);set('#akun-shopee-premium .account-category-head h2',site.accountTitle);set('#akun-shopee-premium .account-category-head p',site.accountDescription);
  set('.contact-band .eyebrow',site.contactEyebrow);set('.contact-band h2',site.contactTitle);const waText=document.querySelector('.contact-band strong');if(waText)waText.textContent=site.contactWhatsapp;
  const followersBanner=document.querySelector('.followers-promo-top img');if(followersBanner)followersBanner.src=images.followersBanner;
   const accountBanner=document.querySelector('.account-banner-wrap img');if(accountBanner)accountBanner.src=images.accountBanner;
