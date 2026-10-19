@@ -56,6 +56,45 @@ export default async function handler(req, res) {
       if (!['queued', 'processing', 'completed'].includes(orderStatus)) {
         return res.status(400).json({ error: 'Status pengerjaan tidak valid.' });
       }
+      if (req.body?.item_index !== undefined && req.body?.item_index !== null) {
+        const itemIndex = Number(req.body.item_index);
+        if (!Number.isInteger(itemIndex) || itemIndex < 0) {
+          return res.status(400).json({ error: 'Item pesanan tidak valid.' });
+        }
+        const parentResponse = await fetch(
+          `${base}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=id,payment_status,order_status,items&limit=1`,
+          { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+        );
+        const parentRaw = await parentResponse.text();
+        let parentRows = [];
+        try { parentRows = parentRaw ? JSON.parse(parentRaw) : []; } catch {}
+        if (!parentResponse.ok) return res.status(500).json({ error: 'Gagal membaca item pesanan.' });
+        const parent = parentRows[0];
+        if (!parent || String(parent.payment_status || '').toLowerCase() !== 'paid') {
+          return res.status(409).json({ error: 'Pesanan belum dibayar atau tidak ditemukan.' });
+        }
+        const items = Array.isArray(parent.items) ? parent.items.map(item => ({ ...item })) : [];
+        if (!items.length || itemIndex >= items.length) {
+          return res.status(404).json({ error: 'Item produk tidak ditemukan.' });
+        }
+        items[itemIndex].order_status = orderStatus;
+        const allStatuses = items.map(item => String(item.order_status || 'queued').toLowerCase());
+        const parentStatus = allStatuses.every(value => value === 'completed')
+          ? 'completed'
+          : allStatuses.some(value => value === 'processing')
+            ? 'processing'
+            : 'queued';
+        const updateResponse = await fetch(
+          `${base}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=id,items,order_status`,
+          { method: 'PATCH', headers, body: JSON.stringify({ items, order_status: parentStatus, updated_at: new Date().toISOString() }) }
+        );
+        const updateRaw = await updateResponse.text();
+        let updatedRows = [];
+        try { updatedRows = updateRaw ? JSON.parse(updateRaw) : []; } catch {}
+        if (!updateResponse.ok) return res.status(500).json({ error: 'Gagal memperbarui status item.', details: updateRaw });
+        return res.status(200).json({ success: true, item: items[itemIndex], order: updatedRows[0] || null });
+      }
+
       const response = await fetch(
         base + '/rest/v1/orders?id=eq.' + encodeURIComponent(id) + '&or=(payment_status.in.(paid,processing,completed),status.in.(paid,processing,completed))&select=id,order_status',
         { method: 'PATCH', headers, body: JSON.stringify({ order_status: orderStatus, updated_at: new Date().toISOString() }) }
