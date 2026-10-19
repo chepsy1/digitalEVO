@@ -463,145 +463,174 @@
 
 
     <style>
-      /* Tata letak konsisten untuk desktop dan seluler */
+      /* DigitalEVO premium benefits: clean, aligned, responsive */
       .devo-premium-section {
-        box-sizing: border-box;
         width: 100%;
-        padding: 18px 16px;
-        margin: 10px 0;
+        box-sizing: border-box;
+        margin: 12px 0;
+        padding: 16px;
         font-family: Arial, Helvetica, sans-serif;
-        color: #253247;
+        color: #252f3f;
       }
       .devo-premium-card {
         box-sizing: border-box;
         width: 100%;
-        max-width: 1100px;
+        max-width: 1080px;
         margin: 0 auto;
-        padding: 22px;
+        padding: 18px;
         background: #fff;
-        border: 1px solid #f0e5df;
-        border-radius: 18px;
-        box-shadow: 0 5px 20px rgba(42, 35, 31, .07);
+        border: 1px solid #f1e6e0;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(38, 30, 25, .06);
       }
       .devo-premium-features {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px 20px;
+        gap: 10px;
         margin: 0;
         padding: 0;
         list-style: none;
       }
       .devo-premium-features li {
-        box-sizing: border-box;
         display: flex;
         align-items: center;
+        gap: 10px;
         min-width: 0;
-        gap: 12px;
         margin: 0;
         padding: 12px;
-        border: 1px solid #f3e8e2;
-        border-radius: 12px;
         background: #fffaf7;
+        border: 1px solid #f5e8e1;
+        border-radius: 12px;
       }
       .devo-premium-icon {
         box-sizing: border-box;
         display: inline-flex;
-        flex: 0 0 36px;
+        flex: 0 0 34px;
         align-items: center;
         justify-content: center;
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        color: #e94f2e;
+        background: #ffede5;
         border-radius: 10px;
-        background: #fff0e8;
-        color: #ee4d2d;
       }
       .devo-premium-icon svg {
         display: block;
-        width: 20px;
-        height: 20px;
+        width: 19px;
+        height: 19px;
         fill: none;
         stroke: currentColor;
         stroke-width: 1.8;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
-      .devo-premium-features li > div { min-width: 0; font-size: 14px; line-height: 1.4; font-weight: 700; overflow-wrap: anywhere; }
-      .devo-premium-features li strong { display: block; font-size: 15px; font-weight: 800; }
-      .devo-premium-features li span:not(.devo-premium-icon) { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; }
+      .devo-premium-features li > div {
+        min-width: 0;
+        font-size: 12px;
+        line-height: 1.35;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+      .devo-premium-features li strong {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 15px;
+        line-height: 1.2;
+        font-weight: 800;
+      }
+      .devo-premium-features li span:not(.devo-premium-icon) {
+        display: block;
+        font-size: 11px;
+        line-height: 1.35;
+        font-weight: 800;
+      }
       .devo-premium-benefits {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
-        margin-top: 16px;
+        margin-top: 12px;
       }
       .devo-premium-benefits > div {
-        box-sizing: border-box;
         display: flex;
         align-items: center;
-        min-width: 0;
         gap: 10px;
+        min-width: 0;
+        min-height: 68px;
         padding: 12px;
-        border: 1px solid #f0e4dd;
-        border-radius: 12px;
         background: #fff;
-        color: #293548;
-        font-size: 13px;
-        line-height: 1.4;
+        border: 1px solid #e9e9e9;
+        border-radius: 12px;
+        color: #273346;
+        font-size: 12px;
+        line-height: 1.35;
         font-weight: 800;
         overflow-wrap: anywhere;
       }
-      .devo-premium-benefits b { font-weight: 800; }
+      .devo-premium-benefits > div b { font-weight: 800; }
       .devo-premium-safe {
-        box-sizing: border-box;
         display: flex;
         align-items: center;
         gap: 10px;
-        margin-top: 14px;
-        padding: 12px 14px;
-        border: 1px solid #dcefe2;
+        margin-top: 12px;
+        padding: 11px 13px;
+        border: 1px solid #d8eadc;
         border-radius: 12px;
-        background: #f4fbf6;
+        background: #f3faf4;
         color: #245b39;
-        font-size: 13px;
+        font-size: 12px;
         line-height: 1.4;
         font-weight: 800;
       }
-      .devo-premium-safe > div { min-width: 0; font-weight: 800; }
-      .devo-premium-safe b, .devo-premium-safe span:not(.devo-premium-lock) { font-weight: 800; }
+      .devo-premium-safe > div,
+      .devo-premium-safe b,
+      .devo-premium-safe span:not(.devo-premium-lock) { min-width: 0; font-weight: 800; }
       .devo-premium-lock {
         box-sizing: border-box;
         display: inline-flex;
-        flex: 0 0 32px;
+        flex: 0 0 30px;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
         border-radius: 9px;
         background: #e1f3e6;
       }
-      .devo-premium-lock svg { display: block; width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-      .devo-premium-section, .devo-premium-section * { box-sizing: border-box; }
-      .devo-premium-section b, .devo-premium-section strong, .devo-premium-section small,
-      .devo-premium-section li, .devo-premium-section li span:not(.devo-premium-icon) { font-weight: 800 !important; }
+      .devo-premium-lock svg {
+        display: block;
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .devo-premium-section,
+      .devo-premium-section * { box-sizing: border-box; }
+      .devo-premium-section b,
+      .devo-premium-section strong,
+      .devo-premium-section small,
+      .devo-premium-section li,
+      .devo-premium-section li span:not(.devo-premium-icon) { font-weight: 800 !important; }
 
       @media (max-width: 600px) {
-        .devo-premium-section { padding: 10px !important; margin: 6px 0 !important; }
-        .devo-premium-card { padding: 12px !important; border-radius: 13px !important; }
-        .devo-premium-features { grid-template-columns: minmax(0, 1fr) !important; gap: 7px !important; margin: 0 !important; padding: 0 !important; }
-        .devo-premium-features li { gap: 9px !important; padding: 9px !important; margin: 0 !important; }
-        .devo-premium-icon { flex-basis: 30px; width: 30px !important; height: 30px !important; min-width: 30px !important; }
-        .devo-premium-icon svg { width: 17px !important; height: 17px !important; }
-        .devo-premium-features li > div { min-width: 0; font-size: 12px !important; line-height: 1.35 !important; }
-        .devo-premium-features li strong { font-size: 13px !important; }
-        .devo-premium-features li span:not(.devo-premium-icon) { font-size: 11px !important; overflow-wrap: anywhere; }
-        .devo-premium-benefits { grid-template-columns: minmax(0, 1fr) !important; gap: 7px !important; margin-top: 10px !important; }
-        .devo-premium-benefits > div { gap: 9px !important; padding: 9px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1.35 !important; }
-        .devo-premium-benefits .devo-premium-icon { flex-basis: 28px; width: 28px !important; height: 28px !important; min-width: 28px !important; }
-        .devo-premium-benefits .devo-premium-icon svg { width: 16px !important; height: 16px !important; }
-        .devo-premium-safe { gap: 8px !important; margin-top: 10px !important; padding: 9px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1.35 !important; }
-        .devo-premium-lock { flex-basis: 28px; width: 28px !important; height: 28px !important; min-width: 28px !important; }
+        .devo-premium-section { padding: 8px 10px !important; margin: 6px 0 !important; }
+        .devo-premium-card { padding: 10px !important; border-radius: 13px !important; }
+        .devo-premium-features { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 7px !important; }
+        .devo-premium-features li { align-items: flex-start; gap: 7px !important; padding: 9px 7px !important; border-radius: 10px !important; }
+        .devo-premium-features .devo-premium-icon { flex-basis: 27px; width: 27px !important; height: 27px !important; min-width: 27px !important; border-radius: 8px !important; }
+        .devo-premium-features .devo-premium-icon svg { width: 15px !important; height: 15px !important; }
+        .devo-premium-features li > div { font-size: 10px !important; line-height: 1.3 !important; }
+        .devo-premium-features li strong { font-size: 12px !important; line-height: 1.2 !important; }
+        .devo-premium-features li span:not(.devo-premium-icon) { font-size: 9px !important; line-height: 1.3 !important; }
+        .devo-premium-benefits { grid-template-columns: minmax(0, 1fr) !important; gap: 7px !important; margin-top: 9px !important; }
+        .devo-premium-benefits > div { min-height: 0 !important; gap: 9px !important; padding: 9px !important; border-radius: 10px !important; font-size: 11px !important; line-height: 1.35 !important; }
+        .devo-premium-benefits .devo-premium-icon { flex-basis: 27px; width: 27px !important; height: 27px !important; min-width: 27px !important; }
+        .devo-premium-benefits .devo-premium-icon svg { width: 15px !important; height: 15px !important; }
+        .devo-premium-safe { gap: 8px !important; margin-top: 9px !important; padding: 9px !important; border-radius: 10px !important; font-size: 11px !important; }
+        .devo-premium-lock { flex-basis: 27px; width: 27px !important; height: 27px !important; min-width: 27px !important; }
       }
     </style>
 
