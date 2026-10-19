@@ -29,7 +29,9 @@ function buildEmailHtml(order) {
     ? 'Account Premium'
     : order.category === 'followers'
       ? 'Followers Indonesia'
-      : (order.category || '-');
+      : order.category === 'video_views'
+        ? 'Shopee Video Views'
+        : (order.category || '-');
 
   const quantity = order.qty ?? order.quantity ?? '-';
   const target = order.shopeeLink || order.username || order.accountName || '-';
@@ -96,7 +98,9 @@ async function sendEmailNotification(order) {
     ? 'Account Premium'
     : order.category === 'followers'
       ? 'Followers Indonesia'
-      : (order.category || 'Pesanan');
+      : order.category === 'video_views'
+        ? 'Shopee Video Views'
+        : (order.category || 'Pesanan');
 
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',

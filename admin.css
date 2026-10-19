@@ -1073,6 +1073,7 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 
 /* PRODUCTS / MEDIA */
 .product-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.product-category-panel:not(.active){display:none}
 .product-category-panel{background:#fff;border:1px solid var(--admin-border);border-radius:16px;padding:18px;box-shadow:var(--admin-shadow)}
 .product-admin-list{gap:9px}
 .product-row{grid-template-columns:88px repeat(4,minmax(100px,1fr)) auto;gap:10px;align-items:end;padding:11px;border:1px solid var(--admin-border);border-radius:13px;background:#fff}
