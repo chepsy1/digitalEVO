@@ -31,7 +31,11 @@ function buildEmailHtml(order) {
       ? 'Followers Indonesia'
       : (order.category || '-');
 
-  const quantity = order.qty ?? order.quantity ?? '-';
+  const hasItems = Array.isArray(order.items) && order.items.length > 0;
+  const quantity = hasItems ? order.items.length : (order.qty ?? order.quantity ?? '-');
+  const productSummary = hasItems
+    ? order.items.map(item => `${escapeHtml(item.product_name || 'Paket Shopee')} — ${escapeHtml(formatRupiah(item.amount || 0))}`).join('<br>')
+    : escapeHtml(category);
   const target = order.shopeeLink || order.username || order.accountName || '-';
   const contact = order.customerWhatsapp || order.accountContact || '-';
   const amount = formatRupiah(order.amount || order.total);
@@ -54,8 +58,8 @@ function buildEmailHtml(order) {
     <div style="background:#fff;padding:24px;border-radius:0 0 16px 16px;">
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
         <tr><td style="padding:10px 0;color:#6b7280;">Nomor transaksi</td><td style="padding:10px 0;text-align:right;font-weight:700;">${escapeHtml(order.transaction || order.paymentId || '-')}</td></tr>
-        <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Produk</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(category)}</td></tr>
-        <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Jumlah</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(quantity)}</td></tr>
+        <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Produk</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${productSummary}</td></tr>
+        <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Jumlah Paket</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(quantity)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Username / Link Shopee</td><td style="padding:10px 0;text-align:right;font-weight:700;word-break:break-word;border-top:1px solid #e5e7eb;">${escapeHtml(target)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">WhatsApp / Kontak</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(contact)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Total</td><td style="padding:10px 0;text-align:right;font-size:18px;font-weight:800;border-top:1px solid #e5e7eb;">${escapeHtml(amount)}</td></tr>
