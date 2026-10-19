@@ -554,6 +554,60 @@
       </div>
     </section>
 
+
+    <!-- CEK STATUS PESANAN -->
+    <section id="devoOrderStatusSection" aria-labelledby="devoOrderStatusTitle" style="padding:30px 16px;background:#fff8f1;">
+      <div style="max-width:760px;margin:0 auto;background:#fff;border:1px solid #ffe0cc;border-radius:18px;padding:24px;box-shadow:0 8px 24px rgba(255,90,0,.07);">
+        <div style="text-align:center;margin-bottom:18px;">
+          <span style="color:#f15a24;font-size:11px;font-weight:800;letter-spacing:1.5px;">LAYANAN PELANGGAN</span>
+          <h2 id="devoOrderStatusTitle" style="margin:5px 0;color:#172b4d;font-size:26px;">Cek Status Pesanan</h2>
+          <p style="margin:0;color:#666;font-size:13px;">Masukkan nomor WhatsApp yang digunakan saat checkout.</p>
+        </div>
+        <form id="devoOrderStatusForm">
+          <label for="devoOrderPhone" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Nomor WhatsApp saat checkout</label>
+          <input id="devoOrderPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="Contoh: 08xxxxxxxxxx" style="display:block;width:100%;padding:13px;border:1px solid #dfe2e7;border-radius:10px;font:inherit;font-size:14px;box-sizing:border-box;">
+          <button id="devoOrderStatusSubmit" type="submit" style="display:block;width:100%;margin-top:12px;padding:13px;border:0;border-radius:10px;background:#f15a24;color:white;font-size:14px;font-weight:800;cursor:pointer;">Cek Status Pesanan</button>
+        </form>
+        <p id="devoOrderStatusMessage" role="status" aria-live="polite" style="margin:14px 0 0;color:#555;font-size:13px;text-align:center;"></p>
+        <div id="devoOrderStatusResults" style="display:grid;gap:10px;margin-top:12px;"></div>
+      </div>
+    </section>
+    <script>
+    (() => {
+      const form = document.getElementById('devoOrderStatusForm');
+      if (!form) return;
+      const phone = document.getElementById('devoOrderPhone');
+      const submit = document.getElementById('devoOrderStatusSubmit');
+      const message = document.getElementById('devoOrderStatusMessage');
+      const results = document.getElementById('devoOrderStatusResults');
+      const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+      const paymentLabel = value => ({pending:'Menunggu Pembayaran',paid:'Pembayaran Berhasil',processing:'Pembayaran Berhasil',completed:'Pembayaran Berhasil',expired:'Kedaluwarsa',failed:'Gagal'})[String(value||'').toLowerCase()] || 'Status belum tersedia';
+      const workLabel = value => ({pending:'Menunggu Pembayaran',queued:'Dalam Antrian',processing:'Sedang Diproses',completed:'Selesai',expired:'Kedaluwarsa',failed:'Perlu Bantuan Admin'})[String(value||'').toLowerCase()] || 'Menunggu Pembayaran';
+      form.addEventListener('submit', async event => {
+        event.preventDefault(); results.innerHTML = '';
+        const value = phone.value.trim();
+        if (value.replace(/\D/g,'').length < 8) { message.textContent = 'Masukkan nomor WhatsApp yang valid.'; return; }
+        submit.disabled = true; submit.textContent = 'Memeriksa...'; message.textContent = 'Sedang mencari pesanan Anda...';
+        try {
+          const response = await fetch('/api/order-status', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:value})});
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || 'Gagal memeriksa status pesanan.');
+          if (!Array.isArray(data.orders) || data.orders.length === 0) { message.textContent = 'Nomor ini belum ditemukan. Pastikan nomor sama dengan yang digunakan saat checkout.'; return; }
+          message.textContent = 'Pesanan ditemukan: ' + data.orders.length;
+          results.innerHTML = data.orders.map(order => {
+            const date = order.created_at ? new Date(order.created_at).toLocaleString('id-ID') : '-';
+            return '<article style="border:1px solid #eee;border-radius:12px;padding:14px;background:#fff;">' +
+              '<div style="font-weight:800;color:#172b4d;margin-bottom:5px;">' + esc(order.product_name || 'Pesanan DigitalEVO') + '</div>' +
+              '<div style="font-size:12px;color:#666;margin-bottom:8px;">Invoice: ' + esc(order.transaction_id || order.id || '-') + '<br>Tanggal: ' + esc(date) + '</div>' +
+              '<div style="font-size:13px;margin:4px 0;">Pembayaran: <strong>' + esc(paymentLabel(order.payment_status)) + '</strong></div>' +
+              '<div style="font-size:13px;">Status pengerjaan: <strong>' + esc(workLabel(order.order_status)) + '</strong></div></article>';
+          }).join('');
+        } catch (error) { message.textContent = error.message || 'Terjadi kesalahan. Silakan coba lagi.'; }
+        finally { submit.disabled = false; submit.textContent = 'Cek Status Pesanan'; }
+      });
+    })();
+    </script>
+
     <!-- IKLAN FOLLOWERS INDONESIA -->
     <section class="devo-ad-section" aria-label="Iklan layanan Followers Indonesia">
       <div class="devo-ad-wrap">
