@@ -137,7 +137,7 @@ function bindCheckout(){
   const update=qty=>{
     const p=products.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('orderTotal').textContent=rupiah(p.price);
-    document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 1 Jam–48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</p>`;
+    document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 20-120 Menit.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui <a href="https://wa.me/6285185353434" target="_blank" rel="noopener noreferrer">WhatsApp</a> jika Anda telah melakukan pesanan.</p><p>Atau mengecek status pesanan Anda melalui panel <a href="#devoOrderStatusSection">Cek Status Pesanan</a> di halaman utama.</p>`;
   };
   const openFollower=qty=>{
     setFields(false);
