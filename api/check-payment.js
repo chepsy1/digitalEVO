@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const paymentId = String(body.paymentId || body.payment_id || body.transactionId || body.transaction_id || body.id || '').trim();
 
     if (!paymentId) return json(res, 400, { error: 'Payment ID tidak valid.' });
-    if (!['followers', 'account', 'video_views'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
+    if (!['followers', 'account', 'video_views', 'video_likes'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
       return json(res, 400, { error: 'Produk pesanan tidak valid.' });
     }
 
@@ -147,7 +147,7 @@ export default async function handler(req, res) {
           transaction_id: transactionId,
           customer_whatsapp: order.customerWhatsapp || null,
           account_contact: order.accountContact || null,
-          shopee_link: ['followers', 'video_views'].includes(category) ? (order.shopeeLink || null) : null,
+          shopee_link: ['followers', 'video_views', 'video_likes'].includes(category) ? (order.shopeeLink || null) : null,
           photo_url: category === 'followers' ? (order.photoUrl || null) : null,
           photo_path: category === 'followers' ? (order.photoPath || null) : null,
           product_id: resolvedProductId,
@@ -155,7 +155,9 @@ export default async function handler(req, res) {
             ? `Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`
             : category === 'video_views'
               ? `Shopee Video ${Number(qty).toLocaleString('id-ID')} Views`
-              : `${Number(qty).toLocaleString('id-ID')} Followers`,
+              : category === 'video_likes'
+                ? `Shopee Video ${Number(qty).toLocaleString('id-ID')} Likes`
+                : `${Number(qty).toLocaleString('id-ID')} Followers`,
           category,
           quantity: 1,
           amount: expectedAmount,
@@ -221,7 +223,7 @@ export default async function handler(req, res) {
               amount: expectedAmount,
               transaction: transactionId,
               paymentId: transactionId,
-              product: category === 'account' ? `Account Premium` : category === 'video_views' ? `Shopee Video Views` : `Followers Indonesia`,
+              product: category === 'account' ? `Account Premium` : category === 'video_views' ? `Shopee Video Views` : category === 'video_likes' ? `Shopee Video Likes` : `Followers Indonesia`,
               paymentTime: now
             };
             await fetch(`${proto}://${host}/api/notify-order`, {
