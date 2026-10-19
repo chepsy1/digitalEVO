@@ -285,7 +285,7 @@
       </div>
 
       <div class="row">
-        <span class="label">Jumlah followers/account</span>
+        <span class="label" id="quantityLabel">Jumlah followers/account</span>
         <span class="value" id="quantity">-</span>
       </div>
 
@@ -425,9 +425,13 @@
   document.getElementById('product').textContent =
     data.product || '-';
 
+  const isVideoViews = data.category === 'video_views' || data.product === 'Shopee Video Views';
+  const quantityLabel = document.getElementById('quantityLabel');
+  if (quantityLabel && isVideoViews) quantityLabel.textContent = 'Jumlah Views';
+
   document.getElementById('quantity').textContent =
     data.quantity
-      ? `${Number(data.quantity).toLocaleString('id-ID')} ${data.product === 'Account Premium' ? 'Account' : 'Followers'}`
+      ? `${Number(data.quantity).toLocaleString('id-ID')} ${isVideoViews ? 'Views' : data.product === 'Account Premium' ? 'Account' : 'Followers'}`
       : '-';
 
   document.getElementById('transaction').textContent =
