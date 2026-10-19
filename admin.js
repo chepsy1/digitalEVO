@@ -676,7 +676,21 @@ function applyOrderFilters() {
       order.transaction_id,
       order.product_name,
       order.customer_whatsapp,
-      order.shopee_link
+      order.shopee_link,
+      order.shopeeLink,
+      order.shopee_username,
+      order.shopeeUsername,
+      order.shopee_url,
+      order.shopeeUrl,
+      order.link_username,
+      order.linkUsername,
+      order.link_shopee,
+      order.account_link,
+      order.accountLink,
+      order.account_username,
+      order.accountUsername,
+      order.username,
+      order.link
     ]
       .join(' ')
       .toLowerCase();
@@ -699,7 +713,7 @@ function applyOrderFilters() {
     <tr>
       <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
       <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
-      <td class="order-shopee-link">${order.shopee_link ? `<a href="${escapeAttr(order.shopee_link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(order.shopee_link)}</a>` : '-'}</td>
+      <td class="order-shopee-link">${renderShopeeInput(order)}</td>
       <td>${escapeHtml(order.product_name || order.product || '-')}</td>
       <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
       <td>${rupiah(order.amount || order.total)}</td>
