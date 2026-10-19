@@ -392,24 +392,18 @@ function bindCheckout(){
   const form=document.getElementById('checkoutForm');
   form.onsubmit=async e=>{
     e.preventDefault();
-    const value=select.value;
     const payload={};
-    if(value.startsWith('account:')){
-      payload.category='account';
-      payload.qty=Number(value.split(':')[1]);
-      const selectedProduct=accountProducts.find(x=>x.qty===payload.qty);
-      payload.amount=Number(selectedProduct?.price||0);
-      payload.productId=selectedProduct?.id || null;
-      payload.productSortOrder=selectedProduct?.sort_order || null;
+    if(!cartItems.length) { alert('Tambahkan minimal satu paket sebelum melanjutkan.'); return; }
+    payload.category=cartCategory;
+    payload.items=cartItems.map(item=>({...item}));
+    payload.qty=Number(payload.items[0].qty);
+    payload.amount=payload.items.reduce((sum,item)=>sum+Number(item.amount||0),0);
+    payload.productId=payload.items[0].productId||null;
+    payload.productSortOrder=payload.items[0].productSortOrder||null;
+    if(payload.category==='account'){
       payload.accountName=document.getElementById('accountName').value.trim();
       payload.accountContact=document.getElementById('accountContact').value.trim();
     }else{
-      payload.category='followers';
-      payload.qty=Number(value);
-      const selectedProduct=products.find(x=>x.qty===payload.qty);
-      payload.amount=Number(selectedProduct?.price||0);
-      payload.productId=selectedProduct?.id || null;
-      payload.productSortOrder=selectedProduct?.sort_order || null;
       payload.customerWhatsapp=document.getElementById('customerWa').value.trim();
       payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
     }
@@ -442,8 +436,7 @@ function bindCheckout(){
         body:JSON.stringify({
           category: payload.category,
           qty: Number(payload.qty),
-          productId: payload.productId || null,
-          productSortOrder: payload.productSortOrder || null,
+          items: payload.items.map(item => ({ category: payload.category, qty: Number(item.qty), productId: item.productId || null })),
           order: {
             customerWhatsapp: payload.customerWhatsapp || null,
             accountContact: payload.accountContact || null,
@@ -472,12 +465,14 @@ function bindCheckout(){
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
         product: payload.category === 'account' ? 'Account Premium' : 'Followers Indonesia',
-        quantity: Number(payload.qty || 0),
+        quantity: Number(payload.items.length || 0),
+        qty: Number(payload.qty || 0),
         amount: Number(data.data.amount || payload.amount),
         transaction: paymentId,
         productId: payload.productId || null,
         productSortOrder: payload.productSortOrder || null,
         category: payload.category || '',
+        items: payload.items.map(item => ({ category: item.category, qty: Number(item.qty), productId: item.productId || null, productName: item.productName, amount: Number(item.amount || 0) })),
 
         customerWhatsapp: payload.customerWhatsapp || '',
         shopeeLink: payload.shopeeLink || '',
