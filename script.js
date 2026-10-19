@@ -183,12 +183,25 @@ function bindCheckout(){
     const el=document.getElementById('paymentStatus');
     if(el){el.textContent=text;el.className=`payment-status ${cls}`.trim();}
   };
+  // Nomor invoice yang ditampilkan ke pelanggan terpisah dari ID gateway
+  // yang tetap dipakai internal untuk pengecekan pembayaran QRIS.
+  const displayInvoice = value => {
+    const raw = String(value || '');
+    let hash = 2166136261;
+    for (let i = 0; i < raw.length; i++) {
+      hash ^= raw.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    const digits = (Math.abs(hash >>> 0) % 900000000) + 100000000;
+    return 'DEVO-' + String(digits);
+  };
+
   const showPayment=async payment=>{
     currentPaymentId=payment.paymentId;
     currentPaymentAmount=Number(payment.amount||0);
     currentPaymentStartTime=Number(payment.startTime||Math.floor(Date.now()/1000));
     closeModal();
-    document.getElementById('paymentInvoice').textContent=payment.partnerReferenceNo;
+    document.getElementById('paymentInvoice').textContent=displayInvoice(payment.partnerReferenceNo || payment.paymentId);
     document.getElementById('paymentAmount').textContent=rupiah(payment.amount);
     const img=document.getElementById('qrisImage'),canvas=document.getElementById('qrisCanvas');
     const qrBox=document.querySelector('.qr-box');
