@@ -280,6 +280,7 @@ create table if not exists public.orders (
   amount bigint not null default 0,
   payment_status text not null default 'pending',
   order_status text not null default 'pending',
+  items jsonb not null default '[]'::jsonb,
   payment_method text,
   created_at timestamptz not null default now(),
   paid_at timestamptz,
@@ -298,6 +299,7 @@ alter table public.orders add column if not exists quantity integer not null def
 alter table public.orders add column if not exists amount bigint not null default 0;
 alter table public.orders add column if not exists payment_status text not null default 'pending';
 alter table public.orders add column if not exists order_status text not null default 'pending';
+alter table public.orders add column if not exists items jsonb not null default '[]'::jsonb;
 alter table public.orders add column if not exists payment_method text;
 alter table public.orders add column if not exists paid_at timestamptz;
 alter table public.orders add column if not exists updated_at timestamptz not null default now();
