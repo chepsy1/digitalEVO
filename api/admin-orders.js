@@ -8,8 +8,11 @@ export default async function handler(req, res) {
     const authHeader = String(req.headers.authorization || '');
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
 
-    if (!base || !serviceKey || !anonKey || !token) {
-      return res.status(401).json({ error: 'Sesi admin tidak valid.' });
+    if (!base || !serviceKey || !anonKey) {
+      return res.status(500).json({ error: 'Konfigurasi server belum lengkap. Periksa SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, dan SUPABASE_ANON_KEY pada deployment Preview.' });
+    }
+    if (!token) {
+      return res.status(401).json({ error: 'Token sesi admin tidak terkirim. Muat ulang halaman admin lalu login kembali.' });
     }
 
     const userResponse = await fetch(`${base}/auth/v1/user`, {
