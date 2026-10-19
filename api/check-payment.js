@@ -221,7 +221,7 @@ export default async function handler(req, res) {
               amount: expectedAmount,
               transaction: transactionId,
               paymentId: transactionId,
-              product: category === 'account' ? `Account Premium` : `Followers Indonesia`,
+              product: category === 'account' ? `Account Premium` : category === 'video_views' ? `Shopee Video Views` : `Followers Indonesia`,
               paymentTime: now
             };
             await fetch(`${proto}://${host}/api/notify-order`, {
