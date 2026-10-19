@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const gateway = String(process.env.PAYMENT_GATEWAY_URL || '').replace(/\\/+$/, '');
+    const gateway = String(process.env.PAYMENT_GATEWAY_URL || '').replace(/\/+$/, '');
     const apiKey = process.env.PAYMENT_GATEWAY_API_KEY || process.env.API_KEY;
     if (!gateway || !apiKey) return res.status(500).json({ error: 'Payment gateway belum dikonfigurasi.' });
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Satu invoice hanya boleh berisi satu kategori produk.' });
     }
 
-    const supabaseBase = String(process.env.SUPABASE_URL).replace(/\\/+$/, '');
+    const supabaseBase = String(process.env.SUPABASE_URL).replace(/\/+$/, '');
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
     const items = [];
