@@ -209,6 +209,7 @@ async function loadAll() {
   renderProducts('followers', $('followersTable'));
   renderProducts('account', $('accountsTable'));
   renderProducts('video_views', $('videoViewsTable'));
+  renderProducts('video_likes', $('videoLikesTable'));
 
   updateDashboard();
   renderProductSummary();
@@ -284,6 +285,7 @@ function renderProductSummary() {
   const followers = products.filter(p => p.category === 'followers');
   const accounts = products.filter(p => p.category === 'account');
   const videoViews = products.filter(p => p.category === 'video_views');
+  const videoLikes = products.filter(p => p.category === 'video_likes');
 
   box.innerHTML = `
     <div class="admin-grid">
@@ -300,6 +302,11 @@ function renderProductSummary() {
       <div>
         <strong>Shopee Video Views</strong>
         <div class="admin-stat-value">${videoViews.length}</div>
+        <p class="admin-stat-note">Produk tersedia</p>
+      </div>
+      <div>
+        <strong>Shopee Video Likes</strong>
+        <div class="admin-stat-value">${videoLikes.length}</div>
         <p class="admin-stat-note">Produk tersedia</p>
       </div>
     </div>
@@ -1069,7 +1076,8 @@ function setupProductTabs() {
   const panels = {
     followers: $('productFollowersPanel'),
     account: $('productAccountPanel'),
-    video_views: $('productVideoViewsPanel')
+    video_views: $('productVideoViewsPanel'),
+    video_likes: $('productVideoLikesPanel')
   };
 
   buttons.forEach(button => {
@@ -1088,7 +1096,7 @@ function productImageFallback(product) {
   const qty = Number(product?.qty || 0);
 
   if (category === 'account') return 'assets/akun-premium-product.webp';
-  if (category === 'video_views') return qty >= 1000 ? 'assets/1000.webp' : 'assets/100.webp';
+  if (category === 'video_views' || category === 'video_likes') return qty >= 1000 ? 'assets/1000.webp' : 'assets/100.webp';
 
   const known = {
     100: 'assets/100.webp',
@@ -1113,6 +1121,7 @@ function productTableForCategory(category) {
   if (category === 'followers') return $('followersTable');
   if (category === 'account') return $('accountsTable');
   if (category === 'video_views') return $('videoViewsTable');
+  if (category === 'video_likes') return $('videoLikesTable');
   return null;
 }
 
@@ -1610,7 +1619,7 @@ function populateAdminFreeProducts() {
   const select = $('adminFreeProduct');
   if (!select) return;
   select.innerHTML = products.map(p =>
-    `<option value="${escapeAttr(p.id)}">${escapeHtml(p.category === 'account' ? 'Akun Shopee' : p.category === 'video_views' ? 'Shopee Video Views' : 'Followers Shopee')} ${escapeHtml(p.qty)} — ${rupiah(p.price)}</option>`
+    `<option value="${escapeAttr(p.id)}">${escapeHtml(p.category === 'account' ? 'Akun Shopee' : p.category === 'video_views' ? 'Shopee Video Views' : p.category === 'video_likes' ? 'Shopee Video Likes' : 'Followers Shopee')} ${escapeHtml(p.qty)} — ${rupiah(p.price)}</option>`
   ).join('');
 }
 
@@ -1764,6 +1773,11 @@ $('addAccount')?.addEventListener(
 $('addVideoViews')?.addEventListener(
   'click',
   () => addProduct('video_views')
+);
+
+$('addVideoLikes')?.addEventListener(
+  'click',
+  () => addProduct('video_likes')
 );
 
 $('refreshAdmin')?.addEventListener(
