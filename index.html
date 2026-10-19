@@ -463,23 +463,145 @@
 
 
     <style>
-      /* Merampingkan daftar keunggulan pada layar seluler */
+      /* Tata letak konsisten untuk desktop dan seluler */
+      .devo-premium-section {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 18px 16px;
+        margin: 10px 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #253247;
+      }
+      .devo-premium-card {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 22px;
+        background: #fff;
+        border: 1px solid #f0e5df;
+        border-radius: 18px;
+        box-shadow: 0 5px 20px rgba(42, 35, 31, .07);
+      }
+      .devo-premium-features {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 20px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .devo-premium-features li {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        gap: 12px;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid #f3e8e2;
+        border-radius: 12px;
+        background: #fffaf7;
+      }
+      .devo-premium-icon {
+        box-sizing: border-box;
+        display: inline-flex;
+        flex: 0 0 36px;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 10px;
+        background: #fff0e8;
+        color: #ee4d2d;
+      }
+      .devo-premium-icon svg {
+        display: block;
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .devo-premium-features li > div { min-width: 0; font-size: 14px; line-height: 1.4; font-weight: 700; overflow-wrap: anywhere; }
+      .devo-premium-features li strong { display: block; font-size: 15px; font-weight: 800; }
+      .devo-premium-features li span:not(.devo-premium-icon) { display: block; margin-top: 2px; font-size: 12px; font-weight: 700; }
+      .devo-premium-benefits {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .devo-premium-benefits > div {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid #f0e4dd;
+        border-radius: 12px;
+        background: #fff;
+        color: #293548;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+      .devo-premium-benefits b { font-weight: 800; }
+      .devo-premium-safe {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 12px 14px;
+        border: 1px solid #dcefe2;
+        border-radius: 12px;
+        background: #f4fbf6;
+        color: #245b39;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: 800;
+      }
+      .devo-premium-safe > div { min-width: 0; font-weight: 800; }
+      .devo-premium-safe b, .devo-premium-safe span:not(.devo-premium-lock) { font-weight: 800; }
+      .devo-premium-lock {
+        box-sizing: border-box;
+        display: inline-flex;
+        flex: 0 0 32px;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        border-radius: 9px;
+        background: #e1f3e6;
+      }
+      .devo-premium-lock svg { display: block; width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+      .devo-premium-section, .devo-premium-section * { box-sizing: border-box; }
+      .devo-premium-section b, .devo-premium-section strong, .devo-premium-section small,
+      .devo-premium-section li, .devo-premium-section li span:not(.devo-premium-icon) { font-weight: 800 !important; }
+
       @media (max-width: 600px) {
-        .devo-premium-section { padding: 8px 10px !important; margin: 6px 0 !important; }
-        .devo-premium-card { padding: 12px !important; border-radius: 12px !important; }
-        .devo-premium-features { margin: 0 !important; padding: 0 !important; }
-        .devo-premium-features li { gap: 8px !important; padding: 6px 0 !important; margin: 0 !important; }
-        .devo-premium-icon { width: 28px !important; height: 28px !important; min-width: 28px !important; }
-        .devo-premium-icon svg { width: 16px !important; height: 16px !important; }
-        .devo-premium-features li > div { font-size: 12px !important; line-height: 1.25 !important; }
-        .devo-premium-features li strong { font-size: 12px !important; }
-        .devo-premium-features li span:not(.devo-premium-icon) { font-size: 11px !important; }
-        .devo-premium-benefits { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 6px !important; margin-top: 8px !important; }
-        .devo-premium-benefits > div { display: flex !important; align-items: center !important; gap: 6px !important; padding: 7px !important; border-radius: 8px !important; font-size: 10px !important; line-height: 1.25 !important; }
-        .devo-premium-benefits .devo-premium-icon { width: 22px !important; height: 22px !important; min-width: 22px !important; }
-        .devo-premium-benefits .devo-premium-icon svg { width: 13px !important; height: 13px !important; }
-        .devo-premium-safe { gap: 7px !important; margin-top: 8px !important; padding: 8px !important; border-radius: 8px !important; font-size: 11px !important; line-height: 1.25 !important; }
-        .devo-premium-safe .devo-premium-lock { width: 24px !important; height: 24px !important; min-width: 24px !important; }
+        .devo-premium-section { padding: 10px !important; margin: 6px 0 !important; }
+        .devo-premium-card { padding: 12px !important; border-radius: 13px !important; }
+        .devo-premium-features { grid-template-columns: minmax(0, 1fr) !important; gap: 7px !important; margin: 0 !important; padding: 0 !important; }
+        .devo-premium-features li { gap: 9px !important; padding: 9px !important; margin: 0 !important; }
+        .devo-premium-icon { flex-basis: 30px; width: 30px !important; height: 30px !important; min-width: 30px !important; }
+        .devo-premium-icon svg { width: 17px !important; height: 17px !important; }
+        .devo-premium-features li > div { min-width: 0; font-size: 12px !important; line-height: 1.35 !important; }
+        .devo-premium-features li strong { font-size: 13px !important; }
+        .devo-premium-features li span:not(.devo-premium-icon) { font-size: 11px !important; overflow-wrap: anywhere; }
+        .devo-premium-benefits { grid-template-columns: minmax(0, 1fr) !important; gap: 7px !important; margin-top: 10px !important; }
+        .devo-premium-benefits > div { gap: 9px !important; padding: 9px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1.35 !important; }
+        .devo-premium-benefits .devo-premium-icon { flex-basis: 28px; width: 28px !important; height: 28px !important; min-width: 28px !important; }
+        .devo-premium-benefits .devo-premium-icon svg { width: 16px !important; height: 16px !important; }
+        .devo-premium-safe { gap: 8px !important; margin-top: 10px !important; padding: 9px !important; border-radius: 10px !important; font-size: 12px !important; line-height: 1.35 !important; }
+        .devo-premium-lock { flex-basis: 28px; width: 28px !important; height: 28px !important; min-width: 28px !important; }
       }
     </style>
 
