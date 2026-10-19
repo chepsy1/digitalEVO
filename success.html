@@ -90,6 +90,7 @@
       font-weight: 600;
       text-align: right;
       word-break: break-word;
+      white-space: pre-line;
     }
 
     .message {
@@ -423,12 +424,16 @@
     rupiah(data.amount);
 
   document.getElementById('product').textContent =
-    data.product || '-';
+    Array.isArray(data.items) && data.items.length
+      ? data.items.map(item => `${item.productName || 'Paket Shopee'} — ${rupiah(item.amount || 0)}`).join('\\n')
+      : (data.product || '-');
 
   document.getElementById('quantity').textContent =
-    data.quantity
-      ? `${Number(data.quantity).toLocaleString('id-ID')} ${data.product === 'Account Premium' ? 'Account' : 'Followers'}`
-      : '-';
+    Array.isArray(data.items) && data.items.length
+      ? `${data.items.length} paket`
+      : (data.quantity
+        ? `${Number(data.quantity).toLocaleString('id-ID')} ${data.product === 'Account Premium' ? 'Account' : 'Followers'}`
+        : '-');
 
   document.getElementById('transaction').textContent =
     data.transaction || '-';
@@ -471,8 +476,8 @@
   const orderText = encodeURIComponent(
     `Halo Admin, saya sudah melakukan pembayaran.%0A%0A` +
     `Nomor transaksi: ${data.transaction || '-'}%0A` +
-    `Produk: ${data.product || '-'}%0A` +
-    `Jumlah: ${data.quantity || '-'}%0A` +
+    `Produk: ${Array.isArray(data.items) && data.items.length ? data.items.map(item => item.productName || 'Paket Shopee').join(', ') : (data.product || '-')}%0A` +
+    `Jumlah paket: ${Array.isArray(data.items) && data.items.length ? data.items.length : (data.quantity || '-')}%0A` +
     `Nominal: ${rupiah(data.amount)}`
   );
 
