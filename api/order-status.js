@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     if (!candidates.length) return json(res, 400, {error:'Masukkan nomor handphone yang valid.'});
     const inList = candidates.map(value => encodeURIComponent(value)).join(',');
     const filter = 'or=(customer_whatsapp.in.(' + inList + '),account_contact.in.(' + inList + '))';
-    const url = base + '/rest/v1/orders?' + filter + '&select=id,transaction_id,product_name,amount,payment_status,order_status,payment_method,created_at,paid_at&order=created_at.desc&limit=50';
+    const url = base + '/rest/v1/orders?' + filter + '&select=id,transaction_id,product_name,amount,payment_status,order_status,payment_method,created_at,paid_at,items&order=created_at.desc&limit=50';
     const headers = {apikey:key,Authorization:'Bearer '+key,Accept:'application/json'};
     let response = await fetch(url, {headers});
     let raw = await response.text();
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       if (suffix.length >= 8) {
         const encodedSuffix = encodeURIComponent('*' + suffix + '*');
         const fallbackFilter = 'or=(customer_whatsapp.ilike.' + encodedSuffix + ',account_contact.ilike.' + encodedSuffix + ')';
-        const fallbackUrl = base + '/rest/v1/orders?' + fallbackFilter + '&select=id,transaction_id,product_name,amount,payment_status,order_status,payment_method,created_at,paid_at,customer_whatsapp,account_contact&order=created_at.desc&limit=100';
+        const fallbackUrl = base + '/rest/v1/orders?' + fallbackFilter + '&select=id,transaction_id,product_name,amount,payment_status,order_status,payment_method,created_at,paid_at,customer_whatsapp,account_contact,items&order=created_at.desc&limit=100';
         response = await fetch(fallbackUrl, {headers});
         raw = await response.text();
         try { rows = raw ? JSON.parse(raw) : []; } catch { rows = []; }
@@ -83,7 +83,16 @@ export default async function handler(req, res) {
       paymentMethod:String(order.payment_method || 'QRIS'),
       createdAt:order.created_at || null,
       paidAt:order.paid_at || null,
-      orderStatus:publicStatus(order.order_status)
+      orderStatus:publicStatus(order.order_status),
+      items:(Array.isArray(order.items) && order.items.length ? order.items : [{
+        product_name: order.product_name || 'Pesanan DigitalEVO',
+        amount: Number(order.amount || 0),
+        order_status: order.order_status || 'queued'
+      }]).map(item => ({
+        product:String(item.product_name || 'Paket Shopee'),
+        amount:Number(item.amount || 0),
+        orderStatus:publicStatus(item.order_status)
+      }))
     }));
     if (!matches.length) return json(res, 404, {found:false,message:'Maaf, Nomor anda Belum pernah melakukan Pembelian Di Toko Kami'});
     return json(res, 200, {found:true,orders:matches});
