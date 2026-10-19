@@ -49,6 +49,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, updated: text ? JSON.parse(text).length : 0 });
     }
 
+    if (action === 'set_order_status') {
+      const id = String(req.body?.id || '');
+      const orderStatus = String(req.body?.order_status || '').toLowerCase();
+      if (!id) return res.status(400).json({ error: 'ID pesanan tidak valid.' });
+      if (!['queued', 'processing', 'completed'].includes(orderStatus)) {
+        return res.status(400).json({ error: 'Status pengerjaan tidak valid.' });
+      }
+      const response = await fetch(
+        base + '/rest/v1/orders?id=eq.' + encodeURIComponent(id) + '&payment_status=eq.paid&select=id,order_status',
+        { method: 'PATCH', headers, body: JSON.stringify({ order_status: orderStatus, updated_at: new Date().toISOString() }) }
+      );
+      const text = await response.text();
+      if (!response.ok) return res.status(500).json({ error: 'Gagal memperbarui status pengerjaan.', details: text });
+      const updated = text ? JSON.parse(text) : [];
+      if (!updated.length) return res.status(409).json({ error: 'Pesanan belum dibayar atau tidak ditemukan.' });
+      return res.status(200).json({ success: true, order: updated[0] });
+    }
+
     if (action === 'mark_paid') {
       const id = String(req.body?.id || '');
       if (!id) return res.status(400).json({ error: 'ID pesanan tidak valid.' });
