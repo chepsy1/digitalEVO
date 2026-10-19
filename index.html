@@ -564,7 +564,7 @@
           <p style="margin:0;color:#666;font-size:13px;">Masukkan nomor WhatsApp yang digunakan saat checkout.</p>
         </div>
         <form id="devoOrderStatusForm">
-          <label for="devoOrderPhone" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Nomor WhatsApp saat checkout</label>
+          <label for="devoOrderPhone" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Nomor WhatsApp</label>
           <input id="devoOrderPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="Contoh: 08xxxxxxxxxx" style="display:block;width:100%;padding:13px;border:1px solid #dfe2e7;border-radius:10px;font:inherit;font-size:14px;box-sizing:border-box;">
           <button id="devoOrderStatusSubmit" type="submit" style="display:block;width:100%;margin-top:12px;padding:13px;border:0;border-radius:10px;background:#f15a24;color:white;font-size:14px;font-weight:800;cursor:pointer;">Cek Status Pesanan</button>
         </form>
@@ -582,7 +582,25 @@
       const results = document.getElementById('devoOrderStatusResults');
       const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
       const paymentLabel = value => ({pending:'Menunggu Pembayaran',paid:'Pembayaran Berhasil',processing:'Pembayaran Berhasil',completed:'Pembayaran Berhasil',expired:'Kedaluwarsa',failed:'Gagal'})[String(value||'').toLowerCase()] || 'Status belum tersedia';
-      const workLabel = value => ({pending:'Menunggu Pembayaran',queued:'Dalam Antrian',processing:'Sedang Diproses',completed:'Selesai',expired:'Kedaluwarsa',failed:'Perlu Bantuan Admin'})[String(value||'').toLowerCase()] || 'Menunggu Pembayaran';
+      const workInfo = value => {
+        const status = String(value || '').toLowerCase();
+        const map = {
+          pending: {label:'Menunggu Pembayaran', bg:'#f3f4f6', color:'#4b5563'},
+          queued: {label:'Dalam Antrian', bg:'#fff3bf', color:'#805b00'},
+          processing: {label:'Diproses', bg:'#dbeafe', color:'#1d4ed8'},
+          completed: {label:'Selesai', bg:'#dcfce7', color:'#166534'},
+          expired: {label:'Kedaluwarsa', bg:'#fee2e2', color:'#991b1b'},
+          failed: {label:'Perlu Bantuan Admin', bg:'#fee2e2', color:'#991b1b'}
+        };
+        return map[status] || map.pending;
+      };
+      const invoiceLabel = order => {
+        const raw = String(order.id || order.transaction_id || '');
+        const hex = raw.replace(/-/g, '');
+        if (/^[0-9a-f]{32}$/i.test(hex)) return 'DEVO-' + BigInt('0x' + hex).toString(10);
+        const digits = raw.replace(/\\D/g, '');
+        return 'DEVO-' + (digits || '000000001');
+      };
       form.addEventListener('submit', async event => {
         event.preventDefault(); results.innerHTML = '';
         const value = phone.value.trim();
@@ -598,9 +616,10 @@
             const date = order.created_at ? new Date(order.created_at).toLocaleString('id-ID') : '-';
             return '<article style="border:1px solid #eee;border-radius:12px;padding:14px;background:#fff;">' +
               '<div style="font-weight:800;color:#172b4d;margin-bottom:5px;">' + esc(order.product_name || 'Pesanan DigitalEVO') + '</div>' +
-              '<div style="font-size:12px;color:#666;margin-bottom:8px;">Invoice: ' + esc(order.transaction_id || order.id || '-') + '<br>Tanggal: ' + esc(date) + '</div>' +
-              '<div style="font-size:13px;margin:4px 0;">Pembayaran: <strong>' + esc(paymentLabel(order.payment_status)) + '</strong></div>' +
-              '<div style="font-size:13px;">Status pengerjaan: <strong>' + esc(workLabel(order.order_status)) + '</strong></div></article>';
+              '<div style="font-size:12px;color:#666;margin-bottom:8px;">Invoice: <strong>' + esc(invoiceLabel(order)) + '</strong><br>Tanggal: ' + esc(date) + '</div>' +
+              (order.shopee_link ? '<div style="font-size:13px;margin:7px 0;overflow-wrap:anywhere;">Link/Username: <a href="' + (/^https?:\\/\\//i.test(String(order.shopee_link)) ? esc(order.shopee_link) : '#') + '" ' + (/^https?:\\/\\//i.test(String(order.shopee_link)) ? 'target="_blank" rel="noopener noreferrer"' : '') + ' style="color:#f15a24;font-weight:600;">' + esc(order.shopee_link) + '</a></div>' : '') +
+              '<div style="font-size:13px;margin:8px 0;">Pembayaran: <strong>' + esc(paymentLabel(order.payment_status)) + '</strong></div>' +
+              (() => { const st = workInfo(order.order_status); return '<div style="font-size:13px;">Status Pesanan: <span style="display:inline-block;margin-top:4px;padding:5px 10px;border-radius:999px;background:' + st.bg + ';color:' + st.color + ';font-weight:800;">' + esc(st.label) + '</span></div>'; })() + '</article>';
           }).join('');
         } catch (error) { message.textContent = error.message || 'Terjadi kesalahan. Silakan coba lagi.'; }
         finally { submit.disabled = false; submit.textContent = 'Cek Status Pesanan'; }
