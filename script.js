@@ -24,6 +24,11 @@ const DEFAULT_SITE={
 const DEFAULT_IMAGES={logo:'assets/logo.webp',header:'',footer:'assets/footer-cta.webp',followersBanner:'assets/promo-500-5000.webp',accountBanner:'assets/banner-akun-shopee-kuning.webp'};
 let products=DEFAULT_FOLLOWERS.map(x=>({...x}));
 let accountProducts=DEFAULT_ACCOUNTS.map(x=>({...x}));
+const DEFAULT_VIDEO_VIEWS=[
+ {qty:500,price:6000,original:6000,sold:'',img:'assets/100.webp',name:'500 Views'},
+ {qty:1000,price:10600,original:10600,sold:'',img:'assets/1000.webp',name:'1.000 Views'}
+];
+let videoViewsProducts=DEFAULT_VIDEO_VIEWS.map(x=>({...x}));
 let site={...DEFAULT_SITE};
 let images={...DEFAULT_IMAGES};
 let sliderSettings={interval:5000,effect:'fade',slides:[]};
@@ -47,9 +52,10 @@ function renderHeaderSlider(){
 }
 
 function renderSite(){
- const grid=document.getElementById('productGrid'); const accountGrid=document.getElementById('accountProductGrid');
+ const grid=document.getElementById('productGrid'); const accountGrid=document.getElementById('accountProductGrid'); const videoViewsGrid=document.getElementById('videoViewsProductGrid');
  if(grid){grid.innerHTML='';products.forEach(p=>{grid.insertAdjacentHTML('beforeend',`<article class="product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="${Number(p.qty).toLocaleString('id-ID')} Followers Shopee Premium" loading="lazy"><div class="product-info"><h3>${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="sold-month">🔥 ${escapeHtml(p.sold||'')} terjual/bln</div><div class="product-actions"><button class="btn btn-primary order-btn" data-qty="${p.qty}">Order Sekarang</button></div></div></article>`)});}
  if(accountGrid){accountGrid.innerHTML='';accountProducts.forEach(p=>accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
+ if(videoViewsGrid){videoViewsGrid.innerHTML='';videoViewsProducts.forEach(p=>videoViewsGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-views-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-views-order-btn" data-video-views-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  document.querySelector('.brand img')?.setAttribute('src',images.logo);
  const headerBanner=document.querySelector('.top-banner-managed');
  if(headerBanner){
@@ -111,7 +117,9 @@ function bindCheckout(){
   paymentModal?.querySelectorAll('[data-payment-close]').forEach(el=>el.onclick=closePayment);
 
   // Checkout fields are category-specific: the Shopee screenshot upload exists ONLY for Followers orders.
-  const setFields=isAccount=>{
+  const setFields=category=>{
+    const isAccount=category===true||category==='account';
+    const isVideoViews=category==='video_views';
     const fields=document.getElementById('checkoutFields');
     if(!fields)return;
 
@@ -119,6 +127,11 @@ function bindCheckout(){
       fields.innerHTML=`
         <label>Nama<input id="accountName" autocomplete="name" required placeholder="Masukkan nama Anda" /></label>
         <label>Nomor WhatsApp / Email Untuk Mendapatkan Username dan Password Akun<input id="accountContact" type="text" autocomplete="email" required placeholder="Masukkan Nomor WhatsApp atau Email" /></label>
+      `;
+    }else if(isVideoViews){
+      fields.innerHTML=`
+        <label id="shopeeLinkLabel">Link Video Shopee<input id="shopeeLink" required type="url" placeholder="https://..." /></label>
+        <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
       `;
     }else{
       fields.innerHTML=`
@@ -147,6 +160,18 @@ function bindCheckout(){
     modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     document.getElementById('shopeeLink').focus();
   };
+  const videoViewsOptions=videoViewsProducts.map(p=>`<option value="video_views:${p.qty}">${p.name} — ${rupiah(p.price)}</option>`).join('');
+  const openVideoViews=qty=>{
+    setFields('video_views');
+    const p=videoViewsProducts.find(x=>x.qty===Number(qty)); if(!p)return;
+    document.getElementById('modalTitle').textContent='Order Shopee Video Views';
+    select.innerHTML=videoViewsOptions;select.value=`video_views:${qty}`;
+    document.getElementById('selectedProduct').value=`video_views:${qty}`;
+    document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Views</strong><ul><li>Masukkan link video Shopee yang ingin ditambah penayangannya.</li><li>Pastikan link video benar dan dapat dibuka.</li></ul>';
+    document.getElementById('orderTotal').textContent=rupiah(p.price);
+    modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+    document.getElementById('shopeeLink')?.focus();
+  };
   const openAccount=qty=>{
     setFields(true);
     document.getElementById('modalTitle').textContent=`Order Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`;
@@ -160,11 +185,17 @@ function bindCheckout(){
   };
   document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));
   document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
+  document.querySelectorAll('.video-views-order-btn').forEach(btn=>btn.onclick=()=>openVideoViews(Number(btn.dataset.videoViewsQty)));
   modal.querySelectorAll('[data-close]').forEach(el=>el.onclick=closeModal);
 
   select.onchange=()=>{
     const value=select.value;
-    if(value.startsWith('account:')){
+    if(value.startsWith('video_views:')){
+      setFields('video_views');const qty=Number(value.split(':')[1]);const p=videoViewsProducts.find(x=>x.qty===qty);
+      document.getElementById('modalTitle').textContent='Order Shopee Video Views';
+      document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Views</strong><ul><li>Masukkan link video Shopee yang ingin ditambah penayangannya.</li><li>Pastikan link video benar dan dapat dibuka.</li></ul>';
+      document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
+    }else if(value.startsWith('account:')){
       setFields(true);const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);
       document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;
       document.getElementById('checkoutDescription').innerHTML=accountDescription;
@@ -359,7 +390,16 @@ function bindCheckout(){
     e.preventDefault();
     const value=select.value;
     const payload={};
-    if(value.startsWith('account:')){
+    if(value.startsWith('video_views:')){
+      payload.category='video_views';
+      payload.qty=Number(value.split(':')[1]);
+      const selectedProduct=videoViewsProducts.find(x=>x.qty===payload.qty);
+      payload.amount=Number(selectedProduct?.price||0);
+      payload.productId=selectedProduct?.id || null;
+      payload.productSortOrder=selectedProduct?.sort_order || null;
+      payload.customerWhatsapp=document.getElementById('customerWa').value.trim();
+      payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
+    }else if(value.startsWith('account:')){
       payload.category='account';
       payload.qty=Number(value.split(':')[1]);
       const selectedProduct=accountProducts.find(x=>x.qty===payload.qty);
@@ -436,7 +476,8 @@ function bindCheckout(){
       }
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
-        product: payload.category === 'account' ? 'Account Premium' : 'Followers Indonesia',
+        product: payload.category === 'account' ? 'Account Premium' : payload.category === 'video_views' ? 'Shopee Video Views' : 'Followers Indonesia',
+        productName: payload.category === 'video_views' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Views` : '',
         quantity: Number(payload.qty || 0),
         amount: Number(data.data.amount || payload.amount),
         transaction: paymentId,
