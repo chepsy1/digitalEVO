@@ -555,6 +555,27 @@
     </section>
 
 
+    <style>
+      /* Tampilan ringkas khusus layar ponsel untuk panel cek pesanan */
+      @media (max-width: 600px) {
+        #devoOrderStatusSection { padding: 14px 10px !important; }
+        #devoOrderStatusSection > div {
+          padding: 14px !important;
+          border-radius: 14px !important;
+          box-shadow: 0 3px 12px rgba(255,90,0,.05) !important;
+        }
+        #devoOrderStatusSection > div > div:first-child { margin-bottom: 10px !important; }
+        #devoOrderStatusTitle { font-size: 21px !important; margin: 3px 0 !important; }
+        #devoOrderStatusSection > div > div:first-child p { font-size: 12px !important; line-height: 1.35; }
+        #devoOrderPhone { padding: 10px !important; font-size: 13px !important; }
+        #devoOrderStatusSubmit { margin-top: 8px !important; padding: 10px !important; font-size: 13px !important; }
+        #devoOrderStatusMessage { margin-top: 8px !important; font-size: 12px !important; }
+        #devoOrderStatusResults { gap: 7px !important; margin-top: 8px !important; }
+        #devoOrderStatusResults article { padding: 10px !important; border-radius: 10px !important; }
+        #devoOrderStatusResults article > div { margin-top: 5px !important; margin-bottom: 5px !important; font-size: 12px !important; }
+      }
+    </style>
+
     <!-- CEK STATUS PESANAN -->
     <section id="devoOrderStatusSection" aria-labelledby="devoOrderStatusTitle" style="padding:30px 16px;background:#fff8f1;">
       <div style="max-width:760px;margin:0 auto;background:#fff;border:1px solid #ffe0cc;border-radius:18px;padding:24px;box-shadow:0 8px 24px rgba(255,90,0,.07);">
