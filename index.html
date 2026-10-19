@@ -474,9 +474,10 @@
         .devo-premium-features li > div { font-size: 12px !important; line-height: 1.25 !important; }
         .devo-premium-features li strong { font-size: 12px !important; }
         .devo-premium-features li span:not(.devo-premium-icon) { font-size: 11px !important; }
-        .devo-premium-benefits { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; grid-auto-rows: 1fr !important; align-items: stretch !important; gap: 6px !important; margin-top: 8px !important; }
-        .devo-premium-benefits > div { display: flex !important; align-items: center !important; height: 100% !important; min-width: 0 !important; gap: 6px !important; padding: 7px !important; border-radius: 8px !important; font-size: 10px !important; line-height: 1.25 !important; }
-        .devo-premium-benefits > div b { min-width: 0 !important; }
+        .devo-premium-benefits { display: grid !important; width: 100% !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; grid-template-rows: repeat(2,minmax(88px,auto)) !important; align-items: stretch !important; gap: 6px !important; margin-top: 8px !important; }
+        .devo-premium-benefits > div { display: flex !important; box-sizing: border-box !important; align-items: center !important; width: 100% !important; min-width: 0 !important; min-height: 88px !important; height: 100% !important; gap: 6px !important; padding: 7px !important; border-radius: 8px !important; font-size: 10px !important; line-height: 1.25 !important; }
+        .devo-premium-benefits > div b { display: block !important; flex: 1 1 0 !important; min-width: 0 !important; overflow-wrap: anywhere !important; }
+        .devo-premium-benefits .devo-premium-icon { flex: 0 0 22px !important; }
         .devo-premium-benefits .devo-premium-icon { width: 22px !important; height: 22px !important; min-width: 22px !important; }
         .devo-premium-benefits .devo-premium-icon svg { width: 13px !important; height: 13px !important; }
         .devo-premium-safe { gap: 7px !important; margin-top: 8px !important; padding: 8px !important; border-radius: 8px !important; font-size: 11px !important; line-height: 1.25 !important; }
