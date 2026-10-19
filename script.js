@@ -138,7 +138,7 @@ function bindCheckout(){
       `;
     }else if(isVideoViews){
       fields.innerHTML=`
-        <label id="shopeeLinkLabel">Link Video Shopee<input id="shopeeLink" required type="text" inputmode="url" autocomplete="url" placeholder="shopee.co.id/video/... (tanpa https juga boleh)" /></label>
+        <label id="shopeeLinkLabel">Link Video Shopee<input id="shopeeLink" required type="text" inputmode="url" autocomplete="url" placeholder="Masukkan link video" /></label>
         <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
       `;
     }else{
