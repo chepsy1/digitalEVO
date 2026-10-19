@@ -414,12 +414,18 @@ function effectivePaymentStatus(order) {
 function orderShopeeInput(order) {
   return String(
     order.shopee_link ||
+    order.shopeeLink ||
     order.shopee_username ||
+    order.shopeeUsername ||
     order.shopee_url ||
+    order.shopeeUrl ||
     order.link_username ||
+    order.linkUsername ||
     order.link_shopee ||
     order.account_link ||
+    order.accountLink ||
     order.account_username ||
+    order.accountUsername ||
     order.username ||
     order.link ||
     ''
