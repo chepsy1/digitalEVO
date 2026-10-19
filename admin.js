@@ -523,7 +523,7 @@ function renderOrders() {
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>
               <td>${orderStatus(effectivePaymentStatus(order))}</td>
-              <td>${orderStatus(order.order_status || order.status)}</td>
+              <td><div>${orderStatus(order.order_status || 'queued')}</div>${activeOrderTab === 'paid' ? '<label class="admin-order-status-label" for="order-status-'+escapeAttr(order.id)+'">Ubah status pengerjaan</label><select id="order-status-'+escapeAttr(order.id)+'" class="admin-order-status-select" data-order-status-select="'+escapeAttr(order.id)+'"><option value="queued" '+(String(order.order_status||'queued').toLowerCase()==='queued'?'selected':'')+'>Dalam Antrian</option><option value="processing" '+(String(order.order_status||'').toLowerCase()==='processing'?'selected':'')+'>Diproses</option><option value="completed" '+(String(order.order_status||'').toLowerCase()==='completed'?'selected':'')+'>Berhasil</option></select>' : ''}</td>
               <td>${dateID(order.created_at || order.checkout_at)}</td>
               <td><div class="order-action-buttons">${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
             </tr>
@@ -538,6 +538,23 @@ function renderOrders() {
   });
   box.querySelectorAll('[data-mark-paid-order]').forEach(button => {
     button.addEventListener('click', () => markOrderPaid(button.dataset.markPaidOrder));
+  });
+  box.querySelectorAll('[data-order-status-select]').forEach(select => {
+    select.addEventListener('change', async () => {
+      const selectedStatus = select.value;
+      select.disabled = true;
+      try {
+        await adminOrderAction({ action: 'set_order_status', id: select.dataset.orderStatusSelect, order_status: selectedStatus });
+        const order = orders.find(item => String(item.id) === String(select.dataset.orderStatusSelect));
+        if (order) order.order_status = selectedStatus;
+        renderOrders();
+        renderRecentOrders();
+        alert('Status pengerjaan berhasil diperbarui.');
+      } catch (error) {
+        alert('Gagal mengubah status pengerjaan: ' + error.message);
+        select.disabled = false;
+      }
+    });
   });
   applyOrderFilters();
 }
@@ -718,7 +735,7 @@ function applyOrderFilters() {
       <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
       <td>${rupiah(order.amount || order.total)}</td>
       <td>${orderStatus(order.payment_status || order.status)}</td>
-      <td>${orderStatus(order.order_status || order.status)}</td>
+      <td><div>${orderStatus(order.order_status || 'queued')}</div>${activeOrderTab === 'paid' ? '<label class="admin-order-status-label" for="order-status-'+escapeAttr(order.id)+'">Ubah status pengerjaan</label><select id="order-status-'+escapeAttr(order.id)+'" class="admin-order-status-select" data-order-status-select="'+escapeAttr(order.id)+'"><option value="queued" '+(String(order.order_status||'queued').toLowerCase()==='queued'?'selected':'')+'>Dalam Antrian</option><option value="processing" '+(String(order.order_status||'').toLowerCase()==='processing'?'selected':'')+'>Diproses</option><option value="completed" '+(String(order.order_status||'').toLowerCase()==='completed'?'selected':'')+'>Berhasil</option></select>' : ''}</td>
       <td>${dateID(order.created_at || order.checkout_at)}</td>
       <td><div class="order-action-buttons">${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
     </tr>
@@ -729,6 +746,24 @@ function applyOrderFilters() {
   // harus dipasangi event listener kembali setelah baris dirender ulang.
   box.querySelectorAll('[data-mark-paid-order]').forEach(button => {
     button.addEventListener('click', () => markOrderPaid(button.dataset.markPaidOrder));
+  });
+
+  box.querySelectorAll('[data-order-status-select]').forEach(select => {
+    select.addEventListener('change', async () => {
+      const selectedStatus = select.value;
+      select.disabled = true;
+      try {
+        await adminOrderAction({ action: 'set_order_status', id: select.dataset.orderStatusSelect, order_status: selectedStatus });
+        const order = orders.find(item => String(item.id) === String(select.dataset.orderStatusSelect));
+        if (order) order.order_status = selectedStatus;
+        renderOrders();
+        renderRecentOrders();
+        alert('Status pengerjaan berhasil diperbarui.');
+      } catch (error) {
+        alert('Gagal mengubah status pengerjaan: ' + error.message);
+        select.disabled = false;
+      }
+    });
   });
 
   if (!filtered.length) {
