@@ -160,12 +160,11 @@ function bindCheckout(){
     modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     document.getElementById('shopeeLink').focus();
   };
-  const videoViewsOptions=videoViewsProducts.map(p=>`<option value="video_views:${p.qty}">${p.name} — ${rupiah(p.price)}</option>`).join('');
   const openVideoViews=qty=>{
     setFields('video_views');
     const p=videoViewsProducts.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('modalTitle').textContent='Order Shopee Video Views';
-    select.innerHTML=videoViewsOptions;select.value=`video_views:${qty}`;
+    select.innerHTML=videoViewsProducts.map(item=>`<option value="video_views:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join('');select.value=`video_views:${qty}`;
     document.getElementById('selectedProduct').value=`video_views:${qty}`;
     document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Views</strong><ul><li>Masukkan link video Shopee yang ingin ditambah penayangannya.</li><li>Pastikan link video benar dan dapat dibuka.</li></ul>';
     document.getElementById('orderTotal').textContent=rupiah(p.price);
@@ -605,16 +604,21 @@ function initAnalyticsTracking() {
     }
 
     document.addEventListener('click', (event) => {
-      const btn = event.target.closest?.('.order-btn, .account-order-btn');
+      const btn = event.target.closest?.('.order-btn, .account-order-btn, .video-views-order-btn');
       if (btn) {
-        const qty = btn.dataset.qty || btn.dataset.accountQty || '';
+        const qty = btn.dataset.qty || btn.dataset.accountQty || btn.dataset.videoViewsQty || '';
+        const productType = btn.classList.contains('account-order-btn')
+          ? 'Account Premium'
+          : btn.classList.contains('video-views-order-btn')
+            ? 'Shopee Video Views'
+            : 'Followers';
         send('product_click', {
-          product_name: `${qty} ${btn.classList.contains('account-order-btn') ? 'Account Premium' : 'Followers'}`,
+          product_name: `${qty} ${productType}`,
           quantity: Number(qty || 1),
           value: 0
         });
         send('checkout_started', {
-          product_name: `${qty} ${btn.classList.contains('account-order-btn') ? 'Account Premium' : 'Followers'}`,
+          product_name: `${qty} ${productType}`,
           quantity: Number(qty || 1),
           value: 0
         });
