@@ -463,20 +463,16 @@
 
 
     <style>
-      /* Merampingkan daftar keunggulan pada layar seluler */
+      /* Rapikan empat poin: ikon disembunyikan dan teks rata tengah dalam setiap kolom */
       @media (max-width: 600px) {
         .devo-premium-section { padding: 8px 10px !important; margin: 6px 0 !important; }
         .devo-premium-card { padding: 12px !important; border-radius: 12px !important; }
         .devo-premium-features { width: 100% !important; max-width: 360px !important; margin: 0 auto !important; padding: 0 !important; box-sizing: border-box !important; }
-        .devo-premium-features li { display: grid !important; grid-template-columns: 24px minmax(0, 1fr) !important; align-items: center !important; column-gap: 4px !important; width: 100% !important; box-sizing: border-box !important; padding: 7px 10px 7px 12px !important; margin: 0 !important; list-style: none !important; }
+        .devo-premium-features li { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; align-items: center !important; justify-items: center !important; width: 100% !important; box-sizing: border-box !important; padding: 10px 12px !important; margin: 0 !important; list-style: none !important; text-align: center !important; }
         .devo-premium-features li > .devo-premium-icon { display: none !important; }
-        .devo-premium-features li { grid-template-columns: minmax(0, 1fr) !important; padding: 7px 12px !important; }
-        .devo-premium-features li > div { grid-column: 1 !important; }
-        .devo-premium-features li > div { grid-column: 2 !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; overflow-wrap: anywhere !important; }
-        .devo-premium-icon svg { width: 16px !important; height: 16px !important; }
-        .devo-premium-features li > div { font-size: 12px !important; line-height: 1.25 !important; }
-        .devo-premium-features li strong { font-size: 12px !important; }
-        .devo-premium-features li span:not(.devo-premium-icon) { font-size: 11px !important; }
+        .devo-premium-features li > div { grid-column: 1 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; min-width: 0 !important; width: 100% !important; box-sizing: border-box !important; text-align: center !important; overflow-wrap: anywhere !important; }
+        .devo-premium-features li strong { display: block !important; width: 100% !important; font-size: 12px !important; line-height: 1.35 !important; text-align: center !important; }
+        .devo-premium-features li span:not(.devo-premium-icon) { display: block !important; width: 100% !important; font-size: 11px !important; line-height: 1.35 !important; text-align: center !important; }
         .devo-premium-benefits { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)) !important; gap: 6px !important; margin-top: 8px !important; }
         .devo-premium-benefits > div { display: flex !important; align-items: center !important; gap: 6px !important; padding: 7px !important; border-radius: 8px !important; font-size: 10px !important; line-height: 1.25 !important; }
         .devo-premium-benefits .devo-premium-icon { width: 22px !important; height: 22px !important; min-width: 22px !important; }
