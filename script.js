@@ -134,27 +134,61 @@ function bindCheckout(){
     }
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
+  let cartItems=[];
+  let cartCategory='followers';
+  const getSelectedPackage=()=>{
+    const value=select.value;
+    const isAccount=value.startsWith('account:');
+    const qty=Number(isAccount?value.split(':')[1]:value);
+    const catalog=isAccount?accountProducts:products;
+    const p=catalog.find(x=>Number(x.qty)===qty);
+    if(!p)return null;
+    return {category:cartCategory,qty:Number(p.qty),productId:p.id||null,productSortOrder:p.sort_order||null,productName:isAccount?`Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers`:`${Number(p.qty).toLocaleString('id-ID')} Followers`,amount:Number(p.price||0)};
+  };
+  const renderCart=()=>{
+    const box=document.getElementById('checkoutCart');
+    const totalEl=document.getElementById('orderTotal');
+    if(!box||!totalEl)return;
+    if(!cartItems.length){
+      box.innerHTML='<div class="checkout-cart-empty">Belum ada paket. Pilih paket lalu tekan “Tambah paket yang dipilih”.</div>';
+    }else{
+      box.innerHTML=cartItems.map((item,index)=>`<div class="checkout-cart-row"><div><strong>${item.productName}</strong><small>${rupiah(item.amount)}</small></div><button class="checkout-cart-remove" type="button" data-remove-cart-item="${index}" ${cartItems.length===1?'disabled title="Minimal satu paket"':''}>Hapus</button></div>`).join('');
+    }
+    totalEl.textContent=rupiah(cartItems.reduce((sum,item)=>sum+Number(item.amount||0),0));
+    box.querySelectorAll('[data-remove-cart-item]').forEach(button=>button.addEventListener('click',()=>{
+      if(cartItems.length<=1)return;
+      cartItems.splice(Number(button.dataset.removeCartItem),1);
+      renderCart();
+    }));
+  };
   const update=qty=>{
     const p=products.find(x=>x.qty===Number(qty)); if(!p)return;
-    document.getElementById('orderTotal').textContent=rupiah(p.price);
     document.getElementById('checkoutDescription').innerHTML=`<strong>Followers Shopee REAL-HUMAN Permanent</strong><ul><li>Estimasi Pengerjaan 1 Jam–48 Jam.</li><li>Pengerjaan dilakukan Otomatis.</li><li>Metode hanya membutuhkan Username atau LINK Profile.</li></ul><p class="product-warning">⚠️ <strong>Mohon untuk tidak mengubah Username atau informasi terkait profil akun setelah melakukan checkout.</strong> ⚠️</p><p class="product-admin">Anda bisa menghubungi <strong>ADMIN</strong> melalui WhatsApp jika Anda telah melakukan pesanan.</p>`;
   };
   const openFollower=qty=>{
+    cartCategory='followers';
+    cartItems=[];
     setFields(false);
     document.getElementById('modalTitle').textContent='Order Followers Shopee';
     select.innerHTML=followerOptions;select.value=String(qty);
     document.getElementById('selectedProduct').value=qty;update(qty);
+    const initial=getSelectedPackage();if(initial)cartItems.push(initial);
+    document.getElementById('cartHelp').textContent='Pilih paket lain pada daftar untuk menambahkannya.';
+    renderCart();
     modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     document.getElementById('shopeeLink').focus();
   };
   const openAccount=qty=>{
+    cartCategory='account';
+    cartItems=[];
     setFields(true);
     document.getElementById('modalTitle').textContent=`Order Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`;
     select.innerHTML=accountProducts.map(p=>`<option value="account:${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
     select.value=`account:${qty}`;document.getElementById('selectedProduct').value=`account:${qty}`;
     document.getElementById('checkoutDescription').innerHTML=accountDescription;
-    const p=accountProducts.find(x=>x.qty===Number(qty));
-    document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
+    const initial=getSelectedPackage();if(initial)cartItems.push(initial);
+    document.getElementById('cartHelp').textContent='Pilih paket Akun Premium lain pada daftar untuk menambahkannya.';
+    renderCart();
     modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     document.getElementById('accountName').focus();
   };
@@ -165,14 +199,28 @@ function bindCheckout(){
   select.onchange=()=>{
     const value=select.value;
     if(value.startsWith('account:')){
-      setFields(true);const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);
+      const qty=Number(value.split(':')[1]);const p=accountProducts.find(x=>x.qty===qty);
       document.getElementById('modalTitle').textContent=`Order Akun Shopee ${qty.toLocaleString('id-ID')} Followers`;
       document.getElementById('checkoutDescription').innerHTML=accountDescription;
-      document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
     }else{
-      setFields(false);document.getElementById('modalTitle').textContent='Order Followers Shopee';update(Number(value));
+      document.getElementById('modalTitle').textContent='Order Followers Shopee';update(Number(value));
     }
   };
+  document.getElementById('addPackageBtn')?.addEventListener('click',()=>{
+    const item=getSelectedPackage();
+    if(!item)return;
+    if(item.category!==cartCategory){alert('Satu invoice hanya boleh berisi satu kategori produk.');return;}
+    const last=cartItems[cartItems.length-1];
+    if(last&&last.qty===item.qty&&last.category===item.category){
+      const help=document.getElementById('cartHelp');
+      if(help)help.textContent='Paket yang dipilih sudah ada. Pilih paket lain terlebih dahulu, lalu kamu bisa memilih paket ini lagi.';
+      return;
+    }
+    cartItems.push(item);
+    const help=document.getElementById('cartHelp');
+    if(help)help.textContent='Paket ditambahkan. Pilih paket berikutnya jika ingin menambah lagi.';
+    renderCart();
+  });
 
   let currentPaymentId=null;
   let currentPaymentAmount=0;
