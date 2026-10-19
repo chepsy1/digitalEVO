@@ -204,7 +204,10 @@ export default async function handler(req, res) {
           orderError = orderData?.message || orderData?.details || orderData?.hint || orderRaw || `Gagal menyimpan order (${insert.status}).`;
         }
 
-        if (orderWasNew && orderRecorded) {
+
+      }
+
+      if (orderWasNew && orderRecorded) {
           // Perbarui jumlah terjual sekali untuk setiap item produk dalam invoice.
           try {
             const counts = new Map();
@@ -235,7 +238,6 @@ export default async function handler(req, res) {
           } catch (soldError) {
             console.warn('Gagal memperbarui sold produk:', soldError);
           }
-        }
       }
 
       // Notifikasi dipanggil server-side saja; browser tidak lagi memiliki akses
