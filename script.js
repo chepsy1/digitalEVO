@@ -29,6 +29,13 @@ const DEFAULT_VIDEO_VIEWS=[
  {qty:1000,price:10600,original:10600,sold:'',img:'assets/1000.webp',name:'1.000 Views'}
 ];
 let videoViewsProducts=DEFAULT_VIDEO_VIEWS.map(x=>({...x}));
+const DEFAULT_VIDEO_LIKES=[
+ {qty:100,price:3600,original:3600,sold:'',img:'assets/100.webp',name:'100 Likes'},
+ {qty:200,price:6400,original:6400,sold:'',img:'assets/200.webp',name:'200 Likes'},
+ {qty:500,price:10500,original:10500,sold:'',img:'assets/500.webp',name:'500 Likes'},
+ {qty:1000,price:18700,original:18700,sold:'',img:'assets/1000.webp',name:'1.000 Likes'}
+];
+let videoLikesProducts=DEFAULT_VIDEO_LIKES.map(x=>({...x}));
 let site={...DEFAULT_SITE};
 let images={...DEFAULT_IMAGES};
 let sliderSettings={interval:5000,effect:'fade',slides:[]};
@@ -52,10 +59,11 @@ function renderHeaderSlider(){
 }
 
 function renderSite(){
- const grid=document.getElementById('productGrid'); const accountGrid=document.getElementById('accountProductGrid'); const videoViewsGrid=document.getElementById('videoViewsProductGrid');
+ const grid=document.getElementById('productGrid'); const accountGrid=document.getElementById('accountProductGrid'); const videoViewsGrid=document.getElementById('videoViewsProductGrid'); const videoLikesGrid=document.getElementById('videoLikesProductGrid');
  if(grid){grid.innerHTML='';products.forEach(p=>{grid.insertAdjacentHTML('beforeend',`<article class="product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="${Number(p.qty).toLocaleString('id-ID')} Followers Shopee Premium" loading="lazy"><div class="product-info"><h3>${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="sold-month">🔥 ${escapeHtml(p.sold||'')} terjual/bln</div><div class="product-actions"><button class="btn btn-primary order-btn" data-qty="${p.qty}">Order Sekarang</button></div></div></article>`)});}
  if(accountGrid){accountGrid.innerHTML='';accountProducts.forEach(p=>accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  if(videoViewsGrid){videoViewsGrid.innerHTML='';videoViewsProducts.forEach(p=>videoViewsGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-views-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-views-order-btn" data-video-views-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
+ if(videoLikesGrid){videoLikesGrid.innerHTML='';videoLikesProducts.forEach(p=>videoLikesGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-likes-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-likes-order-btn" data-video-likes-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  document.querySelector('.brand img')?.setAttribute('src',images.logo);
  const headerBanner=document.querySelector('.top-banner-managed');
  if(headerBanner){
@@ -119,7 +127,7 @@ function bindCheckout(){
   // Checkout fields are category-specific: the Shopee screenshot upload exists ONLY for Followers orders.
   const setFields=category=>{
     const isAccount=category===true||category==='account';
-    const isVideoViews=category==='video_views';
+    const isVideoViews=category==='video_views'||category==='video_likes';
     const fields=document.getElementById('checkoutFields');
     if(!fields)return;
 
@@ -185,11 +193,28 @@ function bindCheckout(){
   document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));
   document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
   document.querySelectorAll('.video-views-order-btn').forEach(btn=>btn.onclick=()=>openVideoViews(Number(btn.dataset.videoViewsQty)));
+  const openVideoLikes=qty=>{
+    setFields('video_likes');
+    const p=videoLikesProducts.find(x=>x.qty===Number(qty)); if(!p)return;
+    document.getElementById('modalTitle').textContent='Order Shopee Video Likes';
+    select.innerHTML=videoLikesProducts.map(item=>`<option value="video_likes:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join(''); select.value=`video_likes:${qty}`;
+    document.getElementById('selectedProduct').value=`video_likes:${qty}`;
+    document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Likes</strong><ul><li>Estimasi Pengerjaan 30-120 Menit.</li><li>Pastikan link video benar dan dapat dibuka. (Video Jangan Di Private)</li><li>Masukkan link video Shopee yang ingin ditambah Likes.</li><li>Gunakan link video Shopee yang valid dan jangan private.</li></ul>';
+    document.getElementById('orderTotal').textContent=rupiah(p.price);
+    modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+    document.getElementById('shopeeLink')?.focus();
+  };
+  document.querySelectorAll('.video-likes-order-btn').forEach(btn=>btn.onclick=()=>openVideoLikes(Number(btn.dataset.videoLikesQty)));
   modal.querySelectorAll('[data-close]').forEach(el=>el.onclick=closeModal);
 
   select.onchange=()=>{
     const value=select.value;
-    if(value.startsWith('video_views:')){
+    if(value.startsWith('video_likes:')){
+      setFields('video_likes');const qty=Number(value.split(':')[1]);const p=videoLikesProducts.find(x=>x.qty===qty);
+      document.getElementById('modalTitle').textContent='Order Shopee Video Likes';
+      document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Likes</strong><ul><li>Estimasi Pengerjaan 30-120 Menit.</li><li>Pastikan link video benar dan dapat dibuka. (Video Jangan Di Private)</li><li>Masukkan link video Shopee yang ingin ditambah Likes.</li><li>Gunakan link video Shopee yang valid dan jangan private.</li></ul>';
+      document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
+    }else if(value.startsWith('video_views:')){
       setFields('video_views');const qty=Number(value.split(':')[1]);const p=videoViewsProducts.find(x=>x.qty===qty);
       document.getElementById('modalTitle').textContent='Order Shopee Video Views';
       document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Views</strong><ul><li>Estimasi Pengerjaan 30-120 Menit.</li><li>Pastikan link video benar dan dapat dibuka. (Video Jangan Di Private)</li><li>Masukkan link video Shopee yang ingin ditambah penayangannya.</li><li>Contoh link video:<ul><li><a href="https://sv.shopee.co.id/share-video/uwVYZ5EyCgCmMOsDAAAAAA==?c=share_web&amp;contentType=0&amp;fromShareLink=share-marker&amp;fromSource=whatsapp&amp;jumpType=share" target="_blank" rel="noopener noreferrer">https://sv.shopee.co.id/share-video/uwVYZ5EyCgCmMOsDAAAAAA==?c=share_web&amp;contentType=0&amp;fromShareLink=share-marker&amp;fromSource=whatsapp&amp;jumpType=share</a></li><li><a href="https://id.shp.ee/tjwo4e0a?fromSource=copy_link&amp;smtt=0.0.9" target="_blank" rel="noopener noreferrer">https://id.shp.ee/tjwo4e0a?fromSource=copy_link&amp;smtt=0.0.9</a></li></ul></li></ul>';
@@ -389,7 +414,16 @@ function bindCheckout(){
     e.preventDefault();
     const value=select.value;
     const payload={};
-    if(value.startsWith('video_views:')){
+    if(value.startsWith('video_likes:')){
+      payload.category='video_likes';
+      payload.qty=Number(value.split(':')[1]);
+      const selectedProduct=videoLikesProducts.find(x=>x.qty===payload.qty);
+      payload.amount=Number(selectedProduct?.price||0);
+      payload.productId=selectedProduct?.id || null;
+      payload.productSortOrder=selectedProduct?.sort_order || null;
+      payload.customerWhatsapp=document.getElementById('customerWa').value.trim();
+      payload.shopeeLink=document.getElementById('shopeeLink').value.trim();
+    }else if(value.startsWith('video_views:')){
       payload.category='video_views';
       payload.qty=Number(value.split(':')[1]);
       const selectedProduct=videoViewsProducts.find(x=>x.qty===payload.qty);
@@ -475,8 +509,8 @@ function bindCheckout(){
       }
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
-        product: payload.category === 'account' ? 'Account Premium' : payload.category === 'video_views' ? 'Shopee Video Views' : 'Followers Indonesia',
-        productName: payload.category === 'video_views' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Views` : '',
+        product: payload.category === 'account' ? 'Account Premium' : payload.category === 'video_views' ? 'Shopee Video Views' : payload.category === 'video_likes' ? 'Shopee Video Likes' : 'Followers Indonesia',
+        productName: payload.category === 'video_views' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Views` : payload.category === 'video_likes' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Likes` : '',
         quantity: Number(payload.qty || 0),
         amount: Number(data.data.amount || payload.amount),
         transaction: paymentId,
@@ -514,7 +548,7 @@ function bindCheckout(){
 
 async function loadRemote(){
  const cfg=window.SUPABASE_CONFIG||{};if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient)return;
- try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow){const remoteSlides=Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[];sliderSettings={...sliderSettings,...sliderRow.value,slides:remoteSlides.filter(x=>x?.image&&!BUILTIN_SLIDER_IMAGES.has(String(x.image).trim()))}}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}));const remoteVideoViews=p.filter(x=>x.category==='video_views');if(remoteVideoViews.length)videoViewsProducts=remoteVideoViews.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Views'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
+ try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow){const remoteSlides=Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[];sliderSettings={...sliderSettings,...sliderRow.value,slides:remoteSlides.filter(x=>x?.image&&!BUILTIN_SLIDER_IMAGES.has(String(x.image).trim()))}}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}));const remoteVideoViews=p.filter(x=>x.category==='video_views');if(remoteVideoViews.length)videoViewsProducts=remoteVideoViews.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Views'}));const remoteVideoLikes=p.filter(x=>x.category==='video_likes');if(remoteVideoLikes.length)videoLikesProducts=remoteVideoLikes.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Likes'}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
 }
 
 function initSalesIndicator(){
