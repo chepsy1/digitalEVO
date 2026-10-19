@@ -208,6 +208,7 @@ async function loadAll() {
   renderSliderSettings();
   renderProducts('followers', $('followersTable'));
   renderProducts('account', $('accountsTable'));
+  renderProducts('video_views', $('videoViewsTable'));
 
   updateDashboard();
   renderProductSummary();
@@ -280,28 +281,26 @@ function renderProductSummary() {
   const box = $('productSummary');
   if (!box) return;
 
-  const followers =
-    products.filter(p => p.category === 'followers');
-
-  const accounts =
-    products.filter(p => p.category === 'account');
+  const followers = products.filter(p => p.category === 'followers');
+  const accounts = products.filter(p => p.category === 'account');
+  const videoViews = products.filter(p => p.category === 'video_views');
 
   box.innerHTML = `
     <div class="admin-grid">
       <div>
         <strong>Followers</strong>
         <div class="admin-stat-value">${followers.length}</div>
-        <p class="admin-stat-note">
-          Produk tersedia
-        </p>
+        <p class="admin-stat-note">Produk tersedia</p>
       </div>
-
       <div>
         <strong>Account Premium</strong>
         <div class="admin-stat-value">${accounts.length}</div>
-        <p class="admin-stat-note">
-          Produk tersedia
-        </p>
+        <p class="admin-stat-note">Produk tersedia</p>
+      </div>
+      <div>
+        <strong>Shopee Video Views</strong>
+        <div class="admin-stat-value">${videoViews.length}</div>
+        <p class="admin-stat-note">Produk tersedia</p>
       </div>
     </div>
   `;
@@ -1066,28 +1065,22 @@ async function saveSliderSettings() {
 ========================= */
 
 function setupProductTabs() {
-  document
-    .querySelectorAll('[data-product-tab]')
-    .forEach(button => {
-      button.onclick = () => {
-        const category = button.dataset.productTab;
+  const buttons = document.querySelectorAll('[data-product-category]');
+  const panels = {
+    followers: $('productFollowersPanel'),
+    account: $('productAccountPanel'),
+    video_views: $('productVideoViewsPanel')
+  };
 
-        document
-          .querySelectorAll('[data-product-tab]')
-          .forEach(btn =>
-            btn.classList.remove('active')
-          );
-
-        button.classList.add('active');
-
-        document
-          .querySelectorAll('.product-tab-panel')
-          .forEach(panel => {
-            panel.hidden =
-              panel.dataset.productCategory !== category;
-          });
-      };
-    });
+  buttons.forEach(button => {
+    button.onclick = () => {
+      const category = button.dataset.productCategory;
+      buttons.forEach(item => item.classList.toggle('active', item === button));
+      Object.entries(panels).forEach(([key, panel]) => {
+        if (panel) panel.classList.toggle('active', key === category);
+      });
+    };
+  });
 }
 
 function productImageFallback(product) {
@@ -1095,6 +1088,7 @@ function productImageFallback(product) {
   const qty = Number(product?.qty || 0);
 
   if (category === 'account') return 'assets/akun-premium-product.webp';
+  if (category === 'video_views') return qty >= 1000 ? 'assets/1000.webp' : 'assets/100.webp';
 
   const known = {
     100: 'assets/100.webp',
@@ -1113,6 +1107,13 @@ function productImageFallback(product) {
 
 function productImageSrc(product) {
   return product?.image_url || productImageFallback(product);
+}
+
+function productTableForCategory(category) {
+  if (category === 'followers') return $('followersTable');
+  if (category === 'account') return $('accountsTable');
+  if (category === 'video_views') return $('videoViewsTable');
+  return null;
 }
 
 function renderProducts(category, box) {
@@ -1241,7 +1242,7 @@ async function saveProduct(row, button) {
   if (msgEl) msgEl.textContent = 'Tersimpan ✓';
 
   products = products.map(p => String(p.id) === String(id) ? data[0] : p);
-  renderProducts(current.category, current.category === 'followers' ? $('followersTable') : $('accountsTable'));
+  renderProducts(current.category, productTableForCategory(current.category));
   updateDashboard();
   renderProductSummary();
   populateAdminFreeProducts();
@@ -1325,7 +1326,7 @@ async function uploadProductImage(row, file, input) {
   if (button) button.classList.remove('is-uploading');
   if (input) input.value = '';
 
-  renderProducts(current?.category || data[0].category, (current?.category || data[0].category) === 'followers' ? $('followersTable') : $('accountsTable'));
+  renderProducts(current?.category || data[0].category, productTableForCategory(current?.category || data[0].category));
 }
 
 async function deleteProduct(row) {
@@ -1609,7 +1610,7 @@ function populateAdminFreeProducts() {
   const select = $('adminFreeProduct');
   if (!select) return;
   select.innerHTML = products.map(p =>
-    `<option value="${escapeAttr(p.id)}">${escapeHtml(p.category === 'account' ? 'Akun' : 'Followers')} ${escapeHtml(p.qty)} — ${rupiah(p.price)}</option>`
+    `<option value="${escapeAttr(p.id)}">${escapeHtml(p.category === 'account' ? 'Akun Shopee' : p.category === 'video_views' ? 'Shopee Video Views' : 'Followers Shopee')} ${escapeHtml(p.qty)} — ${rupiah(p.price)}</option>`
   ).join('');
 }
 
@@ -1758,6 +1759,11 @@ $('addFollower')?.addEventListener(
 $('addAccount')?.addEventListener(
   'click',
   () => addProduct('account')
+);
+
+$('addVideoViews')?.addEventListener(
+  'click',
+  () => addProduct('video_views')
 );
 
 $('refreshAdmin')?.addEventListener(
