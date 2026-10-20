@@ -1445,6 +1445,21 @@ async function loadAnalytics() {
       client.from('analytics_events').select('event_type,product_name,quantity,created_at,value,metadata,page_path').gte('created_at', since30).limit(20000)
     ]);
 
+    // Jangan menganggap kegagalan query sebagai data kosong: tampilkan penyebabnya
+    // agar grafik Analytics bisa didiagnosis langsung dari panel admin.
+    if (events.error) {
+      console.error('Gagal membaca analytics_events:', events.error);
+      const chart = $('trafficChart');
+      if (chart) chart.textContent = 'Gagal memuat data kunjungan: ' + (events.error.message || 'akses data ditolak');
+      throw events.error;
+    }
+    if (summaryResult.error) {
+      console.warn('Gagal membaca ringkasan Analytics:', summaryResult.error);
+    }
+    if (clicks.error) {
+      console.warn('Gagal membaca klik produk Analytics:', clicks.error);
+    }
+
     const summary = summaryResult.data || {};
     setText('statVisitors24h', Number(summary.visitors24h || 0).toLocaleString('id-ID'));
     setText('statVisitors7d', Number(summary.visitors7d || 0).toLocaleString('id-ID'));
@@ -1475,6 +1490,10 @@ async function loadAnalytics() {
     renderTopProducts(clickRows);
   } catch (error) {
     console.warn('Analytics belum siap:', error);
+    const chart = $('trafficChart');
+    if (chart && !String(chart.textContent || '').includes('Gagal memuat data kunjungan')) {
+      chart.textContent = 'Analytics gagal dimuat. Periksa izin akses tabel analytics_events.';
+    }
   } finally {
     analyticsLoading = false;
   }
