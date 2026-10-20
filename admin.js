@@ -1519,18 +1519,15 @@ function bucketEvents(rows, range, money=false) {
   const now = new Date();
   const filtered = rows.filter(r => new Date(r.created_at) >= analyticsSince(range));
 
-  // Untuk grafik 24 jam, gunakan bucket jam yang tetap (00:00, 02:00,
-  // 04:00, dst), bukan interval bergulir dari `now`. Dengan begitu order
-  // pukul 23:01 tidak lagi muncul di label 22:00 hanya karena sekarang
-  // sudah 00:xx.
+  // Grafik 24 jam harus mencakup seluruh rentang bergulir dari sekarang
+  // mundur 24 jam. Bucket yang dibulatkan ke jam genap sebelumnya dapat
+  // melewatkan kunjungan pada 1–2 jam pertama rentang.
   if (range === '24h') {
-    const currentBucket = new Date(now);
-    currentBucket.setMinutes(0, 0, 0);
-    currentBucket.setHours(Math.floor(currentBucket.getHours() / 2) * 2);
-
+    const since = analyticsSince('24h');
+    const step = 2 * 60 * 60 * 1000;
     return Array.from({length: 12}, (_, i) => {
-      const start = new Date(currentBucket.getTime() - (11 - i) * 2 * 60 * 60 * 1000);
-      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+      const start = new Date(since.getTime() + i * step);
+      const end = new Date(Math.min(start.getTime() + step, now.getTime()));
       const value = filtered.filter(r => {
         const t = new Date(r.created_at).getTime();
         return t >= start.getTime() && t < end.getTime();
