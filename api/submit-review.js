@@ -11,16 +11,20 @@ module.exports = async (req,res)=>{
   let store=''; if(storeInput){try{const candidate=/^[a-z][a-z0-9+.-]*:\/\//i.test(storeInput)?storeInput:'https://'+storeInput;const u=new URL(candidate);if(!['http:','https:'].includes(u.protocol)||!u.hostname.includes('.'))throw Error();store=u.href;}catch{return res.status(400).json({error:'Link toko/akun harus berupa alamat web yang valid.'});}}
   if(name.length<2||name.length>60||body.length<3||body.length>1000||rating<1||rating>5)return res.status(400).json({error:'Periksa nama, rating, dan isi komentar.'});
   const auth={apikey:key,Authorization:`Bearer ${key}`};
-  const orderResponse=await fetch(`${base}/rest/v1/orders?id=eq.${encodeURIComponent(payload.order)}&select=id,customer_whatsapp,payment_status&limit=1`,{headers:auth});
-  if(!orderResponse.ok)return res.status(500).json({error:'Database pesanan belum dapat diperiksa.'});
-  const [order]=await orderResponse.json();
   const normalize=v=>{let d=String(v||'').replace(/\D/g,'');if(d.startsWith('0'))d='62'+d.slice(1);if(!d.startsWith('62'))d='62'+d;return d;};
-  if(!order||!['paid','success','succeeded','completed'].includes(String(order.payment_status||'').toLowerCase())||normalize(order.customer_whatsapp)!==payload.phone)return res.status(403).json({error:'Verifikasi pembayaran tidak lagi valid. Silakan verifikasi ulang.'});
+  if (payload.unlimited) {
+    if (payload.phone !== '6281355571826') return res.status(403).json({error:'Nomor khusus tidak valid. Silakan verifikasi ulang.'});
+  } else {
+    const orderResponse=await fetch(`${base}/rest/v1/orders?id=eq.${encodeURIComponent(payload.order)}&select=id,customer_whatsapp,payment_status&limit=1`,{headers:auth});
+    if(!orderResponse.ok)return res.status(500).json({error:'Database pesanan belum dapat diperiksa.'});
+    const [order]=await orderResponse.json();
+    if(!order||!['paid','success','succeeded','completed'].includes(String(order.payment_status||'').toLowerCase())||normalize(order.customer_whatsapp)!==payload.phone)return res.status(403).json({error:'Verifikasi pembayaran tidak lagi valid. Silakan verifikasi ulang.'});
+  }
   const photos=(f.photos||[]).filter(file=>file&&file.buffer?.length);
   if(photos.length>3)return res.status(400).json({error:'Maksimal 3 foto untuk setiap ulasan.'});
   const photoUrls=[], uploadedPaths=[];
   for(const file of photos){if(!['image/jpeg','image/png','image/webp'].includes(file.contentType)||file.buffer.length>3*1024*1024)return res.status(400).json({error:'Setiap foto harus JPG, PNG, atau WebP dengan ukuran maksimal 3 MB.'});const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[file.contentType];const photoPath=`reviews/${payload.order}-${crypto.randomUUID()}.${ext}`;const upload=await fetch(`${base}/storage/v1/object/review-photos/${photoPath}`,{method:'POST',headers:{...auth,'Content-Type':file.contentType,'x-upsert':'false'},body:file.buffer});if(!upload.ok){for(const path of uploadedPaths)await fetch(`${base}/storage/v1/object/review-photos/${path}`,{method:'DELETE',headers:auth});return res.status(500).json({error:'Foto gagal disimpan. Coba lagi.'});}uploadedPaths.push(photoPath);photoUrls.push(`${base}/storage/v1/object/public/review-photos/${photoPath}`);}
-  const insert=await fetch(`${base}/rest/v1/comments`,{method:'POST',headers:{...auth,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({order_id:payload.order,name,body,rating,store_url:store||null,photo_url:photoUrls[0]||null,photo_urls:photoUrls,status:'pending',pinned:false})});
+  const insert=await fetch(`${base}/rest/v1/comments`,{method:'POST',headers:{...auth,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({order_id:payload.unlimited ? null : payload.order,name,body,rating,store_url:store||null,photo_url:photoUrls[0]||null,photo_urls:photoUrls,status:'pending',pinned:false})});
   if(!insert.ok){for(const path of uploadedPaths)await fetch(`${base}/storage/v1/object/review-photos/${path}`,{method:'DELETE',headers:auth});if(insert.status===409)return res.status(409).json({error:'Pesanan ini sudah pernah mengirim ulasan.'});if(insert.status===400)return res.status(500).json({error:'Jalankan migrasi SQL ulasan terbaru di Supabase terlebih dahulu.'});return res.status(500).json({error:'Ulasan gagal disimpan. Silakan coba lagi.'});}
   return res.status(200).json({ok:true});
 };
