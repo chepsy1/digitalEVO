@@ -10,12 +10,16 @@ module.exports = async (req, res) => {
     const raw = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const phone = normalize(raw.whatsapp);
     if (phone.length < 10 || phone.length > 15) return res.status(400).json({ error: 'Masukkan nomor WhatsApp yang valid.' });
-    const response = await fetch(`${base}/rest/v1/orders?select=id,customer_whatsapp,payment_status&customer_whatsapp=not.is.null&limit=1000`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
-    if (!response.ok) return res.status(500).json({ error: 'Database pesanan belum dapat diperiksa.' });
-    const orders = await response.json();
-    const match = orders.find(x => ['paid','success','succeeded','completed'].includes(String(x.payment_status || '').toLowerCase()) && normalize(x.customer_whatsapp) === phone);
-    if (!match) return res.status(403).json({ error: 'Nomor yang anda masukkan tidak cocok dengan database kami atau pembayaran anda belum terkonfirmasi!. Hanya pembeli yang bisa mengirim komentar. Jika ingin bertanya silahkan Chat Admin Kami melalui WA.' });
-    const token = sign({ phone, order: match.id, exp: Date.now() + 20 * 60 * 1000 }, secret);
+    const unlimitedPhone = '6281355571826';
+    let match = null;
+    if (phone !== unlimitedPhone) {
+      const response = await fetch(`${base}/rest/v1/orders?select=id,customer_whatsapp,payment_status&customer_whatsapp=not.is.null&limit=1000`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+      if (!response.ok) return res.status(500).json({ error: 'Database pesanan belum dapat diperiksa.' });
+      const orders = await response.json();
+      match = orders.find(x => ['paid','success','succeeded','completed'].includes(String(x.payment_status || '').toLowerCase()) && normalize(x.customer_whatsapp) === phone);
+      if (!match) return res.status(403).json({ error: 'Nomor yang anda masukkan tidak cocok dengan database kami atau pembayaran anda belum terkonfirmasi!. Hanya pembeli yang bisa mengirim komentar. Jika ingin bertanya silahkan Chat Admin Kami melalui WA.' });
+    }
+    const token = sign({ phone, order: match?.id || null, unlimited: phone === unlimitedPhone, exp: Date.now() + 20 * 60 * 1000 }, secret);
     return res.status(200).json({ token });
   } catch { return res.status(500).json({ error: 'Verifikasi belum berhasil. Silakan coba kembali.' }); }
 };
