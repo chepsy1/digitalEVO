@@ -1555,7 +1555,26 @@ function bucketEvents(rows, range, money=false) {
 
 function renderAnalyticsCharts(events, range) {
   const traffic = events.filter(e => e.event_type === 'page_view').map(e => ({...e,value:1}));
-  renderBars('trafficChart', bucketEvents(traffic, range), false);
+  const trafficPoints = bucketEvents(traffic, range);
+  renderBars('trafficChart', trafficPoints, false);
+
+  // Tampilkan diagnosis langsung di grafik jika Supabase mengembalikan data,
+  // tetapi tidak ada kunjungan yang masuk ke bucket rentang yang dipilih.
+  if (!trafficPoints.some(point => point.value > 0)) {
+    const box = $('trafficChart');
+    if (box) {
+      const latest = traffic.reduce((value, event) => {
+        const time = new Date(event.created_at).getTime();
+        return Number.isFinite(time) && time > value ? time : value;
+      }, 0);
+      const latestLabel = latest ? new Date(latest).toLocaleString('id-ID') : 'tidak ada';
+      box.innerHTML = '<div class="chart-empty">Diagnostik: event yang diterima panel = ' +
+        events.length + '; page_view = ' + traffic.length +
+        '; rentang = ' + escapeHtml(range) +
+        '; kunjungan terakhir yang diterima = ' + escapeHtml(latestLabel) +
+        '. Jika page_view = 0, periksa akses baca tabel atau proyek Supabase yang dipakai admin.</div>';
+    }
+  }
 
   const revenueRows = orders.filter(o => ['paid','processing','completed'].includes(String(o.payment_status || o.status || '').toLowerCase()))
     .map(o => ({created_at:o.created_at || o.checkout_at, value:Number(o.amount || o.total || 0)}));
