@@ -1441,8 +1441,8 @@ async function loadAnalytics() {
   try {
     const [summaryResult, clicks, events] = await Promise.all([
       client.rpc('analytics_summary'),
-      client.from('analytics_events').select('event_type,product_name,quantity,created_at').eq('event_type','product_click').gte('created_at', since30).limit(10000),
-      client.from('analytics_events').select('event_type,product_name,quantity,created_at,value,metadata,page_path').gte('created_at', since30).limit(20000)
+      client.from('analytics_events').select('event_type,product_name,quantity,created_at').eq('event_type','product_click').gte('created_at', since30).order('created_at', { ascending: false }).limit(10000),
+      client.from('analytics_events').select('event_type,product_name,quantity,created_at,value,metadata,page_path').gte('created_at', since30).order('created_at', { ascending: false }).limit(20000)
     ]);
 
     // Jangan menganggap kegagalan query sebagai data kosong: tampilkan penyebabnya
