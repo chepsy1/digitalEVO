@@ -25,18 +25,48 @@
   }
   function ensurePhotoViewer(){
     if($('devoReviewPhotoViewer'))return;
-    const viewer=document.createElement('div');viewer.id='devoReviewPhotoViewer';viewer.className='devo-review-photo-viewer';viewer.hidden=true;viewer.innerHTML='<div class="devo-review-photo-viewer-panel" role="dialog" aria-modal="true" aria-label="Pratinjau foto ulasan"><div class="devo-review-photo-viewer-toolbar"><span class="devo-review-photo-viewer-hint">Klik + atau − untuk mengatur zoom</span><button type="button" data-zoom="out" aria-label="Perkecil foto">−</button><button type="button" data-zoom="reset">Pas ukuran layar</button><button type="button" data-zoom="in" aria-label="Perbesar foto">+</button><button type="button" data-viewer-close aria-label="Tutup foto">×</button></div><div class="devo-review-photo-viewer-stage"><img alt="Foto ulasan ukuran asli"></div></div>';
+    const viewer=document.createElement('div');
+    viewer.id='devoReviewPhotoViewer';
+    viewer.className='devo-review-photo-viewer';
+    viewer.hidden=true;
+    viewer.innerHTML='<div class="devo-review-photo-viewer-panel" role="dialog" aria-modal="true" aria-label="Pratinjau foto ulasan"><button type="button" data-viewer-close aria-label="Tutup foto" style="position:absolute;top:12px;right:14px;z-index:2;font-size:30px;line-height:1;background:rgba(0,0,0,.65);color:#fff;border:0;border-radius:50%;width:42px;height:42px;cursor:pointer">×</button><div class="devo-review-photo-viewer-stage"><img alt="Foto ulasan ukuran asli" style="display:block;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);width:auto;height:auto;object-fit:contain;transform:none!important;cursor:default"></div></div>';
     document.body.appendChild(viewer);
-    const img=viewer.querySelector('img');let scale=1;
-    const applyZoom=()=>{img.style.transform=`scale(${scale})`;img.style.cursor=scale>1?'grab':'zoom-in';};
-    const close=()=>{viewer.hidden=true;document.body.classList.remove('devo-photo-viewer-open');img.src='';scale=1;};
-    viewer.addEventListener('click',e=>{if(e.target===viewer||e.target.closest('[data-viewer-close]'))close();});
-    viewer.querySelector('[data-zoom="in"]').addEventListener('click',()=>{scale=Math.min(5,scale+.25);applyZoom();});
-    viewer.querySelector('[data-zoom="out"]').addEventListener('click',()=>{scale=Math.max(.5,scale-.25);applyZoom();});
-    viewer.querySelector('[data-zoom="reset"]').addEventListener('click',()=>{scale=1;applyZoom();});
-    img.addEventListener('click',()=>{scale=scale>=2?1:Math.min(5,scale+.5);applyZoom();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!viewer.hidden)close();});
-    list.addEventListener('click',e=>{const button=e.target.closest('[data-photo-url]');if(!button)return;e.preventDefault();img.src=button.dataset.photoUrl;img.alt=button.dataset.photoAlt||'Foto ulasan ukuran asli';scale=1;applyZoom();viewer.hidden=false;document.body.classList.add('devo-photo-viewer-open');});
+    const img=viewer.querySelector('img');
+    let historyEntryOpen=false;
+    const hideViewer=()=>{
+      viewer.hidden=true;
+      document.body.classList.remove('devo-photo-viewer-open');
+      img.removeAttribute('src');
+      historyEntryOpen=false;
+    };
+    const closeViewer=()=>{
+      if(viewer.hidden)return;
+      if(historyEntryOpen&&history.state&&history.state.devoReviewPhotoViewer){
+        history.back();
+      }else{
+        hideViewer();
+      }
+    };
+    viewer.addEventListener('click',e=>{
+      if(e.target===viewer||e.target.closest('[data-viewer-close]'))closeViewer();
+    });
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&!viewer.hidden)closeViewer();
+    });
+    window.addEventListener('popstate',()=>{
+      if(!viewer.hidden)hideViewer();
+    });
+    list.addEventListener('click',e=>{
+      const button=e.target.closest('[data-photo-url]');
+      if(!button)return;
+      e.preventDefault();
+      img.src=button.dataset.photoUrl;
+      img.alt=button.dataset.photoAlt||'Foto ulasan ukuran asli';
+      viewer.hidden=false;
+      document.body.classList.add('devo-photo-viewer-open');
+      historyEntryOpen=true;
+      history.pushState({...history.state,devoReviewPhotoViewer:true},'',location.href.split('#')[0]+'#devo-review-photo');
+    });
   }
   async function loadReviews(){
     try{const r=await fetch(`/api/reviews?page=${page}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
