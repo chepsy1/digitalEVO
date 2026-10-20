@@ -65,7 +65,7 @@
       viewer.hidden=false;
       document.body.classList.add('devo-photo-viewer-open');
       historyEntryOpen=true;
-      history.pushState({...history.state,devoReviewPhotoViewer:true},'',location.href.split('#')[0]+'#devo-review-photo');
+      history.pushState({...history.state,devoReviewPhotoViewer:true},'',location.href);
     });
   }
   async function loadReviews(){
