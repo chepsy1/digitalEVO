@@ -14,10 +14,17 @@
   function renderPagination(){
     const el=$('devoReviewPagination'); if(!el)return;
     totalPages=Math.max(1,Math.ceil((Number(window.devoReviewsTotal)||0)/6));
-    let html='';
-    for(let n=1;n<=totalPages;n++) html+='<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>';
-    el.innerHTML=html;
+    const buttons=[];
+    const addPage=n=>buttons.push('<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>');
+    const addDots=()=>buttons.push('<span class="devo-review-page-dots" aria-hidden="true">…</span>');
+    let start=1,end=Math.min(6,totalPages);
+    if(page>6){start=Math.max(1,page-2);end=Math.min(totalPages-1,start+5);start=Math.max(1,end-5);if(start>1){addPage(1);addDots();}}
+    for(let n=start;n<=end;n++)addPage(n);
+    if(end<totalPages){addDots();addPage(totalPages);}
+    if(page<totalPages)buttons.push('<button type="button" data-next-page aria-label="Halaman berikutnya">Next ›</button>');
+    el.innerHTML=buttons.join('');
     el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{const target=Number(b.dataset.page);if(target>=1&&target<=totalPages&&target!==page){page=target;loadReviews();}});
+    el.querySelector('[data-next-page]')?.addEventListener('click',()=>{if(page<totalPages){page++;loadReviews();}});
   }
   function ensurePhotoViewer(){
     if($('devoReviewPhotoViewer'))return;
