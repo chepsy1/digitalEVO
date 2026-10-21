@@ -91,7 +91,7 @@ export default async function handler(req, res) {
         customer_whatsapp: order.customerWhatsapp || null,
         account_contact: order.accountContact || null,
         shopee_link: ['followers','video_views','video_likes','video_comments','product_likes'].includes(category) ? (order.shopeeLink || null) : null,
-        comment_text: category === 'video_comments' ? (String(order.commentText || '').trim() || null) : null,
+        comment_text: category === 'video_comments' ? (String(order.commentText || order.comment_text || order.comments || '').trim() || null) : null,
         photo_url: category === 'followers' ? (order.photoUrl || null) : null,
         photo_path: category === 'followers' ? (order.photoPath || null) : null,
         product_id: isUuid(product.id) ? product.id : null,
