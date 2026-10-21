@@ -1258,6 +1258,11 @@ function renderProducts(category, box) {
       </label>
 
       <label>
+        Harga khusus member (kosong = harga promo)
+        <input class="f-member-price" type="number" min="0" value="${product.member_price == null ? '' : Number(product.member_price)}" placeholder="Opsional">
+      </label>
+
+      <label>
         Terjual/bln
         <input class="f-sold" value="${escapeAttr(product.sold || '')}" placeholder="Contoh: 1.2K">
       </label>
@@ -1301,9 +1306,12 @@ async function saveProduct(row, button) {
   const qty = Number(row.querySelector('.f-qty')?.value || 0);
   const original = Number(row.querySelector('.f-original')?.value || 0);
   const price = Number(row.querySelector('.f-price')?.value || 0);
+  const memberPriceRaw = String(row.querySelector('.f-member-price')?.value ?? '').trim();
+  const memberPrice = memberPriceRaw === '' ? null : Number(memberPriceRaw);
   const sold = row.querySelector('.f-sold')?.value || '';
 
-  if (![qty, original, price].every(Number.isFinite) || qty < 0 || original < 0 || price < 0) {
+  if (![qty, original, price].every(Number.isFinite) || qty < 0 || original < 0 || price < 0 ||
+      (memberPrice !== null && (!Number.isSafeInteger(memberPrice) || memberPrice < 0))) {
     alert('Jumlah dan harga harus berupa angka yang valid.');
     return;
   }
@@ -1321,6 +1329,7 @@ async function saveProduct(row, button) {
       qty,
       original,
       price,
+      member_price: memberPrice,
       sold,
       sort_order: Number(current.sort_order || 0),
       updated_at: new Date().toISOString()
