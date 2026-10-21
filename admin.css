@@ -1177,3 +1177,12 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
   font-size: 12px;
   padding: 8px 10px;
 }
+
+
+/* Isi Custom Comments disembunyikan sampai ikon kecil diklik. */
+.admin-comment-details{display:inline-block;position:relative;margin-left:7px;vertical-align:middle}
+.admin-comment-details summary{display:flex;align-items:center;justify-content:center;list-style:none;cursor:pointer;width:24px;height:24px;border:1px solid #d1d5db;border-radius:50%;background:#fff;font-size:12px;line-height:1;user-select:none}
+.admin-comment-details summary::-webkit-details-marker{display:none}
+.admin-comment-details summary::marker{content:""}
+.admin-comment-details[open] summary{background:#fff7ed;border-color:#fb923c}
+.admin-comment-content{position:absolute;z-index:30;top:28px;left:0;width:min(320px,70vw);max-height:240px;overflow:auto;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;color:#111827;box-shadow:0 8px 24px rgba(0,0,0,.14);white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.5;font-weight:400}
