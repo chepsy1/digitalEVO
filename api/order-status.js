@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       clauses.push('customer_whatsapp.eq."' + safe + '"', 'account_contact.eq."' + safe + '"');
     }
     const query = new URLSearchParams({
-      select: 'id,transaction_id,product_name,payment_status,order_status,created_at,shopee_link',
+      select: 'id,transaction_id,product_name,payment_status,order_status,created_at,shopee_link,comment_text',
       or: '(' + clauses.join(',') + ')', order: 'created_at.desc', limit: '20'
     });
     const response = await fetch(base + '/rest/v1/orders?' + query.toString(), {
