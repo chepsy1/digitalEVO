@@ -713,13 +713,13 @@
         max-width: calc(100% - 16px) !important;
         opacity: 0;
         visibility: hidden;
-        animation: devo-benefit-slide 4s linear infinite !important;
+        animation: devo-benefit-slide 20s linear infinite !important;
         will-change: transform, opacity;
       }
       .devo-premium-benefits > div:nth-child(1) { animation-delay: 0s !important; }
-      .devo-premium-benefits > div:nth-child(2) { animation-delay: 1s !important; }
-      .devo-premium-benefits > div:nth-child(3) { animation-delay: 2s !important; }
-      .devo-premium-benefits > div:nth-child(4) { animation-delay: 3s !important; }
+      .devo-premium-benefits > div:nth-child(2) { animation-delay: 5s !important; }
+      .devo-premium-benefits > div:nth-child(3) { animation-delay: 10s !important; }
+      .devo-premium-benefits > div:nth-child(4) { animation-delay: 15s !important; }
       .devo-premium-benefits b {
         white-space: normal !important;
         font-size: 13px !important;
@@ -730,14 +730,17 @@
           visibility: hidden;
           transform: translateX(calc(-50% - 50vw));
         }
-        4% { opacity: 1; visibility: visible; }
-        22% {
+        5% {
           opacity: 1;
           visibility: visible;
           transform: translateX(-50%);
         }
-        27% { opacity: 1; visibility: visible; }
-        48% {
+        20% {
+          opacity: 1;
+          visibility: visible;
+          transform: translateX(-50%);
+        }
+        25% {
           opacity: 0;
           visibility: hidden;
           transform: translateX(50vw);
