@@ -52,6 +52,10 @@ alter table public.member_deposit_requests add column if not exists qr_content t
 alter table public.member_deposit_requests add column if not exists qr_image text;
 alter table public.member_deposit_requests add column if not exists expires_at timestamptz;
 
+-- Capture the gateway search window before creating QRIS to avoid missing fast payments.
+alter table public.member_registration_payments add column if not exists gateway_start_time bigint;
+alter table public.member_deposit_requests add column if not exists gateway_start_time bigint;
+
 create table if not exists public.member_wallet_transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.member_profiles(user_id) on delete cascade,
