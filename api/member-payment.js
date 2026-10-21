@@ -1,0 +1,182 @@
+function reply(res, status, body) {
+  return res.status(status).json(body);
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function serviceHeaders() {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+}
+
+async function db(path, options = {}) {
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  if (!base || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase server belum dikonfigurasi.');
+  return fetch(`${base}${path}`, { ...options, headers: { ...serviceHeaders(), ...(options.headers || {}) } });
+}
+
+async function currentUser(req) {
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+  const anonKey = process.env.SUPABASE_ANON_KEY;
+  const authorization = String(req.headers.authorization || '');
+  if (!base || !anonKey || !authorization.startsWith('Bearer ')) return null;
+  const response = await fetch(`${base}/auth/v1/user`, {
+    headers: { apikey: anonKey, Authorization: authorization }
+  });
+  if (!response.ok) return null;
+  const user = await response.json();
+  return user?.id && UUID_RE.test(user.id) ? user : null;
+}
+
+async function createGatewayQris(amount) {
+  const gateway = String(process.env.PAYMENT_GATEWAY_URL || '').replace(/\/+$/, '');
+  const apiKey = process.env.PAYMENT_GATEWAY_API_KEY || process.env.API_KEY;
+  if (!gateway || !apiKey) throw new Error('Payment gateway belum dikonfigurasi.');
+
+  const response = await fetch(`${gateway}/create-qris`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-API-Key': apiKey },
+    body: JSON.stringify({ amount })
+  });
+  const raw = await response.text();
+  let data;
+  try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+  if (!response.ok) throw new Error(data?.error || data?.message || 'Gagal membuat QRIS.');
+  const d = data?.data || data?.result || data;
+  const qrisUrl = d?.qris_url || d?.qr_url || d?.qrUrl || d?.qrImageUrl || data?.qris_url || data?.qr_url;
+  const paymentReference = d?.paymentId || d?.payment_id || d?.transactionId || d?.transaction_id ||
+    d?.partnerReferenceNo || d?.partner_reference_no || d?.referenceNo || d?.reference_no || d?.id ||
+    (qrisUrl ? String(qrisUrl).split('?')[0].split('/').filter(Boolean).pop() : null);
+  const qrContent = d?.qrContent || d?.qr_content || null;
+  const qrImage = d?.qrImage || d?.qr_image || null;
+  if (!paymentReference || (!qrisUrl && !qrContent && !qrImage)) throw new Error('Gateway tidak mengembalikan data QRIS yang lengkap.');
+  return { paymentReference: String(paymentReference), qrisUrl, qrContent, qrImage, expiresAt: d?.expires_at || d?.expiresAt || data?.expires_at || null };
+}
+
+async function gatewayPaymentStatus(paymentReference, amount, startTime) {
+  const gateway = String(process.env.PAYMENT_GATEWAY_URL || '').replace(/\/+$/, '');
+  const apiKey = process.env.PAYMENT_GATEWAY_API_KEY || process.env.API_KEY;
+  const response = await fetch(`${gateway}/check-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-API-Key': apiKey },
+    body: JSON.stringify({ paymentId: paymentReference, amount, startTime: Number(startTime) || Math.floor(Date.now() / 1000) })
+  });
+  const raw = await response.text();
+  let data;
+  try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
+  if (!response.ok) throw new Error(data?.error || data?.message || 'Gagal memeriksa pembayaran.');
+  const d = data?.data || data?.result || data;
+  const status = String(d?.status || data?.status || '').toUpperCase();
+  const paid = d?.paid === true || data?.paid === true || ['PAID', 'SUCCESS', 'SUCCEEDED', 'COMPLETED', 'SETTLED'].includes(status);
+  const gatewayAmount = Number(d?.amount ?? d?.transaction?.amount ?? data?.amount ?? data?.transaction?.amount ?? 0);
+  if (paid && (!Number.isSafeInteger(gatewayAmount) || gatewayAmount !== amount)) {
+    throw new Error('Nominal pembayaran tidak sesuai. Pembayaran belum dikreditkan; hubungi admin untuk pemeriksaan.');
+  }
+  return paid;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return reply(res, 405, { error: 'Method not allowed' });
+
+  try {
+    const user = await currentUser(req);
+    if (!user) return reply(res, 401, { error: 'Silakan login sebagai member terlebih dahulu.' });
+    const action = String(req.body?.action || '');
+    const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
+    if (!base || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.SUPABASE_ANON_KEY) {
+      return reply(res, 500, { error: 'Konfigurasi server member belum lengkap.' });
+    }
+
+    // Create a pending member profile for a verified Supabase Auth identity.
+    if (action === 'create_registration') {
+      if (!user.phone) return reply(res, 400, { error: 'Akun harus menggunakan autentikasi nomor WhatsApp.' });
+      const phone = String(user.phone);
+      const profileResponse = await db('/rest/v1/member_profiles?on_conflict=user_id', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify({ user_id: user.id, whatsapp: phone, status: 'pending_payment', updated_at: new Date().toISOString() })
+      });
+      const profileText = await profileResponse.text();
+      if (!profileResponse.ok) return reply(res, 409, { error: 'Profil member belum bisa disiapkan. Pastikan nomor WhatsApp belum dipakai akun lain.', details: profileText });
+
+      const payment = await createGatewayQris(99000);
+      const saved = await db('/rest/v1/member_registration_payments', {
+        method: 'POST',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ user_id: user.id, amount: 99000, payment_reference: payment.paymentReference, payment_status: 'pending' })
+      });
+      if (!saved.ok) {
+        console.error('QRIS pendaftaran dibuat tetapi referensi gagal disimpan:', await saved.text());
+        return reply(res, 502, { error: 'QRIS dibuat tetapi data pembayaran belum tersimpan. Jangan bayar dulu; hubungi admin.' });
+      }
+      return reply(res, 200, { success: true, type: 'registration', amount: 99000, ...payment });
+    }
+
+    if (action === 'create_deposit') {
+      const amount = Number(req.body?.amount);
+      if (!Number.isSafeInteger(amount) || amount < 1000 || amount > 10000000) {
+        return reply(res, 400, { error: 'Nominal deposit harus Rp1.000 sampai Rp10.000.000.' });
+      }
+      const profileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=status&limit=1`);
+      const profiles = await profileResponse.json();
+      if (!profileResponse.ok || !profiles?.[0] || profiles[0].status !== 'active') {
+        return reply(res, 403, { error: 'Deposit hanya tersedia untuk member aktif.' });
+      }
+      const payment = await createGatewayQris(amount);
+      const saved = await db('/rest/v1/member_deposit_requests', {
+        method: 'POST',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ user_id: user.id, amount, payment_reference: payment.paymentReference, payment_status: 'pending' })
+      });
+      if (!saved.ok) {
+        console.error('QRIS deposit dibuat tetapi referensi gagal disimpan:', await saved.text());
+        return reply(res, 502, { error: 'QRIS dibuat tetapi data deposit belum tersimpan. Jangan bayar dulu; hubungi admin.' });
+      }
+      return reply(res, 200, { success: true, type: 'deposit', amount, ...payment });
+    }
+
+    if (action === 'check') {
+      const paymentReference = String(req.body?.paymentReference || '').trim();
+      if (!paymentReference || paymentReference.length > 200) return reply(res, 400, { error: 'Referensi pembayaran tidak valid.' });
+
+      const regResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(paymentReference)}&select=id,amount,payment_status,created_at&limit=1`);
+      const registrations = await regResponse.json();
+      if (!regResponse.ok) return reply(res, 500, { error: 'Gagal membaca pembayaran pendaftaran.' });
+      const depResponse = await db(`/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(paymentReference)}&select=id,amount,payment_status,created_at&limit=1`);
+      const deposits = await depResponse.json();
+      if (!depResponse.ok) return reply(res, 500, { error: 'Gagal membaca pembayaran deposit.' });
+
+      const type = registrations?.[0] ? 'registration' : deposits?.[0] ? 'deposit' : null;
+      const record = registrations?.[0] || deposits?.[0];
+      if (!record) return reply(res, 404, { error: 'Pembayaran tidak ditemukan untuk akun ini.' });
+      if (record.payment_status === 'paid') {
+        return reply(res, 200, { success: true, paid: true, type, alreadyProcessed: true });
+      }
+
+      const paid = await gatewayPaymentStatus(paymentReference, Number(record.amount), Math.floor(new Date(record.created_at).getTime() / 1000));
+      if (!paid) return reply(res, 200, { success: true, paid: false, type, message: 'Pembayaran belum terdeteksi.' });
+
+      const table = type === 'registration' ? 'member_registration_payments' : 'member_deposit_requests';
+      const update = await db(`/rest/v1/${table}?id=eq.${encodeURIComponent(record.id)}&user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({ payment_status: 'paid', paid_at: new Date().toISOString() })
+      });
+      const updatedText = await update.text();
+      if (!update.ok) return reply(res, 500, { error: 'Pembayaran terdeteksi tetapi gagal disimpan. Silakan coba periksa lagi.', details: updatedText });
+
+      const rpc = type === 'registration' ? 'member_activate_after_verified_registration' : 'member_credit_verified_deposit';
+      const rpcResponse = await db(`/rest/v1/rpc/${rpc}`, {
+        method: 'POST',
+        body: JSON.stringify({ p_user_id: user.id, p_payment_reference: paymentReference })
+      });
+      const rpcText = await rpcResponse.text();
+      if (!rpcResponse.ok) return reply(res, 500, { error: 'Pembayaran sudah terverifikasi tetapi saldo belum berhasil diproses. Silakan tekan periksa pembayaran kembali atau hubungi admin.', details: rpcText });
+      return reply(res, 200, { success: true, paid: true, type, balance: type === 'deposit' ? Number(rpcText) : 15000 });
+    }
+
+    return reply(res, 400, { error: 'Aksi member tidak dikenal.' });
+  } catch (error) {
+    return reply(res, 502, { error: error?.message || 'Terjadi kesalahan pada layanan member.' });
+  }
+}
