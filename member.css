@@ -50,3 +50,5 @@ input:focus{outline:3px solid #f15a2420;border-color:var(--orange)}
 
 .notice.error { color: #a61b1b; background: #fff0f0; border-color: #f3c2c2; }
 button:disabled { opacity: .65; cursor: wait; }
+
+.payment-panel canvas { display: block; width: min(100%, 320px); height: auto; margin: 1rem auto; }
