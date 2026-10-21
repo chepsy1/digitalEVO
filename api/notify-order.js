@@ -33,13 +33,16 @@ function buildEmailHtml(order) {
         ? 'Shopee Video Views'
         : order.category === 'video_likes'
           ? 'Shopee Video Likes'
-          : order.category === 'product_likes'
-            ? 'Shopee Produk Favorite/Likes'
+          : order.category === 'video_comments'
+            ? 'Shopee Video Custom Comments'
+            : order.category === 'product_likes'
+              ? 'Shopee Produk Favorite/Likes'
             : (order.category || '-');
 
   const quantity = order.qty ?? order.quantity ?? '-';
   const target = order.shopeeLink || order.username || order.accountName || '-';
   const contact = order.customerWhatsapp || order.accountContact || '-';
+  const commentText = order.commentText || order.comment_text || '';
   const amount = formatRupiah(order.amount || order.total);
 
   return `<!doctype html>
@@ -64,6 +67,7 @@ function buildEmailHtml(order) {
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Jumlah</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(quantity)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Username / Link Shopee</td><td style="padding:10px 0;text-align:right;font-weight:700;word-break:break-word;border-top:1px solid #e5e7eb;">${escapeHtml(target)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">WhatsApp / Kontak</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(contact)}</td></tr>
+        ${commentText ? `<tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Isi Komentar</td><td style="padding:10px 0;text-align:right;white-space:pre-line;word-break:break-word;border-top:1px solid #e5e7eb;">${escapeHtml(commentText)}</td></tr>` : ''}
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Total</td><td style="padding:10px 0;text-align:right;font-size:18px;font-weight:800;border-top:1px solid #e5e7eb;">${escapeHtml(amount)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Waktu pembayaran</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(formatDate(order.paymentTime))}</td></tr>
       </table>
