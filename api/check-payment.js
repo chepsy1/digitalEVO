@@ -120,24 +120,42 @@ export default async function handler(req, res) {
 
       // Idempotency: polling status berkali-kali tidak boleh menggandakan sold.
       const existingResponse = await supabaseFetch(
-        `/rest/v1/orders?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,transaction_id,payment_status,order_status&limit=1`
+        `/rest/v1/orders?transaction_id=eq.${encodeURIComponent(transactionId)}&select=id,transaction_id,payment_status,order_status,comment_text&limit=1`
       );
       const existing = await existingResponse.json();
       if (!existingResponse.ok) {
         orderError = existing?.message || 'Gagal memeriksa order yang sudah ada.';
       } else if (existing?.[0]) {
         const current = existing[0];
-        if (String(current.payment_status || '').toLowerCase() !== 'paid') {
+        const currentPaymentStatus = String(current.payment_status || '').toLowerCase();
+        const submittedComments = category === 'video_comments'
+          ? String(order.commentText || order.comment_text || order.comments || '').trim()
+          : '';
+        const repairMissingComments = category === 'video_comments' && !String(current.comment_text || '').trim() && submittedComments;
+        if (currentPaymentStatus !== 'paid' || repairMissingComments) {
+          const patch = {
+            updated_at: now
+          };
+          if (currentPaymentStatus !== 'paid') {
+            Object.assign(patch, {
+              payment_status: 'paid',
+              order_status: 'queued',
+              paid_at: now,
+              amount: expectedAmount
+            });
+          }
+          // Pemulihan: isi komentar dari sesi checkout jika order pending/paid lama belum menyimpannya.
+          if (repairMissingComments) patch.comment_text = submittedComments;
           const update = await supabaseFetch(`/rest/v1/orders?transaction_id=eq.${encodeURIComponent(transactionId)}`, {
             method: 'PATCH',
             headers: { Prefer: 'return=minimal' },
-            body: JSON.stringify({ payment_status: 'paid', order_status: 'queued', paid_at: now, updated_at: now, amount: expectedAmount })
+            body: JSON.stringify(patch)
           });
           if (!update.ok) {
             orderError = await update.text();
           } else {
             orderRecorded = true;
-            orderWasNew = true;
+            orderWasNew = currentPaymentStatus !== 'paid';
           }
         } else {
           orderRecorded = true;
