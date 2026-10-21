@@ -29,7 +29,26 @@
         <button class="tab active" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="login-view">Login</button>
         <button class="tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="register-view">Daftar Member</button>
       </div>
-      <div class="notice" id="notice" role="status" aria-live="polite">Tampilan awal sedang disiapkan. Pendaftaran dan login belum terhubung ke server.</div>
+      <div class="notice" id="notice" role="status" aria-live="polite">Daftar atau login untuk mengakses layanan member.</div>
+      <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
+        <div class="dashboard-heading"><div><span class="eyebrow">AKUN MEMBER</span><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
+        <p id="member-phone-label" class="muted"></p>
+        <div class="wallet-card"><span>Saldo wallet</span><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran terverifikasi.</small></div>
+        <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
+        <form id="deposit-form" class="dashboard-action" hidden>
+          <label for="deposit-amount">Nominal deposit (Rp)</label>
+          <input id="deposit-amount" name="amount" type="number" min="1000" max="10000000" step="1000" placeholder="Contoh: 50000" required>
+          <button class="primary" type="submit">Buat QRIS Deposit</button>
+        </form>
+      </section>
+      <section id="payment-panel" class="payment-panel" hidden aria-live="polite">
+        <h3 id="payment-title">Pembayaran</h3><p id="payment-description" class="muted"></p>
+        <img id="payment-qr-image" alt="QRIS pembayaran" hidden>
+        <pre id="payment-qr-content" hidden></pre>
+        <p id="payment-reference" class="fine-print"></p>
+        <a id="payment-open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Buka QRIS pembayaran</a>
+        <button id="check-payment-button" class="primary" type="button">Periksa Pembayaran</button>
+      </section>
       <div id="login-view" class="form-view" role="tabpanel" aria-labelledby="login-tab">
         <h2 id="panel-title">Login Member</h2>
         <p class="muted">Masuk menggunakan nomor WhatsApp dan password.</p>
@@ -63,6 +82,8 @@
     </section>
     <p class="security-note">Jangan bagikan password kepada siapa pun. Saldo dan transaksi harus diproses oleh server yang aman.</p>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js" defer></script>
   <script src="/member.js" defer></script>
 </body>
 </html>
