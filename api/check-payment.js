@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const paymentId = String(body.paymentId || body.payment_id || body.transactionId || body.transaction_id || body.id || '').trim();
 
     if (!paymentId) return json(res, 400, { error: 'Payment ID tidak valid.' });
-    if (!['followers', 'account', 'video_views', 'video_likes', 'product_likes'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
+    if (!['followers', 'account', 'video_views', 'video_likes', 'video_comments', 'product_likes'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
       return json(res, 400, { error: 'Produk pesanan tidak valid.' });
     }
 
@@ -147,7 +147,8 @@ export default async function handler(req, res) {
           transaction_id: transactionId,
           customer_whatsapp: order.customerWhatsapp || null,
           account_contact: order.accountContact || null,
-          shopee_link: ['followers', 'video_views', 'video_likes', 'product_likes'].includes(category) ? (order.shopeeLink || null) : null,
+          shopee_link: ['followers', 'video_views', 'video_likes', 'video_comments', 'product_likes'].includes(category) ? (order.shopeeLink || null) : null,
+          comment_text: category === 'video_comments' ? (String(order.commentText || '').trim() || null) : null,
           photo_url: category === 'followers' ? (order.photoUrl || null) : null,
           photo_path: category === 'followers' ? (order.photoPath || null) : null,
           product_id: resolvedProductId,
@@ -225,7 +226,7 @@ export default async function handler(req, res) {
               amount: expectedAmount,
               transaction: transactionId,
               paymentId: transactionId,
-              product: category === 'account' ? `Account Premium` : category === 'video_views' ? `Shopee Video Views` : category === 'video_likes' ? `Shopee Video Likes` : `Followers Indonesia`,
+              product: category === 'account' ? `Account Premium` : category === 'video_views' ? `Shopee Video Views` : category === 'video_likes' ? `Shopee Video Likes` : category === 'video_comments' ? `Shopee Video Custom Comments` : category === 'product_likes' ? `Shopee Produk Favorite/Likes` : `Followers Indonesia`,
               paymentTime: now
             };
             await fetch(`${proto}://${host}/api/notify-order`, {
