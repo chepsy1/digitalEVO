@@ -1259,7 +1259,7 @@ function renderProducts(category, box) {
 
       <label>
         Harga khusus member (kosong = harga promo)
-        <input class="f-member-price" type="number" min="0" value="${product.member_price == null ? '' : Number(product.member_price)}" placeholder="Opsional">
+        <input class="f-member-price" type="number" min="1" value="${product.member_price == null ? '' : Number(product.member_price)}" placeholder="Opsional">
       </label>
 
       <label>
@@ -1311,7 +1311,7 @@ async function saveProduct(row, button) {
   const sold = row.querySelector('.f-sold')?.value || '';
 
   if (![qty, original, price].every(Number.isFinite) || qty < 0 || original < 0 || price < 0 ||
-      (memberPrice !== null && (!Number.isSafeInteger(memberPrice) || memberPrice < 0))) {
+      (memberPrice !== null && (!Number.isSafeInteger(memberPrice) || memberPrice <= 0))) {
     alert('Jumlah dan harga harus berupa angka yang valid.');
     return;
   }
