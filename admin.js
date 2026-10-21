@@ -211,6 +211,7 @@ async function loadAll() {
   renderProducts('video_views', $('videoViewsTable'));
   renderProducts('video_likes', $('videoLikesTable'));
   renderProducts('product_likes', $('productLikesTable'));
+  renderProducts('video_comments', $('videoCommentsTable'));
 
   updateDashboard();
   renderProductSummary();
@@ -288,6 +289,7 @@ function renderProductSummary() {
   const videoViews = products.filter(p => p.category === 'video_views');
   const videoLikes = products.filter(p => p.category === 'video_likes');
   const productLikes = products.filter(p => p.category === 'product_likes');
+  const videoComments = products.filter(p => p.category === 'video_comments');
 
   box.innerHTML = `
     <div class="admin-grid">
@@ -309,6 +311,11 @@ function renderProductSummary() {
       <div>
         <strong>Shopee Video Likes</strong>
         <div class="admin-stat-value">${videoLikes.length}</div>
+        <p class="admin-stat-note">Produk tersedia</p>
+      </div>
+      <div>
+        <strong>Shopee Video Custom Comments</strong>
+        <div class="admin-stat-value">${videoComments.length}</div>
         <p class="admin-stat-note">Produk tersedia</p>
       </div>
       <div>
@@ -1085,7 +1092,8 @@ function setupProductTabs() {
     account: $('productAccountPanel'),
     video_views: $('productVideoViewsPanel'),
     video_likes: $('productVideoLikesPanel'),
-    product_likes: $('productProductLikesPanel')
+    product_likes: $('productProductLikesPanel'),
+    video_comments: $('productVideoCommentsPanel')
   };
 
   buttons.forEach(button => {
@@ -1104,7 +1112,7 @@ function productImageFallback(product) {
   const qty = Number(product?.qty || 0);
 
   if (category === 'account') return 'assets/akun-premium-product.webp';
-  if (category === 'video_views' || category === 'video_likes' || category === 'product_likes') return qty >= 1000 ? 'assets/1000.webp' : qty >= 500 ? 'assets/500.webp' : qty >= 200 ? 'assets/200.webp' : 'assets/100.webp';
+  if (category === 'video_views' || category === 'video_likes' || category === 'video_comments' || category === 'product_likes') return qty >= 1000 ? 'assets/1000.webp' : qty >= 500 ? 'assets/500.webp' : qty >= 200 ? 'assets/200.webp' : 'assets/100.webp';
 
   const known = {
     100: 'assets/100.webp',
@@ -1131,6 +1139,7 @@ function productTableForCategory(category) {
   if (category === 'video_views') return $('videoViewsTable');
   if (category === 'video_likes') return $('videoLikesTable');
   if (category === 'product_likes') return $('productLikesTable');
+  if (category === 'video_comments') return $('videoCommentsTable');
   return null;
 }
 
@@ -1380,7 +1389,7 @@ async function addProduct(category) {
       image_url:
         category === 'account'
           ? 'assets/akun-premium-product.webp'
-          : 'assets/100.webp',
+          : category === 'video_comments' ? 'assets/100.webp' : 'assets/100.webp',
       sort_order: count + 1
     });
 
@@ -1827,6 +1836,11 @@ $('addVideoLikes')?.addEventListener(
 $('addProductLikes')?.addEventListener(
   'click',
   () => addProduct('product_likes')
+);
+
+$('addVideoComments')?.addEventListener(
+  'click',
+  () => addProduct('video_comments')
 );
 
 $('refreshAdmin')?.addEventListener(
