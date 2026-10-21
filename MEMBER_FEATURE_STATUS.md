@@ -25,5 +25,6 @@ Do not run the SQL migration in production or merge/deploy this branch yet. The 
 4. Test the actual QRIS gateway response fields and expiry/status behavior against a non-production payment before using member payments.
 5. Add abuse protection/rate limiting for account and QRIS creation; test duplicate requests, retries, wrong amounts, insufficient balance, and isolation between users. Wallet-paid purchases now attempt to call the existing internal email/Telegram notification endpoint after the database transaction commits, using the deployment host from Vercel environment rather than a user-supplied host. Notification failures are logged and do not undo a successful order. This wiring still needs an end-to-end staging test.
 6. Test the migration against a copy of the live Supabase schema and confirm all existing checkout/QRIS paths remain unchanged.
+7. Code review found and fixed the email subject label for `video_comments` orders in `/api/notify-order.js`. This is only a code-level fix; email/Telegram delivery still requires staging verification.
 
 The registration/deposit API verifies the signed-in user with Supabase Auth and only credits through server-only SQL functions after the gateway confirms the exact amount. Do not expose the Supabase service-role key in browser code.
