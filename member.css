@@ -47,3 +47,6 @@ input:focus{outline:3px solid #f15a2420;border-color:var(--orange)}
   .dashboard-heading { align-items: flex-start; }
   .wallet-card strong { font-size: 1.55rem; }
 }
+
+.notice.error { color: #a61b1b; background: #fff0f0; border-color: #f3c2c2; }
+button:disabled { opacity: .65; cursor: wait; }
