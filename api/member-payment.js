@@ -113,13 +113,13 @@ export default async function handler(req, res) {
 
     if (action === 'resume_pending') {
       const regResponse = await db(
-        `/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`
+        `/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=1`
       );
       const registrations = await regResponse.json();
       if (!regResponse.ok) return reply(res, 500, { error: 'Gagal memulihkan pembayaran pendaftaran.' });
 
       const depResponse = await db(
-        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`
+        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=1`
       );
       const deposits = await depResponse.json();
       if (!depResponse.ok) return reply(res, 500, { error: 'Gagal memulihkan pembayaran deposit.' });
@@ -162,7 +162,7 @@ export default async function handler(req, res) {
       if (!existingProfileResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa status member.' });
       if (existingProfiles?.[0]?.status === 'active') return reply(res, 409, { error: 'Keanggotaan Anda sudah aktif. Anda tidak perlu membayar pendaftaran lagi.' });
 
-      const pendingResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`);
+      const pendingResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=1`);
       const pendingPayments = await pendingResponse.json();
       if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa pembayaran pendaftaran.' });
       if (pendingPayments?.[0]) {
@@ -192,13 +192,16 @@ export default async function handler(req, res) {
       const profileText = await profileResponse.text();
       if (!profileResponse.ok) return reply(res, 409, { error: 'Profil member belum bisa disiapkan. Pastikan nomor WhatsApp belum dipakai akun lain.', details: profileText });
 
+      // Capture the gateway search window before QR creation so fast payments are not missed.
+      const gatewayStartTime = Math.floor(Date.now() / 1000);
       const payment = await createGatewayQris(99000);
       const saved = await db('/rest/v1/member_registration_payments', {
         method: 'POST',
         headers: { Prefer: 'return=minimal' },
         body: JSON.stringify({
           user_id: user.id, amount: 99000, payment_reference: payment.paymentReference,
-          payment_status: 'pending', qris_url: payment.qrisUrl, qr_content: payment.qrContent,
+          payment_status: 'pending', gateway_start_time: gatewayStartTime,
+          qris_url: payment.qrisUrl, qr_content: payment.qrContent,
           qr_image: payment.qrImage, expires_at: payment.expiresAt
         })
       });
@@ -220,7 +223,7 @@ export default async function handler(req, res) {
         return reply(res, 403, { error: 'Deposit hanya tersedia untuk member aktif.' });
       }
       const pendingResponse = await db(
-        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`
+        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=1`
       );
       const pendingRows = await pendingResponse.json();
       if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa deposit yang masih menunggu.' });
@@ -243,13 +246,16 @@ export default async function handler(req, res) {
         }
       }
 
+      // Capture the gateway search window before QR creation so fast payments are not missed.
+      const gatewayStartTime = Math.floor(Date.now() / 1000);
       const payment = await createGatewayQris(amount);
       const saved = await db('/rest/v1/member_deposit_requests', {
         method: 'POST',
         headers: { Prefer: 'return=minimal' },
         body: JSON.stringify({
           user_id: user.id, amount, payment_reference: payment.paymentReference,
-          payment_status: 'pending', qris_url: payment.qrisUrl, qr_content: payment.qrContent,
+          payment_status: 'pending', gateway_start_time: gatewayStartTime,
+          qris_url: payment.qrisUrl, qr_content: payment.qrContent,
           qr_image: payment.qrImage, expires_at: payment.expiresAt
         })
       });
@@ -264,10 +270,10 @@ export default async function handler(req, res) {
       const paymentReference = String(req.body?.paymentReference || '').trim();
       if (!paymentReference || paymentReference.length > 200) return reply(res, 400, { error: 'Referensi pembayaran tidak valid.' });
 
-      const regResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(paymentReference)}&select=id,amount,payment_status,created_at&limit=1`);
+      const regResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(paymentReference)}&select=id,amount,payment_status,created_at,gateway_start_time&limit=1`);
       const registrations = await regResponse.json();
       if (!regResponse.ok) return reply(res, 500, { error: 'Gagal membaca pembayaran pendaftaran.' });
-      const depResponse = await db(`/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(paymentReference)}&select=id,amount,payment_status,created_at&limit=1`);
+      const depResponse = await db(`/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(paymentReference)}&select=id,amount,payment_status,created_at,gateway_start_time&limit=1`);
       const deposits = await depResponse.json();
       if (!depResponse.ok) return reply(res, 500, { error: 'Gagal membaca pembayaran deposit.' });
 
@@ -275,7 +281,7 @@ export default async function handler(req, res) {
       const record = registrations?.[0] || deposits?.[0];
       if (!record) return reply(res, 404, { error: 'Pembayaran tidak ditemukan untuk akun ini.' });
       if (record.payment_status !== 'paid') {
-        const paid = await gatewayPaymentStatus(paymentReference, Number(record.amount), Math.floor(new Date(record.created_at).getTime() / 1000));
+        const paid = await gatewayPaymentStatus(paymentReference, Number(record.amount), Number(record.gateway_start_time) || Math.floor(new Date(record.created_at).getTime() / 1000));
         if (!paid) return reply(res, 200, { success: true, paid: false, type, message: 'Pembayaran belum terdeteksi.' });
 
         const table = type === 'registration' ? 'member_registration_payments' : 'member_deposit_requests';
