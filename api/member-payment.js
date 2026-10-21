@@ -119,6 +119,16 @@ export default async function handler(req, res) {
       const pending = !reg ? dep : !dep ? reg :
         new Date(reg.created_at).getTime() >= new Date(dep.created_at).getTime() ? reg : dep;
       if (!pending) return reply(res, 200, { success: true, pending: null });
+      const isExpired = pending.expires_at && new Date(pending.expires_at).getTime() <= Date.now();
+      if (isExpired) {
+        const table = pending.type === 'registration' ? 'member_registration_payments' : 'member_deposit_requests';
+        const expireResponse = await db(
+          `/rest/v1/${table}?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
+          { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'expired' }) }
+        );
+        if (!expireResponse.ok) return reply(res, 500, { error: 'Pembayaran lama belum bisa ditutup. Silakan coba lagi.' });
+        return reply(res, 200, { success: true, pending: null, expired: true });
+      }
       return reply(res, 200, {
         success: true,
         pending: {
