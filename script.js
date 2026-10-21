@@ -563,6 +563,7 @@ function bindCheckout(){
       }
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
+        category: payload.category,
         product: payload.category === 'account' ? 'Account Premium' : payload.category === 'video_views' ? 'Shopee Video Views' : payload.category === 'video_likes' ? 'Shopee Video Likes' : payload.category === 'video_comments' ? 'Shopee Video Custom Comments' : payload.category === 'product_likes' ? 'Shopee Produk Favorite/Likes' : 'Followers Indonesia',
         productName: payload.category === 'video_views' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Views` : payload.category === 'video_likes' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Likes` : payload.category === 'video_comments' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} (Custom) Comments` : payload.category === 'product_likes' ? `Shopee Produk ${payload.qty.toLocaleString('id-ID')} Favorite/Likes` : '',
         quantity: Number(payload.qty || 0),
