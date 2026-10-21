@@ -87,6 +87,20 @@ export default async function handler(req, res) {
       return reply(res, 500, { error: 'Konfigurasi server member belum lengkap.' });
     }
 
+    if (action === 'status') {
+      const profileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=whatsapp,status,activated_at&limit=1`);
+      const profiles = await profileResponse.json();
+      if (!profileResponse.ok) return reply(res, 500, { error: 'Gagal membaca profil member.' });
+      const walletResponse = await db(`/rest/v1/member_wallets?user_id=eq.${encodeURIComponent(user.id)}&select=balance&limit=1`);
+      const wallets = await walletResponse.json();
+      if (!walletResponse.ok) return reply(res, 500, { error: 'Gagal membaca saldo member.' });
+      return reply(res, 200, {
+        success: true,
+        profile: profiles?.[0] || null,
+        balance: Number(wallets?.[0]?.balance || 0)
+      });
+    }
+
     // Create a pending member profile for a verified Supabase Auth identity.
     if (action === 'create_registration') {
       if (!user.phone) return reply(res, 400, { error: 'Akun harus menggunakan autentikasi nomor WhatsApp.' });
