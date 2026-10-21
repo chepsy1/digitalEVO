@@ -462,7 +462,7 @@ function orderCommentRaw(order) {
 }
 
 function orderCommentLines(order) {
-  return orderCommentRaw(order).split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+  return orderCommentRaw(order).split(/\r?\n/).map(line => line.trim()).filter(Boolean);
 }
 
 function isCustomCommentsOrder(order) {
