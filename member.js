@@ -19,6 +19,8 @@
     else if (!phone.startsWith("+")) phone = "+62" + phone;
     return phone;
   };
+  // Internal non-deliverable email lets Supabase manage passwords without Phone OTP.
+  const internalEmail = value => normalizePhone(value).replace(/\\D/g, "") + "@members.digitalevo.invalid";
   const setNotice = (message, isError = false) => {
     notice.textContent = message;
     notice.classList.toggle("error", isError);
@@ -250,10 +252,20 @@
     const phone = normalizePhone(form.get("phone"));
     setNotice("Membuat akun member...");
     try {
-      const { data, error } = await client.auth.signUp({ phone, password });
-      if (error) throw error;
-      if (!data.session) {
-        setNotice("Akun dibuat, tetapi Supabase meminta verifikasi nomor WhatsApp/OTP. Setelah verifikasi, login lalu lanjutkan pembayaran. Untuk login hanya dengan nomor dan password, pengaturan Phone confirmations Supabase perlu disesuaikan.");
+      const response = await fetch("/api/member-auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, password })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Pendaftaran akun gagal.");
+      const { error: loginError } = await client.auth.signInWithPassword({
+        email: internalEmail(phone),
+        password
+      });
+      if (loginError) {
+        setNotice("Akun berhasil dibuat, tetapi login otomatis gagal. Silakan login dengan nomor WhatsApp dan password yang sama.", true);
+        switchView("login");
         return;
       }
       await refreshStatus();
@@ -269,8 +281,9 @@
     const form = new FormData(event.currentTarget);
     setNotice("Memeriksa akun...");
     try {
+      const phone = normalizePhone(form.get("phone"));
       const { error } = await client.auth.signInWithPassword({
-        phone: normalizePhone(form.get("phone")),
+        email: internalEmail(phone),
         password: String(form.get("password") || "")
       });
       if (error) throw error;
