@@ -52,3 +52,14 @@ input:focus{outline:3px solid #f15a2420;border-color:var(--orange)}
 button:disabled { opacity: .65; cursor: wait; }
 
 .payment-panel canvas { display: block; width: min(100%, 320px); height: auto; margin: 1rem auto; }
+
+#wallet-product, #wallet-order-fields input, #wallet-order-fields textarea {
+  width: 100%; box-sizing: border-box; min-height: 46px; border: 1px solid #ddd;
+  border-radius: 10px; padding: 12px 13px; font: inherit; font-size: 14px; background: #fff;
+}
+#wallet-product:focus, #wallet-order-fields input:focus, #wallet-order-fields textarea:focus {
+  outline: 3px solid #f15a2420; border-color: var(--orange);
+}
+#wallet-order-fields { display: grid; gap: 8px; }
+#wallet-order-fields textarea { resize: vertical; }
+#wallet-order-result { overflow-wrap: anywhere; }
