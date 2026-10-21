@@ -92,9 +92,16 @@ drop policy if exists "Members read own wallet transactions" on public.member_wa
 create policy "Members read own wallet transactions" on public.member_wallet_transactions
   for select to authenticated using (auth.uid() = user_id);
 
--- No client-side INSERT/UPDATE/DELETE policies are granted for wallet/payment tables.
--- Privileged server endpoints using the service role must verify payments before invoking
--- privileged operations. Never expose the service-role key in browser code.
+-- Explicitly remove direct client access to wallet/payment tables. RLS alone is not
+-- a substitute for table grants. Only authenticated members may read their own rows;
+-- trusted server-side endpoints using service_role perform writes after verifying payments.
+-- Never expose the service-role key in browser code.
+revoke all on table public.member_profiles, public.member_wallets,
+  public.member_registration_payments, public.member_deposit_requests,
+  public.member_wallet_transactions from public, anon, authenticated;
+grant select on public.member_profiles, public.member_wallets,
+  public.member_registration_payments, public.member_deposit_requests,
+  public.member_wallet_transactions to authenticated;
 
 create or replace function public.member_activate_after_verified_registration(
   p_user_id uuid,
@@ -210,10 +217,7 @@ $$;
 revoke all on function public.member_activate_after_verified_registration(uuid, text) from public, anon, authenticated;
 grant execute on function public.member_activate_after_verified_registration(uuid, text) to service_role;
 
--- Wallet debit is callable by authenticated users but can only debit their own wallet.
-revoke all on function public.member_debit_wallet(bigint, text, text) from public, anon;
-grant execute on function public.member_debit_wallet(bigint, text, text) to authenticated;
-
-grant select on public.member_profiles, public.member_wallets,
-  public.member_registration_payments, public.member_deposit_requests,
-  public.member_wallet_transactions to authenticated;
+-- The debit primitive is deliberately NOT callable by browser clients yet.
+-- Do not enable wallet spending until an atomic server/database checkout also creates
+-- the corresponding existing orders row and validates the server-calculated member price.
+revoke all on function public.member_debit_wallet(bigint, text, text) from public, anon, authenticated;
