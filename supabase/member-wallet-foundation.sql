@@ -55,8 +55,9 @@ create table if not exists public.member_wallet_transactions (
 -- Null means the product has not been assigned a special member price.
 alter table public.products add column if not exists member_price integer;
 alter table public.products drop constraint if exists products_member_price_nonnegative;
-alter table public.products add constraint products_member_price_nonnegative
-  check (member_price is null or member_price >= 0);
+alter table public.products drop constraint if exists products_member_price_positive;
+alter table public.products add constraint products_member_price_positive
+  check (member_price is null or member_price > 0);
 
 create index if not exists member_wallet_transactions_user_created_idx
   on public.member_wallet_transactions(user_id, created_at desc);
@@ -324,7 +325,7 @@ begin
   order by updated_at desc nulls last limit 1 for share;
   if not found then raise exception 'Produk tidak ditemukan'; end if;
   v_price := coalesce(v_product.member_price, v_product.price);
-  if v_price is null or v_price < 0 then raise exception 'Harga member tidak valid'; end if;
+  if v_price is null or v_price <= 0 then raise exception 'Harga member harus lebih dari nol'; end if;
 
   v_customer_whatsapp := nullif(trim(coalesce(p_order->>'customerWhatsapp', p_order->>'customer_whatsapp', '')), '');
   v_account_contact := nullif(trim(coalesce(p_order->>'accountContact', p_order->>'account_contact', '')), '');
