@@ -8,6 +8,7 @@
   const depositForm = document.getElementById("deposit-form");
   let client = null;
   let activePaymentReference = null;
+  let memberProducts = [];
 
   const rupiah = value => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value || 0));
   const normalizePhone = value => {
@@ -92,6 +93,118 @@
     paymentPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+
+  const categoryLabels = {
+    followers: "Shopee Followers", account: "Akun Shopee",
+    video_views: "Shopee Video Views", video_likes: "Shopee Video Likes",
+    video_comments: "Shopee Video Custom Comments", product_likes: "Shopee Produk Favorite/Likes"
+  };
+  function renderOrderFields(category) {
+    const host = document.getElementById("wallet-order-fields");
+    host.replaceChildren();
+    const addField = (id, label, type = "text", required = true, placeholder = "") => {
+      const wrap = document.createElement("div");
+      const elLabel = document.createElement("label");
+      elLabel.htmlFor = id; elLabel.textContent = label;
+      const input = document.createElement(type === "textarea" ? "textarea" : "input");
+      input.id = id; input.name = id; input.required = required; input.placeholder = placeholder;
+      if (type === "textarea") input.rows = 5;
+      else input.type = type;
+      wrap.append(elLabel, input); host.append(wrap);
+    };
+    if (category === "account") {
+      addField("member-account-name", "Nama akun/paket yang dipesan");
+      addField("member-account-contact", "Kontak penerima / WhatsApp");
+    } else {
+      addField("member-customer-whatsapp", "Nomor WhatsApp");
+      addField("member-shopee-link", category === "product_likes" ? "Link produk Shopee" : "Link video / username Shopee", "text", true, "Tempel link atau username");
+      if (category === "video_comments") addField("member-comment-text", "Komentar (satu komentar per baris)", "textarea", true, "Tulis komentar sesuai jumlah paket");
+      if (category === "followers") addField("member-account-photo", "Foto / screenshot akun Shopee (JPG, PNG, WEBP)", "file", true);
+    }
+  }
+  async function loadMemberProducts() {
+    const select = document.getElementById("wallet-product");
+    select.replaceChildren(new Option("Memuat produk...", ""));
+    try {
+      const { data, error } = await client.from("products")
+        .select("id,category,qty,price,member_price,sort_order")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      memberProducts = (data || []).filter(p => categoryLabels[p.category] && Number(p.qty) > 0 && Number(p.price) >= 0);
+      select.replaceChildren(new Option("Pilih produk dan paket", ""));
+      for (const p of memberProducts) {
+        const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
+        const opt = new Option(categoryLabels[p.category] + " — " + Number(p.qty).toLocaleString("id-ID") + " — " + rupiah(price), p.id);
+        select.add(opt);
+      }
+      if (!memberProducts.length) select.replaceChildren(new Option("Produk belum tersedia", ""));
+      select.addEventListener("change", () => {
+        const p = memberProducts.find(x => x.id === select.value);
+        document.getElementById("wallet-price").textContent = p ? "Harga member: " + rupiah(p.member_price == null ? p.price : p.member_price) : "Pilih produk untuk melihat harga.";
+        renderOrderFields(p?.category || "");
+      });
+    } catch (error) {
+      select.replaceChildren(new Option("Produk belum dapat dimuat", ""));
+      setNotice("Daftar produk member belum tersedia. Pastikan migrasi member dan kolom harga member sudah diterapkan.", true);
+    }
+  }
+  document.getElementById("wallet-checkout-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
+    const resultBox = document.getElementById("wallet-order-result");
+    const product = memberProducts.find(p => p.id === document.getElementById("wallet-product").value);
+    if (!product) return setNotice("Silakan pilih produk yang valid.", true);
+    const category = product.category;
+    const value = id => document.getElementById(id)?.value?.trim() || "";
+    const order = {};
+    if (category === "account") {
+      order.accountName = value("member-account-name");
+      order.accountContact = value("member-account-contact");
+    } else {
+      order.customerWhatsapp = value("member-customer-whatsapp");
+      order.shopeeLink = value("member-shopee-link");
+      if (category === "video_comments") {
+        const lines = value("member-comment-text").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+        if (lines.length !== Number(product.qty) || lines.length > 20) return setNotice("Jumlah komentar harus tepat sesuai paket (maksimal 20).", true);
+        order.commentText = lines.join("\n");
+      }
+      if (category === "followers") {
+        const file = document.getElementById("member-account-photo")?.files?.[0];
+        if (!file) return setNotice("Upload foto akun Shopee terlebih dahulu.", true);
+        if (!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 3*1024*1024) return setNotice("Foto harus JPG, PNG, atau WEBP dengan ukuran maksimal 3 MB.", true);
+        const cfg = window.SUPABASE_CONFIG || {};
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"") || "jpg";
+        const path = "orders/member-" + Date.now() + "-" + crypto.randomUUID() + "." + ext;
+        const upload = await client.storage.from("order-photos").upload(path, file, { contentType: file.type, upsert: false });
+        if (upload.error) return setNotice("Foto gagal diunggah: " + upload.error.message, true);
+        order.photoPath = path;
+        order.photoUrl = client.storage.from("order-photos").getPublicUrl(path)?.data?.publicUrl || "";
+      }
+    }
+    if (button) { button.disabled = true; button.textContent = "Memproses pesanan..."; }
+    resultBox.textContent = "";
+    try {
+      const token = await accessToken();
+      const response = await fetch("/api/member-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ category, qty: Number(product.qty), order })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Checkout saldo gagal.");
+      resultBox.textContent = "Pesanan berhasil dibuat. Invoice: " + (data.invoice || "tersimpan") + ". Total: " + rupiah(data.amount) + ". Saldo tersisa: " + rupiah(data.balance) + ".";
+      setNotice("Pembelian dengan saldo member berhasil.");
+      await refreshStatus();
+      event.currentTarget.reset();
+      document.getElementById("wallet-order-fields").replaceChildren();
+      document.getElementById("wallet-price").textContent = "Pilih produk untuk melihat harga.";
+    } catch (error) {
+      setNotice(error.message || "Checkout saldo gagal.", true);
+    } finally {
+      if (button) { button.disabled = false; button.textContent = "Bayar dengan Saldo"; }
+    }
+  });
+
   async function refreshStatus() {
     const result = await api("status");
     const profile = result.profile;
@@ -102,6 +215,8 @@
     document.getElementById("member-status-title").textContent = active ? "Member aktif" : "Menunggu pendaftaran";
     registrationAction.hidden = active;
     depositForm.hidden = !active;
+    document.getElementById("wallet-checkout").hidden = !active;
+    if (active && memberProducts.length === 0) await loadMemberProducts();
     return result;
   }
 
