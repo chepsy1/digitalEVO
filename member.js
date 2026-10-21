@@ -252,20 +252,14 @@
     const phone = normalizePhone(form.get("phone"));
     setNotice("Membuat akun member...");
     try {
-      const response = await fetch("/api/member-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, password })
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || "Pendaftaran akun gagal.");
-      const { error: loginError } = await client.auth.signInWithPassword({
+      const { data, error } = await client.auth.signUp({
         email: internalEmail(phone),
-        password
+        password,
+        options: { data: { whatsapp: phone, auth_method: "digitalevo_whatsapp_password" } }
       });
-      if (loginError) {
-        setNotice("Akun berhasil dibuat, tetapi login otomatis gagal. Silakan login dengan nomor WhatsApp dan password yang sama.", true);
-        switchView("login");
+      if (error) throw error;
+      if (!data.session) {
+        setNotice("Pendaftaran akun tercatat, tetapi Supabase masih meminta konfirmasi email. Untuk sistem tanpa OTP/email, nonaktifkan Confirm email pada proyek staging lalu gunakan nomor dan password yang sama untuk mendaftar ulang jika diperlukan.", true);
         return;
       }
       await refreshStatus();
