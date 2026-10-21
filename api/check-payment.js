@@ -158,7 +158,9 @@ export default async function handler(req, res) {
               ? `Shopee Video ${Number(qty).toLocaleString('id-ID')} Views`
               : category === 'video_likes'
                 ? `Shopee Video ${Number(qty).toLocaleString('id-ID')} Likes`
-                : category === 'product_likes'
+                : category === 'video_comments'
+                  ? `Shopee Video ${Number(qty).toLocaleString('id-ID')} (Custom) Comments`
+                  : category === 'product_likes'
                   ? `Shopee Produk ${Number(qty).toLocaleString('id-ID')} Favorite/Likes`
                   : `${Number(qty).toLocaleString('id-ID')} Followers`,
           category,
