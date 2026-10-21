@@ -1179,10 +1179,17 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 }
 
 
-/* Isi Custom Comments disembunyikan sampai ikon kecil diklik. */
-.admin-comment-details{display:inline-block;position:relative;margin-left:7px;vertical-align:middle}
-.admin-comment-details summary{display:flex;align-items:center;justify-content:center;list-style:none;cursor:pointer;width:24px;height:24px;border:1px solid #d1d5db;border-radius:50%;background:#fff;font-size:12px;line-height:1;user-select:none}
-.admin-comment-details summary::-webkit-details-marker{display:none}
-.admin-comment-details summary::marker{content:""}
-.admin-comment-details[open] summary{background:#fff7ed;border-color:#fb923c}
-.admin-comment-content{position:absolute;z-index:30;top:28px;left:0;width:min(320px,70vw);max-height:240px;overflow:auto;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;color:#111827;box-shadow:0 8px 24px rgba(0,0,0,.14);white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.5;font-weight:400}
+/* Tombol komentar dan pop-up komentar pesanan */
+.admin-view-comments-btn{white-space:nowrap;font-size:12px;padding:8px 10px}
+.admin-comments-modal-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.62)}
+.admin-comments-modal{width:min(560px,100%);max-height:min(85vh,760px);overflow:auto;background:#fff;color:#111827;border-radius:14px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.admin-comments-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.admin-comments-modal-head h3{margin:0;font-size:19px;line-height:1.3}
+.admin-comments-modal-head p{margin:5px 0 0;color:#64748b;font-size:13px}
+.admin-comments-close{cursor:pointer}
+.admin-comments-modal-head .admin-comments-close{border:0;background:transparent;font-size:28px;line-height:1;padding:0 3px;color:#64748b}
+.admin-comments-modal-text{display:block;box-sizing:border-box;width:100%;min-height:220px;max-height:50vh;resize:vertical;padding:12px;border:1px solid #d1d5db;border-radius:9px;background:#f8fafc;color:#111827;font:14px/1.65 sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+.admin-comments-modal-message{margin:10px 0;color:#64748b;font-size:13px;line-height:1.5}
+.admin-comments-modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.admin-comments-modal-actions button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:520px){.admin-comments-modal{padding:15px}.admin-comments-modal-text{min-height:180px}.admin-comments-modal-actions button{flex:1}}
