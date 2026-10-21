@@ -148,6 +148,7 @@ function bindCheckout(){
       fields.innerHTML=`
         <label id="shopeeLinkLabel">Link Video Shopee<input id="shopeeLink" required type="text" inputmode="url" autocomplete="url" placeholder="Masukkan link video" /></label>
         <label id="customerWaLabel">WhatsApp<input id="customerWa" required inputmode="tel" placeholder="08xxxxxxxxxx" /></label>
+        ${category==='video_comments'?'<label>Isi Komentar (satu baris = satu komentar)<textarea id="commentText" required rows="5" maxlength="2000" placeholder="Komentar pertama&#10;Komentar kedua"></textarea><small id="commentCount">0 komentar</small></label>':''}
       `;
     }else if(isProductLikes){
       fields.innerHTML=`
