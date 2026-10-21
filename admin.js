@@ -466,17 +466,17 @@ function orderCommentLines(order) {
 }
 
 function isCustomCommentsOrder(order) {
-  const category = String(order?.category || order?.product_category || '').toLowerCase();
-  const product = String(order?.product_name || order?.product || '').toLowerCase();
-  return category === 'video_comments' || category.includes('comment') ||
-    product.includes('custom comment') || product.includes('komentar');
+  const category = String(order?.category || order?.product_category || order?.productCategory || '').toLowerCase();
+  const product = String(order?.product_name || order?.product || order?.productName || '').toLowerCase();
+  return category.includes('comment') || product.includes('comment') || product.includes('komentar');
 }
 
 function renderAdminCommentDetails(order) {
   const comments = orderCommentLines(order);
   if (!comments.length && !isCustomCommentsOrder(order)) return '-';
+  const orderKey = order.id ?? order.transaction_id ?? '';
   return '<button type="button" class="btn btn-secondary admin-view-comments-btn" data-order-comments="' +
-    escapeAttr(order.id) + '">' + (comments.length ? 'Lihat Komentar' : 'Cek Komentar') + '</button>';
+    escapeAttr(orderKey) + '">' + (comments.length ? 'Lihat Komentar' : 'Cek Komentar') + '</button>';
 }
 
 function openOrderComments(orderId) {
