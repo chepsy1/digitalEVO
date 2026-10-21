@@ -51,14 +51,16 @@
   tabs.forEach(tab => tab.addEventListener("click", () => switchView(tab.id === "register-tab" ? "register" : "login")));
   document.querySelectorAll("[data-switch]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.switch)));
 
-  function showPayment(payment) {
+  async function showPayment(payment) {
     activePaymentReference = payment.paymentReference;
     paymentPanel.hidden = false;
     document.getElementById("payment-title").textContent = payment.type === "registration" ? "Pembayaran Pendaftaran Member" : "Pembayaran Deposit";
     document.getElementById("payment-description").textContent = "Nominal: " + rupiah(payment.amount) + ". Saldo baru diproses setelah pembayaran diverifikasi server.";
     document.getElementById("payment-reference").textContent = "Referensi pembayaran: " + payment.paymentReference;
     const image = document.getElementById("payment-qr-image");
+    const canvas = document.getElementById("payment-qr-canvas");
     const imageUrl = payment.qrisUrl || payment.qrImage || "";
+    canvas.hidden = true;
     if (imageUrl && /^(https?:\/\/|data:image\/)/i.test(imageUrl)) {
       image.src = imageUrl;
       image.hidden = false;
@@ -69,6 +71,16 @@
     const qrContent = document.getElementById("payment-qr-content");
     qrContent.textContent = payment.qrContent || "";
     qrContent.hidden = !payment.qrContent;
+    if (payment.qrContent && window.QRCode?.toCanvas) {
+      try {
+        await window.QRCode.toCanvas(canvas, payment.qrContent, { width: 280, margin: 2 });
+        canvas.hidden = false;
+        image.hidden = true;
+        qrContent.hidden = true;
+      } catch (error) {
+        console.error("QRIS canvas gagal dibuat:", error);
+      }
+    }
     const link = document.getElementById("payment-open-link");
     if (payment.qrisUrl && /^https?:\/\//i.test(payment.qrisUrl)) {
       link.href = payment.qrisUrl;
@@ -96,7 +108,7 @@
   async function createRegistration() {
     setNotice("Menyiapkan QRIS pendaftaran...");
     const payment = await api("create_registration");
-    showPayment(payment);
+    await showPayment(payment);
     setNotice("QRIS pendaftaran berhasil dibuat. Bayar sesuai nominal, lalu tekan Periksa Pembayaran.");
   }
 
