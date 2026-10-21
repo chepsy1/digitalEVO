@@ -50,7 +50,17 @@ async function createGatewayQris(amount) {
   const qrContent = d?.qrContent || d?.qr_content || null;
   const qrImage = d?.qrImage || d?.qr_image || null;
   if (!paymentReference || (!qrisUrl && !qrContent && !qrImage)) throw new Error('Gateway tidak mengembalikan data QRIS yang lengkap.');
-  return { paymentReference: String(paymentReference), qrisUrl, qrContent, qrImage, expiresAt: d?.expires_at || d?.expiresAt || data?.expires_at || null };
+  const rawExpiry = d?.expires_at || d?.expiresAt || data?.expires_at || null;
+  let expiresAt = null;
+  if (rawExpiry) {
+    const rawText = String(rawExpiry).trim();
+    const numericExpiry = /^\d{10,13}$/.test(rawText) ? Number(rawText) : null;
+    const expiryDate = numericExpiry !== null
+      ? new Date(numericExpiry < 1000000000000 ? numericExpiry * 1000 : numericExpiry)
+      : new Date(rawExpiry);
+    if (!Number.isNaN(expiryDate.getTime())) expiresAt = expiryDate.toISOString();
+  }
+  return { paymentReference: String(paymentReference), qrisUrl, qrContent, qrImage, expiresAt };
 }
 
 async function gatewayPaymentStatus(paymentReference, amount, startTime) {
