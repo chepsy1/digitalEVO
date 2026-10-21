@@ -41,6 +41,17 @@ create table if not exists public.member_deposit_requests (
   created_at timestamptz not null default now()
 );
 
+-- Keep QRIS display data so a signed-in member can resume a pending payment after reopening the page.
+alter table public.member_registration_payments add column if not exists qris_url text;
+alter table public.member_registration_payments add column if not exists qr_content text;
+alter table public.member_registration_payments add column if not exists qr_image text;
+alter table public.member_registration_payments add column if not exists expires_at timestamptz;
+
+alter table public.member_deposit_requests add column if not exists qris_url text;
+alter table public.member_deposit_requests add column if not exists qr_content text;
+alter table public.member_deposit_requests add column if not exists qr_image text;
+alter table public.member_deposit_requests add column if not exists expires_at timestamptz;
+
 create table if not exists public.member_wallet_transactions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.member_profiles(user_id) on delete cascade,
