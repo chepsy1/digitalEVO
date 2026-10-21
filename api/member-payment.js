@@ -101,6 +101,38 @@ export default async function handler(req, res) {
       });
     }
 
+    if (action === 'resume_pending') {
+      const regResponse = await db(
+        `/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`
+      );
+      const registrations = await regResponse.json();
+      if (!regResponse.ok) return reply(res, 500, { error: 'Gagal memulihkan pembayaran pendaftaran.' });
+
+      const depResponse = await db(
+        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`
+      );
+      const deposits = await depResponse.json();
+      if (!depResponse.ok) return reply(res, 500, { error: 'Gagal memulihkan pembayaran deposit.' });
+
+      const reg = registrations?.[0] ? { ...registrations[0], type: 'registration' } : null;
+      const dep = deposits?.[0] ? { ...deposits[0], type: 'deposit' } : null;
+      const pending = !reg ? dep : !dep ? reg :
+        new Date(reg.created_at).getTime() >= new Date(dep.created_at).getTime() ? reg : dep;
+      if (!pending) return reply(res, 200, { success: true, pending: null });
+      return reply(res, 200, {
+        success: true,
+        pending: {
+          type: pending.type,
+          amount: Number(pending.amount),
+          paymentReference: pending.payment_reference,
+          qrisUrl: pending.qris_url,
+          qrContent: pending.qr_content,
+          qrImage: pending.qr_image,
+          expiresAt: pending.expires_at
+        }
+      });
+    }
+
     // Create a pending member profile for a verified Supabase Auth identity.
     if (action === 'create_registration') {
       if (!user.phone) return reply(res, 400, { error: 'Akun harus menggunakan autentikasi nomor WhatsApp.' });
@@ -110,10 +142,18 @@ export default async function handler(req, res) {
       if (!existingProfileResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa status member.' });
       if (existingProfiles?.[0]?.status === 'active') return reply(res, 409, { error: 'Keanggotaan Anda sudah aktif. Anda tidak perlu membayar pendaftaran lagi.' });
 
-      const pendingResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=id&limit=1`);
+      const pendingResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`);
       const pendingPayments = await pendingResponse.json();
       if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa pembayaran pendaftaran.' });
-      if (pendingPayments?.length) return reply(res, 409, { error: 'Masih ada pembayaran pendaftaran yang menunggu. Periksa pembayaran tersebut terlebih dahulu sebelum membuat QRIS baru.' });
+      if (pendingPayments?.[0]) {
+        const pending = pendingPayments[0];
+        return reply(res, 200, {
+          success: true, type: 'registration', amount: Number(pending.amount),
+          paymentReference: pending.payment_reference, qrisUrl: pending.qris_url,
+          qrContent: pending.qr_content, qrImage: pending.qr_image, expiresAt: pending.expires_at,
+          resumed: true
+        });
+      }
 
       const profileResponse = await db('/rest/v1/member_profiles?on_conflict=user_id', {
         method: 'POST',
@@ -127,7 +167,11 @@ export default async function handler(req, res) {
       const saved = await db('/rest/v1/member_registration_payments', {
         method: 'POST',
         headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ user_id: user.id, amount: 99000, payment_reference: payment.paymentReference, payment_status: 'pending' })
+        body: JSON.stringify({
+          user_id: user.id, amount: 99000, payment_reference: payment.paymentReference,
+          payment_status: 'pending', qris_url: payment.qrisUrl, qr_content: payment.qrContent,
+          qr_image: payment.qrImage, expires_at: payment.expiresAt
+        })
       });
       if (!saved.ok) {
         console.error('QRIS pendaftaran dibuat tetapi referensi gagal disimpan:', await saved.text());
@@ -150,7 +194,11 @@ export default async function handler(req, res) {
       const saved = await db('/rest/v1/member_deposit_requests', {
         method: 'POST',
         headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ user_id: user.id, amount, payment_reference: payment.paymentReference, payment_status: 'pending' })
+        body: JSON.stringify({
+          user_id: user.id, amount, payment_reference: payment.paymentReference,
+          payment_status: 'pending', qris_url: payment.qrisUrl, qr_content: payment.qrContent,
+          qr_image: payment.qrImage, expires_at: payment.expiresAt
+        })
       });
       if (!saved.ok) {
         console.error('QRIS deposit dibuat tetapi referensi gagal disimpan:', await saved.text());
