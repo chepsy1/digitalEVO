@@ -1,9 +1,9 @@
 function reply(res, status, body) { return res.status(status).json(body); }
 
-const PHONE_RE = /^\\+628[0-9]{7,11}$/;
+const PHONE_RE = /^\+628[0-9]{7,11}$/;
 
 function normalizePhone(value) {
-  let phone = String(value || "").replace(/[\\s().-]/g, "");
+  let phone = String(value || "").replace(/[\s().-]/g, "");
   if (phone.startsWith("00")) phone = "+" + phone.slice(2);
   else if (phone.startsWith("0")) phone = "+62" + phone.slice(1);
   else if (phone.startsWith("62")) phone = "+" + phone;
@@ -12,13 +12,13 @@ function normalizePhone(value) {
 }
 
 function internalEmail(phone) {
-  return phone.replace(/\\D/g, "") + "@members.digitalevo.invalid";
+  return phone.replace(/\D/g, "") + "@members.digitalevo.invalid";
 }
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return reply(res, 405, { error: "Method not allowed" });
 
-  const base = String(process.env.SUPABASE_URL || "").replace(/\\/+$/, "");
+  const base = String(process.env.SUPABASE_URL || "").replace(/\/+$/, "");
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!base || !serviceKey) return reply(res, 500, { error: "Konfigurasi server member belum lengkap." });
 
