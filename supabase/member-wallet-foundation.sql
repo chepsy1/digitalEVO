@@ -365,11 +365,11 @@ begin
   insert into public.orders (
     transaction_id, customer_whatsapp, account_contact, shopee_link, comment_text,
     photo_url, photo_path, product_id, product_name, category, quantity, amount,
-    payment_status, order_status, payment_method, updated_at
+    payment_status, order_status, payment_method, paid_at, updated_at
   ) values (
     v_invoice, v_customer_whatsapp, v_account_contact, v_shopee_link, v_comment_text,
     v_photo_url, v_photo_path, v_product.id, v_product_name, p_category, 1, v_price,
-    'paid', 'queued', 'Saldo Member', v_now
+    'paid', 'queued', 'Saldo Member', v_now, v_now
   ) returning id into v_order_id;
 
   insert into public.member_wallet_transactions(
