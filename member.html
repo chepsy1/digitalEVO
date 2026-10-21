@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Member DigitalEVO: login, deposit saldo, dan harga khusus member.">
+  <title>Member DigitalEVO</title>
+  <link rel="stylesheet" href="/member.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Kembali ke DigitalEVO"><span>digital</span><b>EVO</b></a>
+    <a class="back-link" href="/">Kembali ke toko</a>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <span class="eyebrow">DIGITALEVO MEMBER</span>
+      <h1>Belanja lebih hemat.</h1>
+      <p>Kelola akun, saldo deposit, dan transaksi member dalam satu tempat.</p>
+      <div class="benefit-row">
+        <span>Biaya daftar sekali Rp99.000</span>
+        <span>Bonus saldo Rp15.000</span>
+        <span>Harga member khusus</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="panel-title">
+      <div class="tabs" role="tablist" aria-label="Akses member">
+        <button class="tab active" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="login-view">Login</button>
+        <button class="tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="register-view">Daftar Member</button>
+      </div>
+      <div class="notice" id="notice" role="status" aria-live="polite">Tampilan awal sedang disiapkan. Pendaftaran dan login belum terhubung ke server.</div>
+      <div id="login-view" class="form-view" role="tabpanel" aria-labelledby="login-tab">
+        <h2 id="panel-title">Login Member</h2>
+        <p class="muted">Masuk menggunakan nomor WhatsApp dan password.</p>
+        <form id="login-form">
+          <label for="login-phone">Nomor WhatsApp</label>
+          <input id="login-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Contoh: 081234567890" required>
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
+          <button class="primary" type="submit">Login</button>
+        </form>
+        <p class="form-foot">Belum menjadi member? <button class="text-button" type="button" data-switch="register">Daftar sekarang</button></p>
+      </div>
+      <div id="register-view" class="form-view" role="tabpanel" aria-labelledby="register-tab" hidden>
+        <h2>Daftar Member</h2>
+        <p class="muted">Buat akun menggunakan nomor WhatsApp dan password.</p>
+        <div class="fee-card">
+          <div><span>Biaya keanggotaan sekali bayar</span><strong>Rp99.000</strong></div>
+          <div><span>Bonus saldo setelah pembayaran terverifikasi</span><strong>Rp15.000</strong></div>
+        </div>
+        <form id="register-form">
+          <label for="register-phone">Nomor WhatsApp</label>
+          <input id="register-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Contoh: 081234567890" required>
+          <label for="register-password">Buat password</label>
+          <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Minimal 8 karakter" required>
+          <label for="register-confirm">Ulangi password</label>
+          <input id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Ulangi password" required>
+          <button class="primary" type="submit">Lanjut ke Pendaftaran</button>
+        </form>
+        <p class="fine-print">Akun member baru aktif dan bonus saldo diberikan setelah pembayaran pendaftaran berhasil diverifikasi server.</p>
+      </div>
+    </section>
+    <p class="security-note">Jangan bagikan password kepada siapa pun. Saldo dan transaksi harus diproses oleh server yang aman.</p>
+  </main>
+  <script src="/member.js" defer></script>
+</body>
+</html>
