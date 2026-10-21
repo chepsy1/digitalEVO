@@ -205,6 +205,18 @@
     }
   });
 
+  async function resumePendingPayment() {
+    const result = await api("resume_pending");
+    if (!result.pending) return false;
+    await showPayment(result.pending);
+    if (!result.pending.qrisUrl && !result.pending.qrContent && !result.pending.qrImage) {
+      setNotice("Pembayaran lama ditemukan, tetapi data gambar QRIS tidak tersedia. Tekan Periksa Pembayaran atau hubungi admin jika QRIS belum dibayar.", true);
+    } else {
+      setNotice("Pembayaran yang masih menunggu berhasil dipulihkan. Anda dapat melanjutkan pembayaran atau memeriksa statusnya.");
+    }
+    return true;
+  }
+
   async function refreshStatus() {
     const result = await api("status");
     const profile = result.profile;
@@ -263,7 +275,8 @@
       });
       if (error) throw error;
       await refreshStatus();
-      setNotice("Login berhasil.");
+      const resumed = await resumePendingPayment();
+      if (!resumed) setNotice("Login berhasil.");
     } catch (error) {
       setNotice(error.message || "Login gagal. Periksa nomor dan password.", true);
     }
@@ -327,7 +340,10 @@
     client = window.supabase.createClient(config.url, config.anonKey);
     client.auth.getSession().then(async ({ data }) => {
       if (data.session) {
-        try { await refreshStatus(); } catch (error) { setNotice(error.message, true); }
+        try {
+          await refreshStatus();
+          await resumePendingPayment();
+        } catch (error) { setNotice(error.message, true); }
       }
     });
   }
