@@ -480,8 +480,14 @@ function renderAdminCommentDetails(order) {
 }
 
 function openOrderComments(orderId) {
-  const order = orders.find(item => String(item.id) === String(orderId));
-  if (!order) return;
+  const order = orders.find(item =>
+    String(item.id) === String(orderId) ||
+    String(item.transaction_id || '') === String(orderId)
+  );
+  if (!order) {
+    alert('Pesanan tidak ditemukan. Silakan tekan Refresh pada Admin Panel.');
+    return;
+  }
   const raw = orderCommentRaw(order);
   const comments = orderCommentLines(order);
   const overlay = document.createElement('div');
