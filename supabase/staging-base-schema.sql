@@ -132,6 +132,7 @@ alter table public.analytics_events enable row level security;
 grant select on public.site_settings, public.products to anon, authenticated;
 grant insert, update, delete on public.site_settings, public.products to authenticated;
 grant select on public.orders, public.payments, public.analytics_events to authenticated;
+grant insert on public.analytics_events to anon, authenticated;
 
 drop policy if exists "public read site settings" on public.site_settings;
 create policy "public read site settings" on public.site_settings
@@ -168,8 +169,9 @@ create policy "public insert analytics events" on public.analytics_events
     and length(visitor_id) between 8 and 128
   );
 
--- Product sequence grants for future admin inserts.
-grant usage, select on all sequences in schema public to authenticated;
+-- Identity sequences used by products and public analytics inserts.
+grant usage, select on sequence public.products_id_seq to authenticated;
+grant usage, select on sequence public.analytics_events_id_seq to anon, authenticated;
 
 -- Order photos used by checkout: only image uploads under orders/ are allowed.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
