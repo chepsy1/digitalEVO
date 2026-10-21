@@ -66,8 +66,8 @@ export default async function handler(req, res) {
     // Notify the shop after the order and wallet debit have committed. Notification
     // failures must not undo or misreport a successful purchase.
     try {
-      const appHost = String(process.env.VERCEL_URL || '').replace(/^https?:\\/\\//i, '').replace(/\\/$/, '');
-      if (appHost && /^[a-zA-Z0-9.-]+(?::\\d+)?$/.test(appHost)) {
+      const appHost = String(process.env.VERCEL_URL || '').replace(/^https?:\/\//i, '').replace(/\/$/, '');
+      if (appHost && /^[a-zA-Z0-9.-]+(?::\d+)?$/.test(appHost)) {
       const notifyResponse = await fetch(`https://${appHost}/api/notify-order`, {
         method: 'POST',
         headers: {
