@@ -3,7 +3,8 @@
 Development remains isolated on `feature/member-login-deposit-wallet`; nothing here is merged into production.
 
 ## Current files
-- `/member.html`, `/member.css`, `/member.js`: member login/registration UI, wallet status, deposit form, QRIS display, and payment-check controls.
+- `/member.html`, `/member.css`, `/member.js`: member login/registration UI, wallet status, deposit form, scannable QRIS display, and payment-check controls.
+- `/admin.js`, `/admin.css`: per-product member-price field in the existing admin product editor.
 - `/api/member-payment.js`: authenticated server endpoint for creating registration/deposit QRIS requests and verifying payments with the existing gateway.
 - `/supabase/member-wallet-foundation.sql`: additive member profile, wallet, payment request, ledger, optional per-product member price, RLS, and idempotent server-only credit functions.
 
@@ -19,7 +20,7 @@ Development remains isolated on `feature/member-login-deposit-wallet`; nothing h
 Do not run the SQL migration in production or merge/deploy this branch yet. The portal and payment API are a development stage, not a finished member-commerce system.
 
 1. Configure and test Supabase Phone Auth. If phone confirmation is enabled, users may be required to verify an OTP; the UI reports that condition. Do not promise password-only registration until the project's Auth settings and recovery flow are confirmed.
-2. Add an admin-only control for setting each product's `member_price` and ensure non-admin users cannot edit it.
+2. Run and review the additive SQL migration in a staging project before the admin price field can save; verify only admins can update product prices under the existing `is_admin()` RLS policy.
 3. Implement atomic wallet checkout: in one database transaction validate the active member, read the product's current member price, create the matching existing `orders` row with the exact required fields, debit the wallet, and write a ledger row. The current debit function is intentionally not callable by browser users and must not be used by itself.
 4. Test the actual QRIS gateway response fields and expiry/status behavior against a non-production payment before using member payments.
 5. Add abuse protection/rate limiting for account and QRIS creation; test duplicate requests, retries, wrong amounts, insufficient balance, and isolation between users.
