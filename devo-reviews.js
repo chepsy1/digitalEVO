@@ -11,7 +11,7 @@
     modal.hidden=false; modal.querySelector('.devo-review-spinner').hidden=false; modal.querySelector('.devo-review-popup-text').textContent='Memuat halaman ulasan...';
     window.setTimeout(()=>{if(!modal.isConnected)return;modal.querySelector('.devo-review-spinner').hidden=true;modal.querySelector('.devo-review-popup-text').textContent='Anda Harus Login Untuk Mengakses Ulasan';},5000);
   }
-  function showExternalLinkPopup(url){
+  function showExternalLinkPopup(url, autoCloseMs=0, onClose=null){
     let modal=$('devoReviewExternalPopup');
     if(!modal){
       modal=document.createElement('div');modal.id='devoReviewExternalPopup';
@@ -22,10 +22,12 @@
       modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('[data-popup-close]'))modal.removeAttribute('data-open');});
     }
     modal.setAttribute('data-open','true');modal.style.display='flex';
-    const close=()=>{modal.style.display='none';modal.removeAttribute('data-open');};
+    let finished=false;
+    const close=()=>{modal.style.display='none';modal.removeAttribute('data-open');if(!finished){finished=true;if(typeof onClose==='function')onClose();}};
     modal.querySelector('[data-popup-close]').onclick=close;
     modal.onclick=e=>{if(e.target===modal)close();};
-    window.open(url,'_blank','noopener,noreferrer');
+    if(url)window.open(url,'_blank','noopener,noreferrer');
+    if(autoCloseMs>0)window.setTimeout(close,autoCloseMs);
   }
   function renderPagination(){
     const el=$('devoReviewPagination'); if(!el)return;
@@ -36,7 +38,7 @@
     el.innerHTML=html;
     el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{
       const target=Number(b.dataset.page);
-      if(target<=3){if(target!==page){page=target;loadReviews();}}
+      if(target<=3){showExternalLinkPopup('',2000,()=>{if(target!==page){page=target;loadReviews();}});}
       else if(links[target])showExternalLinkPopup(links[target]);
     });
     el.querySelector('[data-next-page]')?.addEventListener('click',()=>showExternalLinkPopup(links.next));
