@@ -171,6 +171,15 @@ function bindCheckout(){
     }
   };
   const followerOptions=products.map(p=>`<option value="${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
+  const lockSelectedPackage=()=>{
+    const selected=select.options[select.selectedIndex];
+    if(!selected)return;
+    const value=selected.value;
+    const label=selected.textContent;
+    select.innerHTML=`<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+    select.value=value;
+    select.disabled=true;
+  };
   const update=qty=>{
     const p=products.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('orderTotal').textContent=rupiah(p.price);
@@ -179,7 +188,7 @@ function bindCheckout(){
   const openFollower=qty=>{select.disabled=false;
     setFields(false);
     document.getElementById('modalTitle').textContent='Order Followers Shopee';
-    select.innerHTML=followerOptions;select.value=String(qty);
+    select.innerHTML=followerOptions;select.value=String(qty);lockSelectedPackage();
     document.getElementById('selectedProduct').value=qty;update(qty);
     modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
     document.getElementById('shopeeLink').focus();
@@ -188,7 +197,7 @@ function bindCheckout(){
     setFields('video_views');
     const p=videoViewsProducts.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('modalTitle').textContent='Order Shopee Video Views';
-    select.innerHTML=videoViewsProducts.map(item=>`<option value="video_views:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join('');select.value=`video_views:${qty}`;
+    select.innerHTML=videoViewsProducts.map(item=>`<option value="video_views:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join('');select.value=`video_views:${qty}`;lockSelectedPackage();
     document.getElementById('selectedProduct').value=`video_views:${qty}`;
     document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Views</strong><ul><li>Estimasi Pengerjaan 30-120 Menit.</li><li>Pastikan link video benar dan dapat dibuka. (Video Jangan Di Private)</li><li>Masukkan link video Shopee yang ingin ditambah penayangannya.</li><li>Contoh link video:<ul><li><a href="https://sv.shopee.co.id/share-video/uwVYZ5EyCgCmMOsDAAAAAA==?c=share_web&amp;contentType=0&amp;fromShareLink=share-marker&amp;fromSource=whatsapp&amp;jumpType=share" target="_blank" rel="noopener noreferrer">https://sv.shopee.co.id/share-video/uwVYZ5EyCgCmMOsDAAAAAA==?c=share_web&amp;contentType=0&amp;fromShareLink=share-marker&amp;fromSource=whatsapp&amp;jumpType=share</a></li><li><a href="https://id.shp.ee/tjwo4e0a?fromSource=copy_link&amp;smtt=0.0.9" target="_blank" rel="noopener noreferrer">https://id.shp.ee/tjwo4e0a?fromSource=copy_link&amp;smtt=0.0.9</a></li></ul></li></ul>';
     document.getElementById('orderTotal').textContent=rupiah(p.price);
@@ -199,7 +208,7 @@ function bindCheckout(){
     setFields(true);
     document.getElementById('modalTitle').textContent=`Order Akun Shopee ${Number(qty).toLocaleString('id-ID')} Followers`;
     select.innerHTML=accountProducts.map(p=>`<option value="account:${p.qty}">${Number(p.qty).toLocaleString('id-ID')} Followers — ${rupiah(p.price)}</option>`).join('');
-    select.value=`account:${qty}`;document.getElementById('selectedProduct').value=`account:${qty}`;
+    select.value=`account:${qty}`;lockSelectedPackage();document.getElementById('selectedProduct').value=`account:${qty}`;
     document.getElementById('checkoutDescription').innerHTML=accountDescription;
     const p=accountProducts.find(x=>x.qty===Number(qty));
     document.getElementById('orderTotal').textContent=rupiah(p?.price||0);
@@ -209,11 +218,11 @@ function bindCheckout(){
   document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));
   document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
   document.querySelectorAll('.video-views-order-btn').forEach(btn=>btn.onclick=()=>openVideoViews(Number(btn.dataset.videoViewsQty)));
-  const openVideoComments=qty=>{setFields('video_comments');const p=videoCommentsProducts.find(x=>x.qty===Number(qty));if(!p)return;document.getElementById('modalTitle').textContent='Order Shopee Video Custom Comments';select.innerHTML=`<option value="video_comments:${p.qty}">${escapeHtml(p.name)} — ${rupiah(p.price)}</option>`;select.value=`video_comments:${qty}`;select.disabled=true;document.getElementById('selectedProduct').value=select.value;document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Custom Comments</strong><ul><li>Satu baris dihitung sebagai satu komentar.</li><li>Jumlah komentar harus sesuai paket, maksimal 20.</li></ul>';const inp=document.getElementById('commentText'),count=document.getElementById('commentCount');const upd=()=>{const target=Number(select.value.split(':')[1])||qty;const n=inp.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).length;count.textContent=`${n}/${target} komentar`;inp.setCustomValidity(n!==target||n>20?`Paket ini memerlukan tepat ${target} komentar terisi, maksimal 20.`:'');};inp.addEventListener('input',upd);upd();document.getElementById('orderTotal').textContent=rupiah(p.price);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink')?.focus();};document.querySelectorAll('.video-comments-order-btn').forEach(btn=>btn.onclick=()=>openVideoComments(Number(btn.dataset.videoCommentsQty)));const openVideoLikes=qty=>{select.disabled=false;
+  const openVideoComments=qty=>{setFields('video_comments');const p=videoCommentsProducts.find(x=>x.qty===Number(qty));if(!p)return;document.getElementById('modalTitle').textContent='Order Shopee Video Custom Comments';select.innerHTML=`<option value="video_comments:${p.qty}">${escapeHtml(p.name)} — ${rupiah(p.price)}</option>`;select.value=`video_comments:${qty}`;lockSelectedPackage();document.getElementById('selectedProduct').value=select.value;document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Custom Comments</strong><ul><li>Satu baris dihitung sebagai satu komentar.</li><li>Jumlah komentar harus sesuai paket, maksimal 20.</li></ul>';const inp=document.getElementById('commentText'),count=document.getElementById('commentCount');const upd=()=>{const target=Number(select.value.split(':')[1])||qty;const n=inp.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).length;count.textContent=`${n}/${target} komentar`;inp.setCustomValidity(n!==target||n>20?`Paket ini memerlukan tepat ${target} komentar terisi, maksimal 20.`:'');};inp.addEventListener('input',upd);upd();document.getElementById('orderTotal').textContent=rupiah(p.price);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink')?.focus();};document.querySelectorAll('.video-comments-order-btn').forEach(btn=>btn.onclick=()=>openVideoComments(Number(btn.dataset.videoCommentsQty)));const openVideoLikes=qty=>{select.disabled=false;
     setFields('video_likes');
     const p=videoLikesProducts.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('modalTitle').textContent='Order Shopee Video Likes';
-    select.innerHTML=videoLikesProducts.map(item=>`<option value="video_likes:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join(''); select.value=`video_likes:${qty}`;
+    select.innerHTML=videoLikesProducts.map(item=>`<option value="video_likes:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join(''); select.value=`video_likes:${qty}`;lockSelectedPackage();
     document.getElementById('selectedProduct').value=`video_likes:${qty}`;
     document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Likes</strong><ul><li>Estimasi Pengerjaan 30-120 Menit.</li><li>Pastikan link video benar dan dapat dibuka. (Video Jangan Di Private)</li><li>Masukkan link video Shopee yang ingin ditambahkan Likes.</li><li>Contoh link video:<ul><li><a href="https://sv.shopee.co.id/share-video/uwVYZ5EyCgCmMOsDAAAAAA==?c=share_web&amp;contentType=0&amp;fromShareLink=share-marker&amp;fromSource=whatsapp&amp;jumpType=share" target="_blank" rel="noopener noreferrer">https://sv.shopee.co.id/share-video/uwVYZ5EyCgCmMOsDAAAAAA==?c=share_web&amp;contentType=0&amp;fromShareLink=share-marker&amp;fromSource=whatsapp&amp;jumpType=share</a></li><li><a href="https://id.shp.ee/tjwo4e0a?fromSource=copy_link&amp;smtt=0.0.9" target="_blank" rel="noopener noreferrer">https://id.shp.ee/tjwo4e0a?fromSource=copy_link&amp;smtt=0.0.9</a></li></ul></li></ul>';
     document.getElementById('orderTotal').textContent=rupiah(p.price);
@@ -227,7 +236,7 @@ function bindCheckout(){
     const p=productLikesProducts.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('modalTitle').textContent='Order Shopee Produk Favorite/Likes';
     select.innerHTML=productLikesProducts.map(item=>`<option value="product_likes:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join('');
-    select.value=`product_likes:${qty}`;
+    select.value=`product_likes:${qty}`;lockSelectedPackage();
     document.getElementById('selectedProduct').value=`product_likes:${qty}`;
     document.getElementById('checkoutDescription').innerHTML=productLikesDescription;
     document.getElementById('orderTotal').textContent=rupiah(p.price);
