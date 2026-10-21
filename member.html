@@ -35,6 +35,18 @@
         <p id="member-phone-label" class="muted"></p>
         <div class="wallet-card"><span>Saldo wallet</span><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran terverifikasi.</small></div>
         <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
+        <section id="wallet-checkout" class="dashboard-action" hidden>
+          <h3>Belanja dengan saldo member</h3>
+          <p class="muted">Pilih produk dan isi data pesanan. Harga member ditentukan oleh admin.</p>
+          <form id="wallet-checkout-form">
+            <label for="wallet-product">Produk dan paket</label>
+            <select id="wallet-product" required><option value="">Memuat produk...</option></select>
+            <div id="wallet-order-fields"></div>
+            <p class="fine-print" id="wallet-price">Pilih produk untuk melihat harga.</p>
+            <button class="primary" type="submit">Bayar dengan Saldo</button>
+          </form>
+          <div id="wallet-order-result" class="fine-print" aria-live="polite"></div>
+        </section>
         <form id="deposit-form" class="dashboard-action" hidden>
           <label for="deposit-amount">Nominal deposit (Rp)</label>
           <input id="deposit-amount" name="amount" type="number" min="1000" max="10000000" step="1000" placeholder="Contoh: 50000" required>
