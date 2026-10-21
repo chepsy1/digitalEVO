@@ -451,18 +451,75 @@ function orderShopeeInput(order) {
   ).trim();
 }
 
+function orderCommentRaw(order) {
+  const candidates = [
+    order?.comment_text, order?.commentText, order?.comments,
+    order?.custom_comments, order?.customComments, order?.comment,
+    order?.order_notes, order?.notes, order?.metadata?.comment_text
+  ];
+  const raw = candidates.find(value => typeof value === 'string' && value.trim());
+  return String(raw || '');
+}
+
 function orderCommentLines(order) {
-  const raw = order?.comment_text ?? order?.commentText ?? order?.comments ?? '';
-  return String(raw || '').split(String.fromCharCode(10)).map(line => line.trim()).filter(Boolean);
+  return orderCommentRaw(order).split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+}
+
+function isCustomCommentsOrder(order) {
+  const category = String(order?.category || order?.product_category || '').toLowerCase();
+  const product = String(order?.product_name || order?.product || '').toLowerCase();
+  return category === 'video_comments' || category.includes('comment') ||
+    product.includes('custom comment') || product.includes('komentar');
 }
 
 function renderAdminCommentDetails(order) {
   const comments = orderCommentLines(order);
-  if (!comments.length) return '';
-  return `<details class="admin-comment-details">
-    <summary title="Klik untuk melihat komentar pembeli" aria-label="Lihat komentar pembeli">💬</summary>
-    <div class="admin-comment-content"><strong>💬 Komentar Pesanan</strong><ol>${comments.map(comment => `<li>${escapeHtml(comment)}</li>`).join('')}</ol></div>
-  </details>`;
+  if (!comments.length && !isCustomCommentsOrder(order)) return '-';
+  return '<button type="button" class="btn btn-secondary admin-view-comments-btn" data-order-comments="' +
+    escapeAttr(order.id) + '">' + (comments.length ? 'Lihat Komentar' : 'Cek Komentar') + '</button>';
+}
+
+function openOrderComments(orderId) {
+  const order = orders.find(item => String(item.id) === String(orderId));
+  if (!order) return;
+  const raw = orderCommentRaw(order);
+  const comments = orderCommentLines(order);
+  const overlay = document.createElement('div');
+  overlay.className = 'admin-comments-modal-overlay';
+  overlay.innerHTML = '<section class="admin-comments-modal" role="dialog" aria-modal="true" aria-labelledby="adminCommentsModalTitle">' +
+    '<div class="admin-comments-modal-head"><div><h3 id="adminCommentsModalTitle">Komentar Pesanan</h3><p>' +
+    comments.length + ' komentar ditemukan</p></div><button type="button" class="admin-comments-close" aria-label="Tutup pop-up">&times;</button></div>' +
+    '<textarea class="admin-comments-modal-text" readonly spellcheck="false" aria-label="Isi komentar pesanan"></textarea>' +
+    '<p class="admin-comments-modal-message" role="status">' +
+    (comments.length ? 'Setiap baris dihitung sebagai satu komentar.' : 'Teks komentar tidak ditemukan pada data pesanan yang sedang dimuat. Tombol tetap ditampilkan agar pesanan dapat diperiksa.') +
+    '</p><div class="admin-comments-modal-actions"><button type="button" class="btn btn-secondary admin-comments-close">Tutup</button>' +
+    '<button type="button" class="btn btn-primary admin-comments-copy" ' + (raw ? '' : 'disabled') + '>Salin Komentar</button></div></section>';
+  document.body.appendChild(overlay);
+  const field = overlay.querySelector('.admin-comments-modal-text');
+  field.value = raw;
+  const close = () => overlay.remove();
+  overlay.querySelectorAll('.admin-comments-close').forEach(button => button.addEventListener('click', close));
+  overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
+  overlay.querySelector('.admin-comments-copy').addEventListener('click', async event => {
+    const button = event.currentTarget;
+    const message = overlay.querySelector('.admin-comments-modal-message');
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(raw);
+      } else {
+        field.focus();
+        field.select();
+        if (!document.execCommand('copy')) throw new Error('copy_failed');
+      }
+      message.textContent = 'Komentar berhasil disalin.';
+      button.textContent = 'Tersalin!';
+    } catch (_) {
+      field.focus();
+      field.select();
+      message.textContent = 'Salin otomatis tidak tersedia. Tekan Ctrl+C (atau Cmd+C) untuk menyalin teks yang sudah dipilih.';
+    }
+  });
+  field.focus();
 }
 
 function renderShopeeInput(order) {
@@ -555,7 +612,7 @@ function renderOrders() {
               <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
               <td class="order-shopee-link">${renderShopeeInput(order)}</td>
               <td>${escapeHtml(order.product_name || order.product || '-')}</td>
-              <td>${renderAdminCommentDetails(order) || '-'}</td>
+              <td>${renderAdminCommentDetails(order)}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>
               <td>${orderStatus(effectivePaymentStatus(order))}</td>
@@ -569,6 +626,9 @@ function renderOrders() {
     </div>
   `;
 
+  box.querySelectorAll('[data-order-comments]').forEach(button => {
+    button.addEventListener('click', () => openOrderComments(button.dataset.orderComments));
+  });
   box.querySelectorAll('[data-delete-order]').forEach(button => {
     button.addEventListener('click', () => deleteOrder(button.dataset.deleteOrder));
   });
