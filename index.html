@@ -463,7 +463,7 @@
 
 
     <style>
-      /* Minimalist benefits matching the requested reference */
+      /* Minimalist, consistently aligned benefits */
       .devo-premium-section {
         width: 100% !important;
         max-width: 1040px !important;
@@ -475,7 +475,6 @@
       }
       .devo-premium-card {
         width: 100% !important;
-        max-width: none !important;
         margin: 0 auto !important;
         padding: 0 !important;
         border: 0 !important;
@@ -487,7 +486,10 @@
       .devo-premium-features {
         display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 15px 32px !important;
+        grid-template-rows: repeat(2, auto) !important;
+        align-items: start !important;
+        column-gap: 32px !important;
+        row-gap: 14px !important;
         margin: 0 !important;
         padding: 0 !important;
         border: 0 !important;
@@ -495,13 +497,15 @@
       }
       .devo-premium-features li {
         position: relative !important;
-        display: flex !important;
-        align-items: flex-start !important;
-        justify-content: flex-start !important;
+        display: grid !important;
+        grid-template-columns: 10px minmax(0, 1fr) !important;
+        align-items: start !important;
+        justify-content: start !important;
+        column-gap: 8px !important;
         min-width: 0 !important;
         min-height: 0 !important;
         margin: 0 !important;
-        padding: 0 0 0 18px !important;
+        padding: 0 !important;
         border: 0 !important;
         border-radius: 0 !important;
         background: transparent !important;
@@ -510,11 +514,11 @@
       }
       .devo-premium-features li::before {
         content: "" !important;
-        position: absolute !important;
-        top: 6px !important;
-        left: 0 !important;
+        position: static !important;
+        display: block !important;
         width: 10px !important;
         height: 10px !important;
+        margin-top: 5px !important;
         border: 0 !important;
         border-radius: 50% !important;
         background: #00d739 !important;
@@ -532,11 +536,14 @@
         gap: 0 !important;
         width: 100% !important;
         min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         text-align: left !important;
       }
       .devo-premium-features li strong {
         display: block !important;
         margin: 0 !important;
+        padding: 0 !important;
         color: #101820 !important;
         font-size: 18px !important;
         font-weight: 700 !important;
@@ -544,6 +551,8 @@
       }
       .devo-premium-features li span:not(.devo-premium-icon) {
         display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
         color: #17212a !important;
         font-size: 16px !important;
         font-weight: 400 !important;
@@ -552,25 +561,27 @@
         overflow-wrap: anywhere !important;
       }
       .devo-premium-benefits {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        align-items: center !important;
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, max-content)) !important;
         justify-content: center !important;
-        gap: 8px 16px !important;
+        align-items: center !important;
+        column-gap: 16px !important;
+        row-gap: 8px !important;
         margin: 18px 0 0 !important;
         padding: 0 !important;
         border: 0 !important;
       }
       .devo-premium-benefits > div {
         position: relative !important;
-        display: inline-flex !important;
+        display: grid !important;
+        grid-template-columns: 8px minmax(0, auto) !important;
         align-items: center !important;
-        justify-content: flex-start !important;
-        flex: 0 1 auto !important;
+        justify-content: start !important;
+        column-gap: 4px !important;
         min-width: 0 !important;
         min-height: 0 !important;
         margin: 0 !important;
-        padding: 0 0 0 13px !important;
+        padding: 0 !important;
         border: 0 !important;
         border-radius: 0 !important;
         background: transparent !important;
@@ -579,22 +590,23 @@
       }
       .devo-premium-benefits > div::before {
         content: "" !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 0 !important;
+        position: static !important;
+        display: block !important;
         width: 8px !important;
         height: 8px !important;
         border: 0 !important;
         border-radius: 50% !important;
         background: #ff6b35 !important;
         box-shadow: none !important;
-        transform: translateY(-50%) !important;
+        transform: none !important;
       }
       .devo-premium-benefits b {
         display: block !important;
         min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         color: #111820 !important;
-        font-size: 13px !important;
+        font-size: 12px !important;
         font-weight: 600 !important;
         line-height: 1.35 !important;
         text-align: left !important;
@@ -635,9 +647,13 @@
         align-items: center !important;
         gap: 0 !important;
         min-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
         text-align: center !important;
       }
       .devo-premium-safe b {
+        margin: 0 !important;
+        padding: 0 !important;
         color: #111820 !important;
         font-size: 15px !important;
         font-weight: 800 !important;
@@ -645,21 +661,23 @@
         text-transform: uppercase !important;
       }
       .devo-premium-safe span {
+        margin: 0 !important;
+        padding: 0 !important;
         color: #111820 !important;
         font-size: 13px !important;
         font-weight: 400 !important;
         line-height: 1.35 !important;
         text-transform: uppercase !important;
       }
-      @media (max-width: 600px) {
+      @media (max-width: 700px) {
         .devo-premium-section { padding: 6px 12px 8px !important; }
-        .devo-premium-features { gap: 12px 14px !important; }
-        .devo-premium-features li { padding-left: 13px !important; }
-        .devo-premium-features li::before { top: 5px !important; width: 7px !important; height: 7px !important; }
+        .devo-premium-features { column-gap: 14px !important; row-gap: 12px !important; }
+        .devo-premium-features li { grid-template-columns: 7px minmax(0, 1fr) !important; column-gap: 6px !important; }
+        .devo-premium-features li::before { width: 7px !important; height: 7px !important; margin-top: 4px !important; }
         .devo-premium-features li strong { font-size: 14px !important; }
         .devo-premium-features li span:not(.devo-premium-icon) { font-size: 11px !important; line-height: 1.28 !important; }
-        .devo-premium-benefits { gap: 7px 10px !important; margin-top: 14px !important; }
-        .devo-premium-benefits > div { padding-left: 10px !important; }
+        .devo-premium-benefits { grid-template-columns: repeat(2, minmax(0, max-content)) !important; column-gap: 12px !important; row-gap: 9px !important; margin-top: 14px !important; }
+        .devo-premium-benefits > div { grid-template-columns: 6px minmax(0, auto) !important; column-gap: 4px !important; }
         .devo-premium-benefits > div::before { width: 6px !important; height: 6px !important; }
         .devo-premium-benefits b { font-size: 10px !important; }
         .devo-premium-safe { margin-top: 15px !important; }
@@ -667,10 +685,12 @@
         .devo-premium-safe b { font-size: 12px !important; }
         .devo-premium-safe span { font-size: 10px !important; }
       }
+      @media (max-width: 360px) {
+        .devo-premium-benefits { grid-template-columns: minmax(0, 1fr) !important; justify-content: stretch !important; }
+      }
     </style>
 
-    
-    <!-- FOLLOWERS SHOPEE PREMIUM - REDESIGNED MOBILE FIRST -->
+        <!-- FOLLOWERS SHOPEE PREMIUM - REDESIGNED MOBILE FIRST -->
     <section class="devo-premium-section" aria-label="Informasi Followers Shopee Premium">
       <div class="devo-premium-card">
         <ul class="devo-premium-features">
