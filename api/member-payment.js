@@ -149,22 +149,22 @@ export default async function handler(req, res) {
       const type = registrations?.[0] ? 'registration' : deposits?.[0] ? 'deposit' : null;
       const record = registrations?.[0] || deposits?.[0];
       if (!record) return reply(res, 404, { error: 'Pembayaran tidak ditemukan untuk akun ini.' });
-      if (record.payment_status === 'paid') {
-        return reply(res, 200, { success: true, paid: true, type, alreadyProcessed: true });
+      if (record.payment_status !== 'paid') {
+        const paid = await gatewayPaymentStatus(paymentReference, Number(record.amount), Math.floor(new Date(record.created_at).getTime() / 1000));
+        if (!paid) return reply(res, 200, { success: true, paid: false, type, message: 'Pembayaran belum terdeteksi.' });
+
+        const table = type === 'registration' ? 'member_registration_payments' : 'member_deposit_requests';
+        const update = await db(`/rest/v1/${table}?id=eq.${encodeURIComponent(record.id)}&user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify({ payment_status: 'paid', paid_at: new Date().toISOString() })
+        });
+        const updatedText = await update.text();
+        if (!update.ok) return reply(res, 500, { error: 'Pembayaran terdeteksi tetapi gagal disimpan. Silakan coba periksa lagi.', details: updatedText });
       }
 
-      const paid = await gatewayPaymentStatus(paymentReference, Number(record.amount), Math.floor(new Date(record.created_at).getTime() / 1000));
-      if (!paid) return reply(res, 200, { success: true, paid: false, type, message: 'Pembayaran belum terdeteksi.' });
-
-      const table = type === 'registration' ? 'member_registration_payments' : 'member_deposit_requests';
-      const update = await db(`/rest/v1/${table}?id=eq.${encodeURIComponent(record.id)}&user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending`, {
-        method: 'PATCH',
-        headers: { Prefer: 'return=representation' },
-        body: JSON.stringify({ payment_status: 'paid', paid_at: new Date().toISOString() })
-      });
-      const updatedText = await update.text();
-      if (!update.ok) return reply(res, 500, { error: 'Pembayaran terdeteksi tetapi gagal disimpan. Silakan coba periksa lagi.', details: updatedText });
-
+      // Retry the idempotent credit/activation RPC even if the payment row was marked paid
+      // by a previous request that failed midway.
       const rpc = type === 'registration' ? 'member_activate_after_verified_registration' : 'member_credit_verified_deposit';
       const rpcResponse = await db(`/rest/v1/rpc/${rpc}`, {
         method: 'POST',
