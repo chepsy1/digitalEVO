@@ -3,6 +3,7 @@
 Development remains isolated on `feature/member-login-deposit-wallet`; nothing here is merged into production.
 
 ## Current files
+- `/MEMBER_STAGING_CHECKLIST.md`: staging-only verification cases for registration, one-time bonus, deposits, member pricing, wallet checkout, permissions, and regression checks.
 - `/member.html`, `/member.css`, `/member.js`: member login/registration UI, wallet status, deposit form, scannable QRIS display, and payment-check controls.
 - `/admin.js`, `/admin.css`: per-product member-price field in the existing admin product editor.
 - `/api/member-payment.js`: authenticated server endpoint for creating registration/deposit QRIS requests and verifying payments with the existing gateway.
