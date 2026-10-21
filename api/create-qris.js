@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: productData?.message || 'Gagal memverifikasi produk.' });
     }
     const product = productData?.[0];
-    if(category==='video_comments'){const order=body.order&&typeof body.order==='object'?body.order:{};const comments=String(order.commentText||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(comments.length!==qty||comments.length>20)return res.status(400).json({error:`Paket ini memerlukan tepat ${qty} komentar, maksimal 20.`});}
+    if(category==='video_comments'){const order=body.order&&typeof body.order==='object'?body.order:{};const comments=String(order.commentText||order.comment_text||order.comments||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(comments.length!==qty||comments.length>20)return res.status(400).json({error:`Paket ini memerlukan tepat ${qty} komentar, maksimal 20.`});}
     const amount = Number(product?.price);
     if (!product || !Number.isSafeInteger(amount) || amount <= 0) {
       return res.status(400).json({ error: 'Produk tidak ditemukan atau harga tidak valid.' });
