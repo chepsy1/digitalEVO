@@ -451,6 +451,20 @@ function orderShopeeInput(order) {
   ).trim();
 }
 
+function orderCommentLines(order) {
+  const raw = order?.comment_text ?? order?.commentText ?? order?.comments ?? '';
+  return String(raw || '').split(String.fromCharCode(10)).map(line => line.trim()).filter(Boolean);
+}
+
+function renderAdminCommentDetails(order) {
+  const comments = orderCommentLines(order);
+  if (!comments.length) return '';
+  return `<details class="admin-comment-details">
+    <summary title="Klik untuk melihat komentar pembeli" aria-label="Lihat komentar pembeli">💬</summary>
+    <div class="admin-comment-content"><strong>💬 Komentar Pesanan</strong><ol>${comments.map(comment => `<li>${escapeHtml(comment)}</li>`).join('')}</ol></div>
+  </details>`;
+}
+
 function renderShopeeInput(order) {
   const value = orderShopeeInput(order);
   if (!value) return '-';
@@ -539,7 +553,7 @@ function renderOrders() {
               <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
               <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
               <td class="order-shopee-link">${renderShopeeInput(order)}</td>
-              <td>${escapeHtml(order.product_name || order.product || '-')}${order.comment_text ? `<details class="admin-comment-details"><summary title="Lihat isi komentar" aria-label="Lihat isi komentar">💬</summary><div class="admin-comment-content">${escapeHtml(order.comment_text)}</div></details>` : ''}</td>
+              <td>${escapeHtml(order.product_name || order.product || '-')}${renderAdminCommentDetails(order)}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>
               <td>${orderStatus(effectivePaymentStatus(order))}</td>
