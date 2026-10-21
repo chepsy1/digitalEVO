@@ -11,20 +11,35 @@
     modal.hidden=false; modal.querySelector('.devo-review-spinner').hidden=false; modal.querySelector('.devo-review-popup-text').textContent='Memuat halaman ulasan...';
     window.setTimeout(()=>{if(!modal.isConnected)return;modal.querySelector('.devo-review-spinner').hidden=true;modal.querySelector('.devo-review-popup-text').textContent='Anda Harus Login Untuk Mengakses Ulasan';},5000);
   }
+  function showExternalLinkPopup(url){
+    let modal=$('devoReviewExternalPopup');
+    if(!modal){
+      modal=document.createElement('div');modal.id='devoReviewExternalPopup';
+      modal.style.cssText='position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.58)';
+      modal.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="devoReviewExternalPopupTitle" style="position:relative;width:min(360px,100%);padding:28px 22px 24px;border-radius:14px;background:#fff;color:#222;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)"><button type="button" data-popup-close aria-label="Tutup popup" style="position:absolute;right:10px;top:7px;border:0;background:transparent;font-size:28px;line-height:1;cursor:pointer;color:#555">×</button><div aria-hidden="true" style="width:34px;height:34px;margin:0 auto 15px;border:4px solid #eee;border-top-color:#f59e0b;border-radius:50%;animation:devoReviewSpin .8s linear infinite"></div><strong id="devoReviewExternalPopupTitle" style="display:block;margin-bottom:8px">Membuka tautan Shopee</strong><p style="margin:0;font-size:14px;line-height:1.5">Tautan dibuka di tab baru. Popup ini bisa ditutup kapan saja.</p></div>';
+      document.body.appendChild(modal);
+      if(!$('devoReviewSpinStyle')){const style=document.createElement('style');style.id='devoReviewSpinStyle';style.textContent='@keyframes devoReviewSpin{to{transform:rotate(360deg)}}';document.head.appendChild(style);}
+      modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('[data-popup-close]'))modal.removeAttribute('data-open');});
+    }
+    modal.setAttribute('data-open','true');modal.style.display='flex';
+    const close=()=>{modal.style.display='none';modal.removeAttribute('data-open');};
+    modal.querySelector('[data-popup-close]').onclick=close;
+    modal.onclick=e=>{if(e.target===modal)close();};
+    window.open(url,'_blank','noopener,noreferrer');
+  }
   function renderPagination(){
     const el=$('devoReviewPagination'); if(!el)return;
-    totalPages=Math.max(1,Math.ceil((Number(window.devoReviewsTotal)||0)/6));
-    const buttons=[];
-    const addPage=n=>buttons.push('<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>');
-    const addDots=()=>buttons.push('<span class="devo-review-page-dots" aria-hidden="true">…</span>');
-    let start=1,end=Math.min(6,totalPages);
-    if(page>6){start=Math.max(1,page-2);end=Math.min(totalPages-1,start+5);start=Math.max(1,end-5);if(start>1){addPage(1);addDots();}}
-    for(let n=start;n<=end;n++)addPage(n);
-    if(end<totalPages){addDots();addPage(totalPages);}
-    if(page<totalPages)buttons.push('<button type="button" data-next-page aria-label="Halaman berikutnya">Next ›</button>');
-    el.innerHTML=buttons.join('');
-    el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{const target=Number(b.dataset.page);if(target>=1&&target<=totalPages&&target!==page){page=target;loadReviews();}});
-    el.querySelector('[data-next-page]')?.addEventListener('click',()=>{if(page<totalPages){page++;loadReviews();}});
+    const links={4:'https://s.shopee.co.id/qkQooXUDF',5:'https://s.shopee.co.id/1gJXoWYwds',6:'https://s.shopee.co.id/113r1NLzNM',next:'https://s.shopee.co.id/20wODGa0rc'};
+    let html='';
+    for(let n=1;n<=6;n++)html+='<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>';
+    html+='<span class="devo-review-page-dots" aria-hidden="true">…</span><button type="button" data-next-page aria-label="Halaman berikutnya">Next</button>';
+    el.innerHTML=html;
+    el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{
+      const target=Number(b.dataset.page);
+      if(target<=3){if(target!==page){page=target;loadReviews();}}
+      else if(links[target])showExternalLinkPopup(links[target]);
+    });
+    el.querySelector('[data-next-page]')?.addEventListener('click',()=>showExternalLinkPopup(links.next));
   }
   function ensurePhotoViewer(){
     if($('devoReviewPhotoViewer'))return;
