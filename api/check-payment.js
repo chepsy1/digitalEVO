@@ -39,6 +39,7 @@ export default async function handler(req, res) {
     if (!['followers', 'account', 'video_views', 'video_likes', 'video_comments', 'product_likes'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
       return json(res, 400, { error: 'Produk pesanan tidak valid.' });
     }
+    if(category==='video_comments'){const comments=String(order.commentText||order.comment_text||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(comments.length!==qty||comments.length>20)return json(res,400,{error:`Paket ini memerlukan tepat ${qty} komentar, maksimal 20.`});}
 
     // Harga dan produk diverifikasi ulang dari database. Nominal dari browser diabaikan.
     const productResponse = await supabaseFetch(
