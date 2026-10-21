@@ -837,10 +837,11 @@ function applyOrderFilters() {
       <td>${orderStatus(order.payment_status || order.status)}</td>
       <td><div>${orderStatus(order.order_status || 'queued')}</div>${activeOrderTab === 'paid' ? '<label class="admin-order-status-label" for="order-status-'+escapeAttr(order.id)+'">Ubah status pengerjaan</label><select id="order-status-'+escapeAttr(order.id)+'" class="admin-order-status-select" data-order-status-select="'+escapeAttr(order.id)+'"><option value="queued" '+(String(order.order_status||'queued').toLowerCase()==='queued'?'selected':'')+'>Dalam Antrian</option><option value="processing" '+(String(order.order_status||'').toLowerCase()==='processing'?'selected':'')+'>Diproses</option><option value="completed" '+(String(order.order_status||'').toLowerCase()==='completed'?'selected':'')+'>Berhasil</option></select>' : ''}</td>
       <td>${dateID(order.created_at || order.checkout_at)}</td>
-      <td><div class="order-action-buttons">${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
+      <td><div class="order-action-buttons">${isCustomCommentsOrder(order) ? renderAdminCommentDetails(order) : ''}${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
     </tr>
   `).join('');
 
+  box.querySelectorAll('[data-order-comments]').forEach(button => button.addEventListener('click', () => openOrderComments(button.dataset.orderComments)));
   box.querySelectorAll('[data-delete-order]').forEach(button => button.addEventListener('click', () => deleteOrder(button.dataset.deleteOrder)));
   // applyOrderFilters mengganti isi tbody, jadi tombol Pembayaran Berhasil
   // harus dipasangi event listener kembali setelah baris dirender ulang.
