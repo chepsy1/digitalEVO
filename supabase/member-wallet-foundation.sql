@@ -276,3 +276,115 @@ $$;
 
 revoke all on function public.member_credit_verified_deposit(uuid, text) from public, anon, authenticated;
 grant execute on function public.member_credit_verified_deposit(uuid, text) to service_role;
+
+
+-- Atomic member wallet checkout. This function validates the live product price,
+-- creates the existing orders row, debits the wallet and writes the ledger entry
+-- in the same database transaction.
+create or replace function public.member_checkout_with_wallet(
+  p_user_id uuid,
+  p_category text,
+  p_qty integer,
+  p_order jsonb default '{}'::jsonb
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_product public.products%rowtype;
+  v_price bigint;
+  v_balance bigint;
+  v_order_id uuid;
+  v_invoice text;
+  v_product_name text;
+  v_customer_whatsapp text;
+  v_account_contact text;
+  v_shopee_link text;
+  v_comment_text text;
+  v_photo_url text;
+  v_photo_path text;
+  v_now timestamptz := now();
+begin
+  if p_user_id is null then raise exception 'Authentication required'; end if;
+  if p_category not in ('followers','account','video_views','video_likes','video_comments','product_likes') then
+    raise exception 'Kategori produk tidak valid';
+  end if;
+  if p_qty is null or p_qty <= 0 then raise exception 'Paket produk tidak valid'; end if;
+  if not exists (select 1 from public.member_profiles where user_id = p_user_id and status = 'active') then
+    raise exception 'Keanggotaan aktif diperlukan';
+  end if;
+
+  select * into v_product from public.products
+  where category = p_category and qty = p_qty
+  order by updated_at desc nulls last limit 1 for share;
+  if not found then raise exception 'Produk tidak ditemukan'; end if;
+  v_price := coalesce(v_product.member_price, v_product.price);
+  if v_price is null or v_price < 0 then raise exception 'Harga member tidak valid'; end if;
+
+  v_customer_whatsapp := nullif(trim(coalesce(p_order->>'customerWhatsapp', p_order->>'customer_whatsapp', '')), '');
+  v_account_contact := nullif(trim(coalesce(p_order->>'accountContact', p_order->>'account_contact', '')), '');
+  v_shopee_link := nullif(trim(coalesce(p_order->>'shopeeLink', p_order->>'shopee_link', '')), '');
+  v_comment_text := nullif(trim(coalesce(p_order->>'commentText', p_order->>'comment_text', '')), '');
+  v_photo_url := nullif(trim(coalesce(p_order->>'photoUrl', p_order->>'photo_url', '')), '');
+  v_photo_path := nullif(trim(coalesce(p_order->>'photoPath', p_order->>'photo_path', '')), '');
+
+  if p_category = 'followers' and (v_customer_whatsapp is null or v_shopee_link is null or v_photo_path is null) then
+    raise exception 'Pesanan followers memerlukan WhatsApp, link/username Shopee, dan foto akun';
+  elsif p_category = 'account' and (v_account_contact is null or nullif(trim(coalesce(p_order->>'accountName','')), '') is null) then
+    raise exception 'Pesanan akun memerlukan nama dan kontak penerima';
+  elsif p_category in ('video_views','video_likes','video_comments','product_likes')
+    and (v_customer_whatsapp is null or v_shopee_link is null) then
+    raise exception 'Pesanan memerlukan link produk/video dan WhatsApp';
+  end if;
+  if p_category = 'video_comments' then
+    if v_comment_text is null or cardinality(regexp_split_to_array(v_comment_text, E'\\n')) <> p_qty then
+      raise exception 'Jumlah komentar harus sesuai paket';
+    end if;
+  end if;
+
+  insert into public.member_wallets(user_id, balance)
+  values (p_user_id, 0) on conflict (user_id) do nothing;
+
+  update public.member_wallets
+  set balance = balance - v_price, updated_at = v_now
+  where user_id = p_user_id and balance >= v_price
+  returning balance into v_balance;
+  if not found then raise exception 'Saldo member tidak mencukupi'; end if;
+
+  v_invoice := 'MEMBER-' || replace(gen_random_uuid()::text, '-', '');
+  v_product_name := case p_category
+    when 'account' then 'Akun Shopee ' || p_qty::text || ' Followers'
+    when 'video_views' then 'Shopee Video ' || p_qty::text || ' Views'
+    when 'video_likes' then 'Shopee Video ' || p_qty::text || ' Likes'
+    when 'video_comments' then 'Shopee Video ' || p_qty::text || ' (Custom) Comments'
+    when 'product_likes' then 'Shopee Produk ' || p_qty::text || ' Favorite/Likes'
+    else p_qty::text || ' Followers'
+  end;
+
+  insert into public.orders (
+    transaction_id, customer_whatsapp, account_contact, shopee_link, comment_text,
+    photo_url, photo_path, product_id, product_name, category, quantity, amount,
+    payment_status, order_status, payment_method, updated_at
+  ) values (
+    v_invoice, v_customer_whatsapp, v_account_contact, v_shopee_link, v_comment_text,
+    v_photo_url, v_photo_path, v_product.id, v_product_name, p_category, 1, v_price,
+    'paid', 'queued', 'Saldo Member', v_now
+  ) returning id into v_order_id;
+
+  insert into public.member_wallet_transactions(
+    user_id, amount, transaction_type, source_reference, description
+  ) values (
+    p_user_id, -v_price, 'purchase', 'member-order:' || v_order_id::text,
+    'Pembelian ' || v_product_name || ' menggunakan saldo member'
+  );
+
+  return jsonb_build_object(
+    'success', true, 'order_id', v_order_id, 'invoice', v_invoice,
+    'amount', v_price, 'balance', v_balance, 'product_name', v_product_name
+  );
+end;
+$$;
+
+revoke all on function public.member_checkout_with_wallet(uuid, text, integer, jsonb) from public, anon, authenticated;
+grant execute on function public.member_checkout_with_wallet(uuid, text, integer, jsonb) to service_role;
