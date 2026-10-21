@@ -164,7 +164,7 @@
       const amount = Number(new FormData(depositForm).get("amount"));
       setNotice("Menyiapkan QRIS deposit...");
       const payment = await api("create_deposit", { amount });
-      showPayment(payment);
+      await showPayment(payment);
       setNotice("QRIS deposit berhasil dibuat. Bayar sesuai nominal, lalu periksa pembayaran.");
     } catch (error) {
       setNotice(error.message || "Gagal membuat deposit.", true);
