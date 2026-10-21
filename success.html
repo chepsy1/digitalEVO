@@ -428,14 +428,16 @@
   const isVideoViews = data.category === 'video_views' || data.product === 'Shopee Video Views';
   const isVideoLikes = data.category === 'video_likes' || data.product === 'Shopee Video Likes';
   const isProductLikes = data.category === 'product_likes' || data.product === 'Shopee Produk Favorite/Likes';
+  const isVideoComments = data.category === 'video_comments' || /custom comments/i.test(String(data.product || ''));
   const quantityLabel = document.getElementById('quantityLabel');
   if (quantityLabel && isVideoViews) quantityLabel.textContent = 'Jumlah Views';
   if (quantityLabel && isVideoLikes) quantityLabel.textContent = 'Jumlah Likes';
   if (quantityLabel && isProductLikes) quantityLabel.textContent = 'Jumlah Favorite/Likes';
+  if (quantityLabel && isVideoComments) quantityLabel.textContent = 'Jumlah Komentar Kostum';
 
   document.getElementById('quantity').textContent =
     data.quantity
-      ? `${Number(data.quantity).toLocaleString('id-ID')} ${isVideoViews ? 'Views' : isVideoLikes ? 'Likes' : isProductLikes ? 'Favorite/Likes' : data.product === 'Account Premium' ? 'Account' : 'Followers'}`
+      ? `${Number(data.quantity).toLocaleString('id-ID')} ${isVideoViews ? 'Views' : isVideoLikes ? 'Likes' : isProductLikes ? 'Favorite/Likes' : isVideoComments ? 'Komentar' : data.product === 'Account Premium' ? 'Account' : 'Followers'}`
       : '-';
 
   document.getElementById('transaction').textContent =
