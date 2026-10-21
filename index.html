@@ -681,6 +681,26 @@
         line-height: 1.35 !important;
         text-transform: uppercase !important;
       }
+
+      /* Kedap-kedip lembut pada dot hijau, ikon verified, dan teks AKUN AMAN */
+      @keyframes devo-safe-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+      .devo-premium-features li::before,
+      .devo-premium-safe b::before,
+      .devo-premium-safe b,
+      .devo-premium-safe span {
+        animation: devo-safe-blink 1.2s ease-in-out infinite !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .devo-premium-features li::before,
+        .devo-premium-safe b::before,
+        .devo-premium-safe b,
+        .devo-premium-safe span {
+          animation: none !important;
+        }
+      }
       @media (max-width: 700px) {
         .devo-premium-section { padding: 6px 12px 8px !important; }
         .devo-premium-section { padding-left: 22px !important; padding-right: 22px !important; }
