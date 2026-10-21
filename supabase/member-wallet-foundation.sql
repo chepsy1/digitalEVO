@@ -308,7 +308,7 @@ set search_path = public, pg_temp
 as $$
 declare
   v_product public.products%rowtype;
-  v_price bigint;
+  v_price numeric;
   v_balance bigint;
   v_order_id uuid;
   v_invoice text;
@@ -336,7 +336,11 @@ begin
   order by updated_at desc nulls last limit 1 for share;
   if not found then raise exception 'Produk tidak ditemukan'; end if;
   v_price := coalesce(v_product.member_price, v_product.price);
-  if v_price is null or v_price <= 0 then raise exception 'Harga member harus lebih dari nol'; end if;
+  -- Prices are stored as numeric in products but wallet/order amounts are whole Rupiah.
+  -- Reject fractional prices instead of silently rounding during assignment to bigint.
+  if v_price is null or v_price <= 0 or v_price <> trunc(v_price) then
+    raise exception 'Harga member harus berupa bilangan bulat positif';
+  end if;
 
   v_customer_whatsapp := nullif(trim(coalesce(p_order->>'customerWhatsapp', p_order->>'customer_whatsapp', '')), '');
   v_account_contact := nullif(trim(coalesce(p_order->>'accountContact', p_order->>'account_contact', '')), '');
