@@ -44,6 +44,7 @@
       <section id="payment-panel" class="payment-panel" hidden aria-live="polite">
         <h3 id="payment-title">Pembayaran</h3><p id="payment-description" class="muted"></p>
         <img id="payment-qr-image" alt="QRIS pembayaran" hidden>
+        <canvas id="payment-qr-canvas" aria-label="QRIS pembayaran" hidden></canvas>
         <pre id="payment-qr-content" hidden></pre>
         <p id="payment-reference" class="fine-print"></p>
         <a id="payment-open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Buka QRIS pembayaran</a>
@@ -83,6 +84,7 @@
     <p class="security-note">Jangan bagikan password kepada siapa pun. Saldo dan transaksi harus diproses oleh server yang aman.</p>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="/supabase-config.js" defer></script>
   <script src="/member.js" defer></script>
 </body>
