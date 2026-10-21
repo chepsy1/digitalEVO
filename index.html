@@ -711,9 +711,10 @@
         grid-template-columns: 8px max-content !important;
         width: max-content !important;
         max-width: calc(100% - 16px) !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
+        opacity: 0;
+        visibility: hidden;
         animation: devo-benefit-slide 4s linear infinite !important;
+        will-change: transform, opacity;
       }
       .devo-premium-benefits > div:nth-child(1) { animation-delay: 0s !important; }
       .devo-premium-benefits > div:nth-child(2) { animation-delay: 1s !important; }
@@ -725,25 +726,25 @@
       }
       @keyframes devo-benefit-slide {
         0% {
-          opacity: 0 !important;
-          visibility: hidden !important;
+          opacity: 0;
+          visibility: hidden;
           transform: translateX(calc(-50% - 50vw));
         }
-        4% { opacity: 1 !important; visibility: visible !important; }
+        4% { opacity: 1; visibility: visible; }
         22% {
-          opacity: 1 !important;
-          visibility: visible !important;
+          opacity: 1;
+          visibility: visible;
           transform: translateX(-50%);
         }
-        27% { opacity: 1 !important; visibility: visible !important; }
+        27% { opacity: 1; visibility: visible; }
         48% {
-          opacity: 0 !important;
-          visibility: hidden !important;
+          opacity: 0;
+          visibility: hidden;
           transform: translateX(50vw);
         }
         100% {
-          opacity: 0 !important;
-          visibility: hidden !important;
+          opacity: 0;
+          visibility: hidden;
           transform: translateX(50vw);
         }
       }
