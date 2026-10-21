@@ -539,6 +539,7 @@ function renderOrders() {
             <th>WhatsApp</th>
             <th>Link / Username Shopee</th>
             <th>Produk</th>
+            <th>Komentar</th>
             <th>Jumlah</th>
             <th>Harga</th>
             <th>Pembayaran</th>
@@ -553,7 +554,8 @@ function renderOrders() {
               <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
               <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
               <td class="order-shopee-link">${renderShopeeInput(order)}</td>
-              <td>${escapeHtml(order.product_name || order.product || '-')}${renderAdminCommentDetails(order)}</td>
+              <td>${escapeHtml(order.product_name || order.product || '-')}</td>
+              <td>${renderAdminCommentDetails(order) || '-'}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>
               <td>${orderStatus(effectivePaymentStatus(order))}</td>
