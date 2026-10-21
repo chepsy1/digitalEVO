@@ -134,12 +134,12 @@
       select.replaceChildren(new Option("Pilih produk dan paket", ""));
       for (const p of memberProducts) {
         const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
-        const opt = new Option(categoryLabels[p.category] + " — " + Number(p.qty).toLocaleString("id-ID") + " — " + rupiah(price), p.id);
+        const opt = new Option(categoryLabels[p.category] + " — " + Number(p.qty).toLocaleString("id-ID") + " — " + rupiah(price), String(p.id));
         select.add(opt);
       }
       if (!memberProducts.length) select.replaceChildren(new Option("Produk belum tersedia", ""));
       select.addEventListener("change", () => {
-        const p = memberProducts.find(x => x.id === select.value);
+        const p = memberProducts.find(x => String(x.id) === select.value);
         document.getElementById("wallet-price").textContent = p ? "Harga member: " + rupiah(p.member_price == null ? p.price : p.member_price) : "Pilih produk untuk melihat harga.";
         renderOrderFields(p?.category || "");
       });
@@ -152,7 +152,7 @@
     event.preventDefault();
     const button = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
     const resultBox = document.getElementById("wallet-order-result");
-    const product = memberProducts.find(p => p.id === document.getElementById("wallet-product").value);
+    const product = memberProducts.find(p => String(p.id) === document.getElementById("wallet-product").value);
     if (!product) return setNotice("Silakan pilih produk yang valid.", true);
     const category = product.category;
     const value = id => document.getElementById(id)?.value?.trim() || "";
