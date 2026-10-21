@@ -221,3 +221,58 @@ grant execute on function public.member_activate_after_verified_registration(uui
 -- Do not enable wallet spending until an atomic server/database checkout also creates
 -- the corresponding existing orders row and validates the server-calculated member price.
 revoke all on function public.member_debit_wallet(bigint, text, text) from public, anon, authenticated;
+
+
+-- Credit a deposit only after a trusted server has marked its request paid.
+-- The unique ledger reference makes retries safe and prevents duplicate credits.
+create or replace function public.member_credit_verified_deposit(
+  p_user_id uuid,
+  p_payment_reference text
+) returns bigint
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_deposit public.member_deposit_requests%rowtype;
+  v_inserted integer;
+  v_balance bigint;
+begin
+  select * into v_deposit
+  from public.member_deposit_requests
+  where user_id = p_user_id
+    and payment_reference = p_payment_reference
+    and payment_status = 'paid'
+    and amount > 0
+  for update;
+
+  if not found then raise exception 'Deposit payment is not verified'; end if;
+
+  insert into public.member_wallets(user_id, balance)
+  values (p_user_id, 0)
+  on conflict (user_id) do nothing;
+
+  insert into public.member_wallet_transactions(
+    user_id, amount, transaction_type, source_reference, description
+  ) values (
+    p_user_id, v_deposit.amount, 'deposit',
+    'deposit:' || p_payment_reference,
+    'Deposit saldo member DigitalEVO'
+  )
+  on conflict (source_reference) do nothing;
+
+  get diagnostics v_inserted = row_count;
+  if v_inserted = 1 then
+    update public.member_wallets
+    set balance = balance + v_deposit.amount, updated_at = now()
+    where user_id = p_user_id;
+  end if;
+
+  select balance into v_balance
+  from public.member_wallets where user_id = p_user_id;
+  return v_balance;
+end;
+$$;
+
+revoke all on function public.member_credit_verified_deposit(uuid, text) from public, anon, authenticated;
+grant execute on function public.member_credit_verified_deposit(uuid, text) to service_role;
