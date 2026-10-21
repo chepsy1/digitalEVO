@@ -66,7 +66,9 @@ export default async function handler(req, res) {
     // Notify the shop after the order and wallet debit have committed. Notification
     // failures must not undo or misreport a successful purchase.
     try {
-      const notifyResponse = await fetch(`https://${String(req.headers.host || '').replace(/[^a-zA-Z0-9.:-]/g, '')}/api/notify-order`, {
+      const appHost = String(process.env.VERCEL_URL || '').replace(/^https?:\\/\\//i, '').replace(/\\/$/, '');
+      if (appHost && /^[a-zA-Z0-9.-]+(?::\\d+)?$/.test(appHost)) {
+      const notifyResponse = await fetch(`https://${appHost}/api/notify-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,6 +92,7 @@ export default async function handler(req, res) {
         })
       });
       if (!notifyResponse.ok) console.error('Notifikasi pesanan saldo member gagal:', notifyResponse.status, await notifyResponse.text());
+      }
     } catch (notifyError) {
       console.error('Notifikasi pesanan saldo member gagal:', notifyError?.message || notifyError);
     }
