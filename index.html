@@ -701,6 +701,42 @@
           animation: none !important;
         }
       }
+
+      /* Verified tetap diam; cahaya berjalan hanya pada tulisan keamanan */
+      @keyframes devo-safe-text-shine {
+        0% { background-position: 100% 0; }
+        100% { background-position: -150% 0; }
+      }
+      .devo-premium-safe b::before {
+        animation: none !important;
+      }
+      .devo-premium-safe b,
+      .devo-premium-safe span {
+        color: transparent !important;
+        background-image: linear-gradient(
+          110deg,
+          #111820 0%,
+          #111820 38%,
+          #ffffff 50%,
+          #111820 62%,
+          #111820 100%
+        ) !important;
+        background-size: 250% 100% !important;
+        background-position: 100% 0 !important;
+        background-clip: text !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        animation: devo-safe-text-shine 2.4s linear infinite !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .devo-premium-safe b,
+        .devo-premium-safe span {
+          color: #111820 !important;
+          background: none !important;
+          -webkit-text-fill-color: #111820 !important;
+          animation: none !important;
+        }
+      }
       @media (max-width: 700px) {
         .devo-premium-section { padding: 6px 12px 8px !important; }
         .devo-premium-section { padding-left: 22px !important; padding-right: 22px !important; }
