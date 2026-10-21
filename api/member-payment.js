@@ -105,6 +105,16 @@ export default async function handler(req, res) {
     if (action === 'create_registration') {
       if (!user.phone) return reply(res, 400, { error: 'Akun harus menggunakan autentikasi nomor WhatsApp.' });
       const phone = String(user.phone);
+      const existingProfileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=status&limit=1`);
+      const existingProfiles = await existingProfileResponse.json();
+      if (!existingProfileResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa status member.' });
+      if (existingProfiles?.[0]?.status === 'active') return reply(res, 409, { error: 'Keanggotaan Anda sudah aktif. Anda tidak perlu membayar pendaftaran lagi.' });
+
+      const pendingResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=id&limit=1`);
+      const pendingPayments = await pendingResponse.json();
+      if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa pembayaran pendaftaran.' });
+      if (pendingPayments?.length) return reply(res, 409, { error: 'Masih ada pembayaran pendaftaran yang menunggu. Periksa pembayaran tersebut terlebih dahulu sebelum membuat QRIS baru.' });
+
       const profileResponse = await db('/rest/v1/member_profiles?on_conflict=user_id', {
         method: 'POST',
         headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
