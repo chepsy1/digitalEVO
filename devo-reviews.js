@@ -13,15 +13,11 @@
   }
   function renderPagination(){
     const el=$('devoReviewPagination'); if(!el)return;
-    const start=Math.max(1,Math.min(page-2,totalPages-4));
-    const end=Math.min(totalPages,start+4);
+    totalPages=3;
     let html='';
-    if(page>1) html+='<button type="button" data-page="'+(page-1)+'" aria-label="Halaman sebelumnya">‹</button>';
-    for(let n=start;n<=end;n++) html+='<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>';
-    if(end<totalPages) html+='<span class="devo-review-ellipsis">...</span><button type="button" data-page="'+totalPages+'">'+totalPages+'</button>';
-    if(page<totalPages) html+='<button type="button" data-page="'+(page+1)+'">Next</button>';
+    for(let n=1;n<=3;n++) html+='<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>';
     el.innerHTML=html;
-    el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{const target=Number(b.dataset.page);if(target>=1&&target<=totalPages&&target!==page){page=target;loadReviews();}});
+    el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{const target=Number(b.dataset.page);if(target>=1&&target<=3&&target!==page){page=target;loadReviews();}});
   }
   function ensurePhotoViewer(){
     if($('devoReviewPhotoViewer'))return;
@@ -69,8 +65,8 @@
     });
   }
   async function loadReviews(){
-    try{const r=await fetch(`/api/reviews?page=${page}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
-      totalPages=Math.max(1,Math.ceil((d.total||0)/6));if(page>totalPages)page=totalPages;$('devoReviewCount').textContent=`Berdasarkan ${d.total||0} ulasan`; $('devoReviewScore').textContent=`${String(d.average||'5').replace(/\.0$/, '')}/5`;
+    try{page=((Math.max(1,Number(page)||1)-1)%3)+1;totalPages=3;const r=await fetch(`/api/reviews?page=${page}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
+      $('devoReviewCount').textContent=`Berdasarkan ${d.total||0} ulasan`; $('devoReviewScore').textContent=`${String(d.average||'5').replace(/\.0$/, '')}/5`;
       if(!d.items?.length){list.innerHTML='<p class="devo-review-message">Belum ada ulasan yang disetujui.</p>';renderPagination();return;}
       list.innerHTML=d.items.map(x=>{const rawLink=String(x.store_url||'').trim();const hrefLink=rawLink?(/^[a-z][a-z0-9+.-]*:\/\//i.test(rawLink)?rawLink:'https://'+rawLink):'';const displayLink=hrefLink.replace(/^https?:\/\//i,'');const shortLink=displayLink.length>28?displayLink.slice(0,25)+'...':displayLink;return `<article class="devo-review-card ${x.pinned?'is-pinned':''}">${x.pinned?'<span class="devo-pinned-label">📌 <span>ULASAN DISEMATKAN</span></span>':''}<div class="devo-review-meta"><h3>${esc(x.name)}${rawLink?` <a class="devo-review-store-link" href="${esc(hrefLink)}" target="_blank" rel="noopener noreferrer" title="${esc(displayLink)}">${esc(shortLink)}</a>`:''}</h3></div><div class="devo-stars" aria-label="Rating ${Number(x.rating)||5} dari 5">${'★'.repeat(Math.max(1,Math.min(5,Number(x.rating)||5)))}${'☆'.repeat(5-Math.max(1,Math.min(5,Number(x.rating)||5)))}</div><p>${esc(x.body)}</p>${(Array.isArray(x.photo_urls)&&x.photo_urls.length?x.photo_urls:(x.photo_url?[x.photo_url]:[])).length?`<div class="devo-review-photo-gallery">${(Array.isArray(x.photo_urls)&&x.photo_urls.length?x.photo_urls:(x.photo_url?[x.photo_url]:[])).map((photo,i)=>`<button type="button" class="devo-review-photo-button" data-photo-url="${esc(photo)}" data-photo-alt="Foto ${i+1} ulasan dari ${esc(x.name)}" aria-label="Perbesar foto ${i+1}"><img class="devo-review-photo" loading="lazy" src="${esc(photo)}" alt="Foto ${i+1} ulasan dari ${esc(x.name)}"></button>`).join('')}</div>`:''}${x.admin_reply?`<div class="devo-review-admin-reply"><strong>Balasan digitalEVO</strong><p>${esc(x.admin_reply)}</p></div>`:''}</article>`}).join('');renderPagination();
     }catch(e){list.innerHTML='<p class="devo-review-message">Ulasan belum dapat dimuat. Silakan coba lagi nanti.</p>';}
