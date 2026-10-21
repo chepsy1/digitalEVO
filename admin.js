@@ -602,7 +602,6 @@ function renderOrders() {
             <th>WhatsApp</th>
             <th>Link / Username Shopee</th>
             <th>Produk</th>
-            <th>Komentar</th>
             <th>Jumlah</th>
             <th>Harga</th>
             <th>Pembayaran</th>
@@ -618,13 +617,12 @@ function renderOrders() {
               <td>${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
               <td class="order-shopee-link">${renderShopeeInput(order)}</td>
               <td>${escapeHtml(order.product_name || order.product || '-')}</td>
-              <td>${renderAdminCommentDetails(order)}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
               <td>${rupiah(order.amount || order.total)}</td>
               <td>${orderStatus(effectivePaymentStatus(order))}</td>
               <td><div>${orderStatus(order.order_status || 'queued')}</div>${activeOrderTab === 'paid' ? '<label class="admin-order-status-label" for="order-status-'+escapeAttr(order.id)+'">Ubah status pengerjaan</label><select id="order-status-'+escapeAttr(order.id)+'" class="admin-order-status-select" data-order-status-select="'+escapeAttr(order.id)+'"><option value="queued" '+(String(order.order_status||'queued').toLowerCase()==='queued'?'selected':'')+'>Dalam Antrian</option><option value="processing" '+(String(order.order_status||'').toLowerCase()==='processing'?'selected':'')+'>Diproses</option><option value="completed" '+(String(order.order_status||'').toLowerCase()==='completed'?'selected':'')+'>Berhasil</option></select>' : ''}</td>
               <td>${dateID(order.created_at || order.checkout_at)}</td>
-              <td><div class="order-action-buttons">${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
+              <td><div class="order-action-buttons">${isCustomCommentsOrder(order) ? renderAdminCommentDetails(order) : ''}${!['paid', 'processing', 'completed'].includes(String(order.payment_status || order.status || '').toLowerCase()) ? `<button type="button" class="btn btn-primary order-mark-paid-btn" data-mark-paid-order="${escapeAttr(order.id)}">Pembayaran Berhasil</button>` : ''}${canDeleteOrder(order) ? `<button type="button" class="btn btn-secondary order-delete-btn" data-delete-order="${escapeAttr(order.id)}">Hapus</button>` : ''}</div></td>
             </tr>
           `).join('')}
         </tbody>
