@@ -36,6 +36,8 @@ const DEFAULT_VIDEO_LIKES=[
  {qty:1000,price:18700,original:18700,sold:'',img:'assets/1000.webp',name:'1.000 Likes'}
 ];
 let videoLikesProducts=DEFAULT_VIDEO_LIKES.map(x=>({...x}));
+const DEFAULT_VIDEO_COMMENTS=[{qty:10,price:13700,original:13700,sold:'',img:'assets/100.webp',name:'10 (Custom) Comments'},{qty:20,price:27200,original:27200,sold:'',img:'assets/200.webp',name:'20 (Custom) Comments'}];
+let videoCommentsProducts=DEFAULT_VIDEO_COMMENTS.map(x=>({...x}));
 const DEFAULT_PRODUCT_LIKES=[
  {qty:100,price:3600,original:3600,sold:'',img:'assets/100.webp',name:'100 Favorite/Likes'},
  {qty:200,price:6200,original:6200,sold:'',img:'assets/200.webp',name:'200 Favorite/Likes'},
@@ -69,7 +71,7 @@ function renderSite(){
  if(grid){grid.innerHTML='';products.forEach(p=>{grid.insertAdjacentHTML('beforeend',`<article class="product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="${Number(p.qty).toLocaleString('id-ID')} Followers Shopee Premium" loading="lazy"><div class="product-info"><h3>${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="sold-month">🔥 ${escapeHtml(p.sold||'')} terjual/bln</div><div class="product-actions"><button class="btn btn-primary order-btn" data-qty="${p.qty}">Order Sekarang</button></div></div></article>`)});}
  if(accountGrid){accountGrid.innerHTML='';accountProducts.forEach(p=>accountGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card"><div class="discount-badge">DISKON ${discountPct(p)}%</div><img class="product-image" src="${escapeHtml(p.img)}" alt="Akun Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers" loading="lazy"><div class="product-info"><h3>AKUN Shopee ${Number(p.qty).toLocaleString('id-ID')} Followers</h3><div class="price-row"><span class="original-price">${rupiah(p.original)}</span><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary account-order-btn" data-account-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  if(videoViewsGrid){videoViewsGrid.innerHTML='';videoViewsProducts.forEach(p=>videoViewsGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-views-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-views-order-btn" data-video-views-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
- if(videoViewsGrid){videoLikesProducts.forEach(p=>videoViewsGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-likes-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-likes-order-btn" data-video-likes-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
+ if(videoViewsGrid){videoLikesProducts.forEach(p=>videoViewsGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-likes-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-likes-order-btn" data-video-likes-qty="${p.qty}">Order Sekarang</button></div></div></article>`));videoCommentsProducts.forEach(p=>videoViewsGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card video-comments-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Video ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Video ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary video-comments-order-btn" data-video-comments-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  if(productLikesGrid){productLikesGrid.innerHTML='';productLikesProducts.forEach(p=>productLikesGrid.insertAdjacentHTML('beforeend',`<article class="product-card account-product-card product-likes-product-card"><img class="product-image" src="${escapeHtml(p.img)}" alt="Shopee Produk ${escapeHtml(p.name)}" loading="lazy"><div class="product-info"><h3>Shopee Produk ${escapeHtml(p.name)}</h3><div class="price-row"><span class="discount-price">${rupiah(p.price)}</span></div><div class="product-actions"><button class="btn btn-primary product-likes-order-btn" data-product-likes-qty="${p.qty}">Order Sekarang</button></div></div></article>`));}
  document.querySelector('.brand img')?.setAttribute('src',images.logo);
  const headerBanner=document.querySelector('.top-banner-managed');
@@ -134,7 +136,7 @@ function bindCheckout(){
   // Checkout fields are category-specific: the Shopee screenshot upload exists ONLY for Followers orders.
   const setFields=category=>{
     const isAccount=category===true||category==='account';
-    const isVideoViews=category==='video_views'||category==='video_likes';
+    const isVideoViews=category==='video_views'||category==='video_likes'||category==='video_comments';
     const isProductLikes=category==='product_likes';
     const fields=document.getElementById('checkoutFields');
     if(!fields)return;
@@ -207,7 +209,7 @@ function bindCheckout(){
   document.querySelectorAll('.order-btn').forEach(btn=>btn.onclick=()=>openFollower(Number(btn.dataset.qty)));
   document.querySelectorAll('.account-order-btn').forEach(btn=>btn.onclick=()=>openAccount(Number(btn.dataset.accountQty)));
   document.querySelectorAll('.video-views-order-btn').forEach(btn=>btn.onclick=()=>openVideoViews(Number(btn.dataset.videoViewsQty)));
-  const openVideoLikes=qty=>{
+  const openVideoComments=qty=>{setFields('video_comments');const p=videoCommentsProducts.find(x=>x.qty===Number(qty));if(!p)return;document.getElementById('modalTitle').textContent='Order Shopee Video Custom Comments';select.innerHTML=videoCommentsProducts.map(item=>`<option value="video_comments:${item.qty}">${escapeHtml(item.name)} — ${rupiah(item.price)}</option>`).join('');select.value=`video_comments:${qty}`;document.getElementById('selectedProduct').value=select.value;document.getElementById('checkoutDescription').innerHTML='<strong>Shopee Video Custom Comments</strong><ul><li>Satu baris dihitung sebagai satu komentar.</li><li>Jumlah komentar harus sesuai paket, maksimal 10.</li></ul>';const inp=document.getElementById('commentText'),count=document.getElementById('commentCount');const upd=()=>{const n=inp.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).length;count.textContent=`${n}/${qty} komentar`;inp.setCustomValidity(n!==qty?`Paket ini memerlukan tepat ${qty} komentar terisi.`:'');};inp.addEventListener('input',upd);upd();document.getElementById('orderTotal').textContent=rupiah(p.price);modal.classList.add('show');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.getElementById('shopeeLink')?.focus();};document.querySelectorAll('.video-comments-order-btn').forEach(btn=>btn.onclick=()=>openVideoComments(Number(btn.dataset.videoCommentsQty)));const openVideoLikes=qty=>{
     setFields('video_likes');
     const p=videoLikesProducts.find(x=>x.qty===Number(qty)); if(!p)return;
     document.getElementById('modalTitle').textContent='Order Shopee Video Likes';
@@ -237,7 +239,7 @@ function bindCheckout(){
 
   select.onchange=()=>{
     const value=select.value;
-    if(value.startsWith('product_likes:')){
+    if(value.startsWith('video_comments:')){setFields('video_comments');const qty=Number(value.split(':')[1]);const p=videoCommentsProducts.find(x=>x.qty===qty);document.getElementById('modalTitle').textContent='Order Shopee Video Custom Comments';document.getElementById('checkoutDescription').innerHTML='<strong>Custom Comments</strong><p>Satu baris = satu komentar. Maksimal 10 komentar.</p>';document.getElementById('orderTotal').textContent=rupiah(p?.price||0);}else if(value.startsWith('product_likes:')){
       setFields('product_likes');const qty=Number(value.split(':')[1]);const p=productLikesProducts.find(x=>x.qty===qty);
       document.getElementById('modalTitle').textContent='Order Shopee Produk Favorite/Likes';
       document.getElementById('checkoutDescription').innerHTML=productLikesDescription;
@@ -447,7 +449,7 @@ function bindCheckout(){
     e.preventDefault();
     const value=select.value;
     const payload={};
-    if(value.startsWith('product_likes:')){
+    if(value.startsWith('video_comments:')){payload.category='video_comments';payload.qty=Number(value.split(':')[1]);const selectedProduct=videoCommentsProducts.find(x=>x.qty===payload.qty);payload.amount=Number(selectedProduct?.price||0);payload.productId=selectedProduct?.id||null;payload.productSortOrder=selectedProduct?.sort_order||null;payload.customerWhatsapp=document.getElementById('customerWa').value.trim();payload.shopeeLink=document.getElementById('shopeeLink').value.trim();const comments=document.getElementById('commentText').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(comments.length!==payload.qty||comments.length>10)throw new Error(`Masukkan tepat ${payload.qty} komentar, satu per baris (maksimal 10).`);payload.commentText=comments.join('\n');}else if(value.startsWith('product_likes:')){
       payload.category='product_likes';
       payload.qty=Number(value.split(':')[1]);
       const selectedProduct=productLikesProducts.find(x=>x.qty===payload.qty);
@@ -529,6 +531,7 @@ function bindCheckout(){
             accountContact: payload.accountContact || null,
             accountName: payload.accountName || null,
             shopeeLink: payload.shopeeLink || null,
+            commentText: payload.commentText || null,
             photoUrl: payload.photoUrl || null,
             photoPath: payload.photoPath || null,
             photoName: payload.photoName || null
@@ -551,8 +554,8 @@ function bindCheckout(){
       }
 
       sessionStorage.setItem('digitalEVO_pendingOrder', JSON.stringify({
-        product: payload.category === 'account' ? 'Account Premium' : payload.category === 'video_views' ? 'Shopee Video Views' : payload.category === 'video_likes' ? 'Shopee Video Likes' : payload.category === 'product_likes' ? 'Shopee Produk Favorite/Likes' : 'Followers Indonesia',
-        productName: payload.category === 'video_views' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Views` : payload.category === 'video_likes' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Likes` : payload.category === 'product_likes' ? `Shopee Produk ${payload.qty.toLocaleString('id-ID')} Favorite/Likes` : '',
+        product: payload.category === 'account' ? 'Account Premium' : payload.category === 'video_views' ? 'Shopee Video Views' : payload.category === 'video_likes' ? 'Shopee Video Likes' : payload.category === 'video_comments' ? 'Shopee Video Custom Comments' : payload.category === 'product_likes' ? 'Shopee Produk Favorite/Likes' : 'Followers Indonesia',
+        productName: payload.category === 'video_views' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Views` : payload.category === 'video_likes' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} Likes` : payload.category === 'video_comments' ? `Shopee Video ${payload.qty.toLocaleString('id-ID')} (Custom) Comments` : payload.category === 'product_likes' ? `Shopee Produk ${payload.qty.toLocaleString('id-ID')} Favorite/Likes` : '',
         quantity: Number(payload.qty || 0),
         amount: Number(data.data.amount || payload.amount),
         transaction: paymentId,
@@ -567,6 +570,7 @@ function bindCheckout(){
         photoUrl: payload.photoUrl || '',
         photoPath: payload.photoPath || '',
         photoName: payload.photoName || '',
+        commentText: payload.commentText || '',
         createdAt: new Date().toISOString()
       }));
 
@@ -590,7 +594,7 @@ function bindCheckout(){
 
 async function loadRemote(){
  const cfg=window.SUPABASE_CONFIG||{};if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient)return;
- try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow){const remoteSlides=Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[];sliderSettings={...sliderSettings,...sliderRow.value,slides:remoteSlides.filter(x=>x?.image&&!BUILTIN_SLIDER_IMAGES.has(String(x.image).trim()))}}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}));const remoteVideoViews=p.filter(x=>x.category==='video_views');if(remoteVideoViews.length)videoViewsProducts=remoteVideoViews.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Views'}));const remoteVideoLikes=p.filter(x=>x.category==='video_likes');if(remoteVideoLikes.length)videoLikesProducts=remoteVideoLikes.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Likes'}));const remoteProductLikes=p.filter(x=>x.category==='product_likes');productLikesProducts=remoteProductLikes.length?remoteProductLikes.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||(Number(x.qty)>=500?'assets/500.webp':Number(x.qty)>=200?'assets/200.webp':'assets/100.webp'),name:Number(x.qty).toLocaleString('id-ID')+' Favorite/Likes'})):DEFAULT_PRODUCT_LIKES.map(x=>({...x}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
+ try{const client=window.supabase.createClient(cfg.url,cfg.anonKey);const [{data:s},{data:p}]=await Promise.all([client.from('site_settings').select('key,value'),client.from('products').select('*').order('category').order('sort_order')]);if(s){const siteRow=s.find(x=>x.key==='site');const imageRow=s.find(x=>x.key==='images');if(siteRow)site={...site,...siteRow.value};if(imageRow)images={...images,...imageRow.value};const sliderRow=s.find(x=>x.key==='slider');if(sliderRow){const remoteSlides=Array.isArray(sliderRow.value?.slides)?sliderRow.value.slides:[];sliderSettings={...sliderSettings,...sliderRow.value,slides:remoteSlides.filter(x=>x?.image&&!BUILTIN_SLIDER_IMAGES.has(String(x.image).trim()))}}}if(p?.length){products=p.filter(x=>x.category==='followers').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp'}));accountProducts=p.filter(x=>x.category==='account').map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/akun-premium-product.webp'}));const remoteVideoViews=p.filter(x=>x.category==='video_views');if(remoteVideoViews.length)videoViewsProducts=remoteVideoViews.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Views'}));const remoteVideoLikes=p.filter(x=>x.category==='video_likes');if(remoteVideoLikes.length)videoLikesProducts=remoteVideoLikes.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' Likes'}));const remoteVideoComments=p.filter(x=>x.category==='video_comments');videoCommentsProducts=remoteVideoComments.length?remoteVideoComments.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||'assets/100.webp',name:Number(x.qty).toLocaleString('id-ID')+' (Custom) Comments'})):DEFAULT_VIDEO_COMMENTS.map(x=>({...x}));const remoteProductLikes=p.filter(x=>x.category==='product_likes');productLikesProducts=remoteProductLikes.length?remoteProductLikes.map(x=>({id:x.id,sort_order:x.sort_order,qty:x.qty,price:x.price,original:x.original,sold:x.sold||'',img:x.image_url||(Number(x.qty)>=500?'assets/500.webp':Number(x.qty)>=200?'assets/200.webp':'assets/100.webp'),name:Number(x.qty).toLocaleString('id-ID')+' Favorite/Likes'})):DEFAULT_PRODUCT_LIKES.map(x=>({...x}))}renderSite()}catch(err){console.warn('Supabase belum terhubung, memakai data lokal.',err)}
 }
 
 function initSalesIndicator(){
