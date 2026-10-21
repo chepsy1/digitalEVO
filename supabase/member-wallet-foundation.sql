@@ -379,13 +379,16 @@ begin
     else p_qty::text || ' Followers'
   end;
 
+  -- Production schema uses products.id BIGINT but orders.product_id UUID.
+  -- Keep product_id NULL for member orders rather than attempting an invalid cast;
+  -- product_name/category/quantity/amount preserve the purchased package details.
   insert into public.orders (
     transaction_id, customer_whatsapp, account_contact, account_name, shopee_link, comment_text,
     photo_url, photo_path, product_id, product_name, category, quantity, amount,
     payment_status, order_status, payment_method, paid_at, updated_at
   ) values (
     v_invoice, v_customer_whatsapp, v_account_contact, v_account_name, v_shopee_link, v_comment_text,
-    v_photo_url, v_photo_path, v_product.id, v_product_name, p_category, 1, v_price,
+    v_photo_url, v_photo_path, NULL, v_product_name, p_category, p_qty, v_price,
     'paid', 'queued', 'Saldo Member', v_now, v_now
   ) returning id into v_order_id;
 
