@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
     const category = String(body.category || '').trim();
     const qty = Number(body.qty);
-    if (!['followers','account','video_views','video_likes','product_likes'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
+    if (!['followers','account','video_views','video_likes','video_comments','product_likes'].includes(category) || !Number.isInteger(qty) || qty <= 0) {
       return res.status(400).json({ error: 'Produk pembayaran tidak valid.' });
     }
 
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: productData?.message || 'Gagal memverifikasi produk.' });
     }
     const product = productData?.[0];
+    if(category==='video_comments'){const order=body.order&&typeof body.order==='object'?body.order:{};const comments=String(order.commentText||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(comments.length!==qty||comments.length>10)return res.status(400).json({error:`Paket ini memerlukan tepat ${qty} komentar, maksimal 10.`});}
     const amount = Number(product?.price);
     if (!product || !Number.isSafeInteger(amount) || amount <= 0) {
       return res.status(400).json({ error: 'Produk tidak ditemukan atau harga tidak valid.' });
@@ -89,11 +90,12 @@ export default async function handler(req, res) {
         transaction_id: String(transactionId),
         customer_whatsapp: order.customerWhatsapp || null,
         account_contact: order.accountContact || null,
-        shopee_link: ['followers','video_views','video_likes','product_likes'].includes(category) ? (order.shopeeLink || null) : null,
+        shopee_link: ['followers','video_views','video_likes','video_comments','product_likes'].includes(category) ? (order.shopeeLink || null) : null,
+        comment_text: category === 'video_comments' ? (String(order.commentText || '').trim() || null) : null,
         photo_url: category === 'followers' ? (order.photoUrl || null) : null,
         photo_path: category === 'followers' ? (order.photoPath || null) : null,
         product_id: isUuid(product.id) ? product.id : null,
-        product_name: category === 'account' ? `Akun Shopee ${qty.toLocaleString('id-ID')} Followers` : category === 'video_views' ? `Shopee Video ${qty.toLocaleString('id-ID')} Views` : category === 'video_likes' ? `Shopee Video ${qty.toLocaleString('id-ID')} Likes` : category === 'product_likes' ? `Shopee Produk ${qty.toLocaleString('id-ID')} Favorite/Likes` : `${qty.toLocaleString('id-ID')} Followers`,
+        product_name: category === 'account' ? `Akun Shopee ${qty.toLocaleString('id-ID')} Followers` : category === 'video_views' ? `Shopee Video ${qty.toLocaleString('id-ID')} Views` : category === 'video_likes' ? `Shopee Video ${qty.toLocaleString('id-ID')} Likes` : category === 'video_comments' ? `Shopee Video ${qty.toLocaleString('id-ID')} (Custom) Comments` : category === 'product_likes' ? `Shopee Produk ${qty.toLocaleString('id-ID')} Favorite/Likes` : `${qty.toLocaleString('id-ID')} Followers`,
         category,
         quantity: 1,
         amount: Number.isSafeInteger(finalAmount) && finalAmount > 0 ? finalAmount : amount,
