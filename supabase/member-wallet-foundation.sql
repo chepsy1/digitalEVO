@@ -343,7 +343,7 @@ begin
     raise exception 'Pesanan memerlukan link produk/video dan WhatsApp';
   end if;
   if p_category = 'video_comments' then
-    if v_comment_text is null or cardinality(regexp_split_to_array(v_comment_text, E'\\n')) <> p_qty then
+    if v_comment_text is null or cardinality(regexp_split_to_array(v_comment_text, E'\n')) <> p_qty then
       raise exception 'Jumlah komentar harus sesuai paket';
     end if;
   end if;
