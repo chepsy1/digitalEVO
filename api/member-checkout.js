@@ -61,7 +61,40 @@ export default async function handler(req, res) {
       return reply(res, status, { success: false, error: message.replace(/^.*ERROR:\s*/i, '') });
     }
     const result = Array.isArray(data) ? data[0] : data;
-    return reply(res, 200, result || { success: true });
+    const checkout = result || { success: true };
+
+    // Notify the shop after the order and wallet debit have committed. Notification
+    // failures must not undo or misreport a successful purchase.
+    try {
+      const notifyResponse = await fetch(`https://${String(req.headers.host || '').replace(/[^a-zA-Z0-9.:-]/g, '')}/api/notify-order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-internal-notify-key': serviceKey
+        },
+        body: JSON.stringify({
+          transaction: checkout.invoice || checkout.order_id || 'Pesanan Saldo Member',
+          category,
+          qty,
+          quantity: qty,
+          amount: checkout.amount,
+          total: checkout.amount,
+          productName: checkout.product_name || category,
+          customerWhatsapp: order.customerWhatsapp || order.customer_whatsapp || '',
+          accountContact: order.accountContact || order.account_contact || '',
+          accountName: order.accountName || order.account_name || '',
+          shopeeLink: order.shopeeLink || order.shopee_link || '',
+          commentText: order.commentText || order.comment_text || '',
+          photoUrl: order.photoUrl || order.photo_url || '',
+          photoName: order.photoName || order.photo_name || ''
+        })
+      });
+      if (!notifyResponse.ok) console.error('Notifikasi pesanan saldo member gagal:', notifyResponse.status, await notifyResponse.text());
+    } catch (notifyError) {
+      console.error('Notifikasi pesanan saldo member gagal:', notifyError?.message || notifyError);
+    }
+
+    return reply(res, 200, checkout);
   } catch (error) {
     console.error('member-checkout error:', error);
     return reply(res, 500, { success: false, error: 'Terjadi kesalahan saat checkout saldo member.' });
