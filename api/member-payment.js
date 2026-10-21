@@ -190,6 +190,30 @@ export default async function handler(req, res) {
       if (!profileResponse.ok || !profiles?.[0] || profiles[0].status !== 'active') {
         return reply(res, 403, { error: 'Deposit hanya tersedia untuk member aktif.' });
       }
+      const pendingResponse = await db(
+        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at&order=created_at.desc&limit=1`
+      );
+      const pendingRows = await pendingResponse.json();
+      if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa deposit yang masih menunggu.' });
+      const pending = pendingRows?.[0];
+      if (pending) {
+        const expired = pending.expires_at && new Date(pending.expires_at).getTime() <= Date.now();
+        if (expired) {
+          const expiredResponse = await db(
+            `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
+            { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'expired' }) }
+          );
+          if (!expiredResponse.ok) return reply(res, 500, { error: 'Deposit lama belum bisa ditutup. Silakan coba lagi.' });
+        } else {
+          return reply(res, 200, {
+            success: true, type: 'deposit', amount: Number(pending.amount),
+            paymentReference: pending.payment_reference, qrisUrl: pending.qris_url,
+            qrContent: pending.qr_content, qrImage: pending.qr_image,
+            expiresAt: pending.expires_at, resumed: true
+          });
+        }
+      }
+
       const payment = await createGatewayQris(amount);
       const saved = await db('/rest/v1/member_deposit_requests', {
         method: 'POST',
