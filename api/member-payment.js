@@ -147,12 +147,21 @@ export default async function handler(req, res) {
       if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa pembayaran pendaftaran.' });
       if (pendingPayments?.[0]) {
         const pending = pendingPayments[0];
-        return reply(res, 200, {
-          success: true, type: 'registration', amount: Number(pending.amount),
-          paymentReference: pending.payment_reference, qrisUrl: pending.qris_url,
-          qrContent: pending.qr_content, qrImage: pending.qr_image, expiresAt: pending.expires_at,
-          resumed: true
-        });
+        const expired = pending.expires_at && new Date(pending.expires_at).getTime() <= Date.now();
+        if (expired) {
+          const expireResponse = await db(
+            `/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
+            { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'expired' }) }
+          );
+          if (!expireResponse.ok) return reply(res, 500, { error: 'Pembayaran pendaftaran lama belum bisa ditutup. Silakan coba lagi.' });
+        } else {
+          return reply(res, 200, {
+            success: true, type: 'registration', amount: Number(pending.amount),
+            paymentReference: pending.payment_reference, qrisUrl: pending.qris_url,
+            qrContent: pending.qr_content, qrImage: pending.qr_image, expiresAt: pending.expires_at,
+            resumed: true
+          });
+        }
       }
 
       const profileResponse = await db('/rest/v1/member_profiles?on_conflict=user_id', {
