@@ -278,6 +278,9 @@ revoke all on function public.member_credit_verified_deposit(uuid, text) from pu
 grant execute on function public.member_credit_verified_deposit(uuid, text) to service_role;
 
 
+alter table public.orders add column if not exists account_name text;
+alter table public.orders add column if not exists comment_text text;
+
 -- Atomic member wallet checkout. This function validates the live product price,
 -- creates the existing orders row, debits the wallet and writes the ledger entry
 -- in the same database transaction.
@@ -300,6 +303,7 @@ declare
   v_product_name text;
   v_customer_whatsapp text;
   v_account_contact text;
+  v_account_name text;
   v_shopee_link text;
   v_comment_text text;
   v_photo_url text;
@@ -324,6 +328,7 @@ begin
 
   v_customer_whatsapp := nullif(trim(coalesce(p_order->>'customerWhatsapp', p_order->>'customer_whatsapp', '')), '');
   v_account_contact := nullif(trim(coalesce(p_order->>'accountContact', p_order->>'account_contact', '')), '');
+  v_account_name := nullif(trim(coalesce(p_order->>'accountName', p_order->>'account_name', '')), '');
   v_shopee_link := nullif(trim(coalesce(p_order->>'shopeeLink', p_order->>'shopee_link', '')), '');
   v_comment_text := nullif(trim(coalesce(p_order->>'commentText', p_order->>'comment_text', '')), '');
   v_photo_url := nullif(trim(coalesce(p_order->>'photoUrl', p_order->>'photo_url', '')), '');
@@ -331,7 +336,7 @@ begin
 
   if p_category = 'followers' and (v_customer_whatsapp is null or v_shopee_link is null or v_photo_path is null) then
     raise exception 'Pesanan followers memerlukan WhatsApp, link/username Shopee, dan foto akun';
-  elsif p_category = 'account' and (v_account_contact is null or nullif(trim(coalesce(p_order->>'accountName','')), '') is null) then
+  elsif p_category = 'account' and (v_account_contact is null or v_account_name is null) then
     raise exception 'Pesanan akun memerlukan nama dan kontak penerima';
   elsif p_category in ('video_views','video_likes','video_comments','product_likes')
     and (v_customer_whatsapp is null or v_shopee_link is null) then
@@ -363,11 +368,11 @@ begin
   end;
 
   insert into public.orders (
-    transaction_id, customer_whatsapp, account_contact, shopee_link, comment_text,
+    transaction_id, customer_whatsapp, account_contact, account_name, shopee_link, comment_text,
     photo_url, photo_path, product_id, product_name, category, quantity, amount,
     payment_status, order_status, payment_method, paid_at, updated_at
   ) values (
-    v_invoice, v_customer_whatsapp, v_account_contact, v_shopee_link, v_comment_text,
+    v_invoice, v_customer_whatsapp, v_account_contact, v_account_name, v_shopee_link, v_comment_text,
     v_photo_url, v_photo_path, v_product.id, v_product_name, p_category, 1, v_price,
     'paid', 'queued', 'Saldo Member', v_now, v_now
   ) returning id into v_order_id;
