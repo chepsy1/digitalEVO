@@ -111,6 +111,11 @@
         <span>Media</span>
       </button>
 
+      <button class="nav-item" data-section="members">
+        <span>♙</span>
+        <span>Member</span>
+      </button>
+
       <button class="nav-item" data-section="settings">
         <span>⚙</span>
         <span>Pengaturan</span>
@@ -735,6 +740,28 @@
 
     </section>
 
+
+    <!-- MEMBER MANAGEMENT -->
+    <section id="section-members" class="admin-section">
+      <div class="section-intro">
+        <div>
+          <span class="eyebrow">MEMBER MANAGEMENT</span>
+          <h2>Kelola Member</h2>
+          <p>Kelola akses akun, reset password, dan hapus akun. Riwayat pembayaran dipertahankan setelah akun dihapus.</p>
+        </div>
+        <button id="refreshMembers" class="btn btn-secondary" type="button">Muat Ulang</button>
+      </div>
+      <section class="admin-card">
+        <div class="admin-actions-row">
+          <input id="memberSearch" type="search" placeholder="Cari nomor WhatsApp atau status..." aria-label="Cari member">
+          <span id="memberCount" class="muted"></span>
+        </div>
+        <p id="membersMsg" class="admin-msg" role="status" aria-live="polite"></p>
+        <div id="memberAdminList" class="member-admin-list">
+          <p>Tekan Muat Ulang untuk menampilkan daftar member.</p>
+        </div>
+      </section>
+    </section>
 
     <!-- SETTINGS -->
     <section id="section-settings" class="admin-section">
