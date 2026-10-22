@@ -120,6 +120,7 @@ function setupNavigation() {
         products: 'Produk',
         orders: 'Pesanan',
         payments: 'Pembayaran',
+        members: 'Kelola Member',
         content: 'Konten Website',
         media: 'Media',
         settings: 'Pengaturan'
@@ -1788,6 +1789,116 @@ function setupAnalytics() {
   }, 60 * 1000);
 }
 
+
+/* =========================
+   MEMBER MANAGEMENT
+========================= */
+async function memberAdminRequest(action, payload = {}) {
+  const { data: { session } } = await client.auth.getSession();
+  if (!session?.access_token) throw new Error('Sesi admin tidak ditemukan. Login kembali.');
+  const response = await fetch('/api/member-payment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+    body: JSON.stringify({ action, ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Permintaan member gagal.');
+  return data;
+}
+
+function renderMemberAdminList(members) {
+  const box = $('memberAdminList');
+  if (!box) return;
+  const query = String($('memberSearch')?.value || '').trim().toLowerCase();
+  const filtered = (members || []).filter(m =>
+    String(m.whatsapp || '').toLowerCase().includes(query) ||
+    String(m.status || '').toLowerCase().includes(query)
+  );
+  if ($('memberCount')) $('memberCount').textContent = filtered.length + ' member';
+  if (!filtered.length) {
+    box.innerHTML = '<p class="admin-empty">Tidak ada member yang cocok.</p>';
+    return;
+  }
+  box.innerHTML = filtered.map(m => {
+    const id = escapeAttr(m.user_id);
+    const phone = escapeHtml(m.whatsapp || 'Nomor tidak tersedia');
+    const status = String(m.status || 'unknown');
+    const label = status === 'active' ? 'Aktif' : status === 'suspended' ? 'Nonaktif' : status === 'pending_payment' ? 'Menunggu pembayaran' : status;
+    const badgeClass = status === 'active' ? 'member-status-active' : status === 'suspended' ? 'member-status-suspended' : 'member-status-pending';
+    const statusAction = status === 'active'
+      ? '<button type="button" data-member-action="suspend">Nonaktifkan</button>'
+      : status === 'suspended'
+        ? '<button type="button" data-member-action="activate">Aktifkan kembali</button>'
+        : '';
+    return '<article class="member-admin-card" data-member-id="' + id + '">' +
+      '<div class="member-admin-top"><div><strong>' + phone + '</strong><span class="member-status ' + badgeClass + '">' + escapeHtml(label) + '</span></div>' +
+      '<small>Terdaftar: ' + escapeHtml(m.created_at ? dateID(m.created_at) : '-') + '</small></div>' +
+      '<div class="member-admin-actions">' + statusAction +
+      '<button type="button" data-member-action="reset">Reset password</button>' +
+      '<button type="button" class="btn-danger" data-member-action="delete">Hapus akun</button></div></article>';
+  }).join('');
+  box.querySelectorAll('[data-member-action]').forEach(button => button.addEventListener('click', async () => {
+    const card = button.closest('[data-member-id]');
+    const memberId = card?.dataset.memberId;
+    const action = button.dataset.memberAction;
+    if (!memberId) return;
+    if (action === 'suspend' && !confirm('Nonaktifkan member ini? Member tidak dapat login atau menggunakan layanan sampai diaktifkan kembali.')) return;
+    if (action === 'activate' && !confirm('Aktifkan kembali member ini?')) return;
+    let payload = { memberId };
+    let apiAction = '';
+    if (action === 'suspend') { apiAction = 'admin_set_member_status'; payload.status = 'suspended'; }
+    if (action === 'activate') { apiAction = 'admin_set_member_status'; payload.status = 'active'; }
+    if (action === 'reset') {
+      const password = prompt('Masukkan password baru (minimal 8 karakter). Password lama tidak dapat dilihat.');
+      if (password === null) return;
+      if (password.length < 8 || password.length > 128) { msg('membersMsg', 'Password baru harus 8–128 karakter.'); return; }
+      const confirmation = prompt('Ulangi password baru untuk konfirmasi:');
+      if (confirmation === null) return;
+      if (password !== confirmation) { msg('membersMsg', 'Konfirmasi password tidak sama.'); return; }
+      apiAction = 'admin_reset_member_password'; payload.password = password;
+    }
+    if (action === 'delete') {
+      const phone = card.querySelector('.member-admin-top strong')?.textContent || 'member ini';
+      if (!confirm('Hapus akun ' + phone + ' secara permanen? Riwayat transaksi dan pembayaran akan tetap disimpan tanpa tautan ke akun.')) return;
+      if (prompt('Ketik HAPUS untuk mengonfirmasi penghapusan akun:') !== 'HAPUS') { msg('membersMsg', 'Penghapusan dibatalkan.'); return; }
+      apiAction = 'admin_delete_member';
+    }
+    button.disabled = true;
+    msg('membersMsg', 'Memproses permintaan...');
+    try {
+      await memberAdminRequest(apiAction, payload);
+      msg('membersMsg', action === 'reset' ? 'Password member berhasil direset.' : action === 'delete' ? 'Akun dihapus. Riwayat pembayaran tetap disimpan.' : action === 'suspend' ? 'Member berhasil dinonaktifkan.' : 'Member berhasil diaktifkan kembali.');
+      await loadAdminMembers();
+    } catch (error) {
+      msg('membersMsg', error.message || 'Aksi gagal.');
+      button.disabled = false;
+    }
+  }));
+}
+
+async function loadAdminMembers() {
+  const box = $('memberAdminList');
+  if (!box) return;
+  box.innerHTML = '<p>Memuat daftar member...</p>';
+  try {
+    const result = await memberAdminRequest('admin_list_members');
+    window.__digitalEvoMembers = result.members || [];
+    renderMemberAdminList(window.__digitalEvoMembers);
+    msg('membersMsg', 'Daftar member berhasil dimuat.');
+  } catch (error) {
+    box.innerHTML = '<p class="admin-empty">Daftar member gagal dimuat.</p>';
+    msg('membersMsg', error.message || 'Gagal memuat member.');
+  }
+}
+
+function setupMemberAdmin() {
+  $('refreshMembers')?.addEventListener('click', loadAdminMembers);
+  $('memberSearch')?.addEventListener('input', () => {
+    // Render from the most recent server response without additional API calls.
+    if (Array.isArray(window.__digitalEvoMembers)) renderMemberAdminList(window.__digitalEvoMembers);
+  });
+}
+
 /* =========================
    REFRESH
 ========================= */
@@ -1842,10 +1953,12 @@ async function showPanel() {
   setupSidebarCollapse();
   setupProductTabs();
   setupAnalytics();
+  setupMemberAdmin();
 
   try {
     await loadAll();
     await loadReviewAdmin();
+    await loadAdminMembers();
     if (orderRefreshTimer) clearInterval(orderRefreshTimer);
     orderRefreshTimer = setInterval(() => { if (client && !document.hidden) loadOrders(); }, 30000);
   } catch (error) {
