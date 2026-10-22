@@ -4,6 +4,7 @@
   const notice = document.getElementById("notice");
   const dashboard = document.getElementById("member-dashboard");
   const memberProductCatalog = document.getElementById("member-product-catalog");
+  const memberIntro = document.getElementById("member-intro");
   const memberProductGrid = document.getElementById("member-product-grid");
   const paymentPanel = document.getElementById("payment-panel");
   const registrationAction = document.getElementById("registration-action");
@@ -293,6 +294,8 @@
     const result = await api("status");
     const profile = result.profile;
     dashboard.hidden = false;
+    if (memberIntro) memberIntro.hidden = true;
+    if (memberProductCatalog) memberProductCatalog.hidden = profile?.status !== "active";
     document.getElementById("wallet-balance").textContent = rupiah(result.balance);
     document.getElementById("member-phone-label").textContent = profile?.whatsapp || "";
     const active = profile?.status === "active";
@@ -437,6 +440,7 @@
   document.getElementById("logout-button").addEventListener("click", async () => {
     if (client) await client.auth.signOut();
     dashboard.hidden = true;
+    if (memberIntro) memberIntro.hidden = false;
     if (memberProductCatalog) memberProductCatalog.hidden = true;
     paymentPanel.hidden = true;
     activePaymentReference = null;
