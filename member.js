@@ -62,30 +62,35 @@
     document.getElementById("payment-reference").textContent = "Referensi pembayaran: " + payment.paymentReference;
     const image = document.getElementById("payment-qr-image");
     const canvas = document.getElementById("payment-qr-canvas");
-    const imageUrl = payment.qrisUrl || payment.qrImage || "";
-    canvas.hidden = true;
-    if (imageUrl && /^(https?:\/\/|data:image\/)/i.test(imageUrl)) {
-      image.src = imageUrl;
-      image.hidden = false;
-    } else {
-      image.removeAttribute("src");
-      image.hidden = true;
-    }
     const qrContent = document.getElementById("payment-qr-content");
+    const link = document.getElementById("payment-open-link");
+
+    // qrisUrl is commonly a payment/deep link, not an image. Never render it as <img>.
+    const imageUrl = payment.qrImage || (/^data:image\\//i.test(payment.qrisUrl || "") ? payment.qrisUrl : "");
+    image.hidden = true;
+    canvas.hidden = true;
     qrContent.textContent = payment.qrContent || "";
-    qrContent.hidden = !payment.qrContent;
-    if (payment.qrContent && window.QRCode?.toCanvas) {
+    qrContent.hidden = true;
+
+    let rendered = false;
+    if (payment.qrContent && window.QRCode && typeof window.QRCode.toCanvas === "function") {
       try {
         await window.QRCode.toCanvas(canvas, payment.qrContent, { width: 280, margin: 2 });
         canvas.hidden = false;
-        image.hidden = true;
-        qrContent.hidden = true;
+        rendered = true;
       } catch (error) {
         console.error("QRIS canvas gagal dibuat:", error);
       }
     }
-    const link = document.getElementById("payment-open-link");
-    if (payment.qrisUrl && /^https?:\/\//i.test(payment.qrisUrl)) {
+    if (!rendered && imageUrl) {
+      image.src = imageUrl;
+      image.hidden = false;
+    } else {
+      image.removeAttribute("src");
+    }
+    if (!rendered && !imageUrl && payment.qrContent) qrContent.hidden = false;
+
+    if (payment.qrisUrl && /^https?:\\/\\//i.test(payment.qrisUrl)) {
       link.href = payment.qrisUrl;
       link.hidden = false;
     } else {
@@ -94,7 +99,6 @@
     }
     paymentPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-
 
   const categoryLabels = {
     followers: "Shopee Followers", account: "Akun Shopee",
