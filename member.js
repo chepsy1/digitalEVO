@@ -252,16 +252,18 @@
     const phone = normalizePhone(form.get("phone"));
     setNotice("Membuat akun member...");
     try {
-      const { data, error } = await client.auth.signUp({
-        email: internalEmail(phone),
-        password,
-        options: { data: { whatsapp: phone, auth_method: "digitalevo_whatsapp_password" } }
+      const response = await fetch("/api/member-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "register", phone, password })
       });
-      if (error) throw error;
-      if (!data.session) {
-        setNotice("Pendaftaran akun tercatat, tetapi Supabase masih meminta konfirmasi email. Untuk sistem tanpa OTP/email, nonaktifkan Confirm email pada proyek staging lalu gunakan nomor dan password yang sama untuk mendaftar ulang jika diperlukan.", true);
-        return;
-      }
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Pendaftaran gagal.");
+      const { error: sessionError } = await client.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token
+      });
+      if (sessionError) throw sessionError;
       await refreshStatus();
       await createRegistration();
     } catch (error) {
@@ -276,11 +278,19 @@
     setNotice("Memeriksa akun...");
     try {
       const phone = normalizePhone(form.get("phone"));
-      const { error } = await client.auth.signInWithPassword({
-        email: internalEmail(phone),
-        password: String(form.get("password") || "")
+      const password = String(form.get("password") || "");
+      const response = await fetch("/api/member-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", phone, password })
       });
-      if (error) throw error;
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || "Login gagal.");
+      const { error: sessionError } = await client.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token
+      });
+      if (sessionError) throw sessionError;
       await refreshStatus();
       const resumed = await resumePendingPayment();
       if (!resumed) setNotice("Login berhasil.");
