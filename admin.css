@@ -1193,3 +1193,20 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 .admin-comments-modal-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 .admin-comments-modal-actions button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:520px){.admin-comments-modal{padding:15px}.admin-comments-modal-text{min-height:180px}.admin-comments-modal-actions button{flex:1}}
+
+
+/* Member management */
+.member-admin-list { display:grid; gap:12px; margin-top:14px; }
+.member-admin-card { border:1px solid var(--border, #e5e7eb); border-radius:14px; padding:16px; background:var(--card, #fff); }
+.member-admin-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+.member-admin-top > div { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.member-admin-top small { color:var(--muted, #6b7280); }
+.member-status { display:inline-flex; align-items:center; border-radius:999px; padding:4px 9px; font-size:12px; font-weight:700; }
+.member-status-active { color:#166534; background:#dcfce7; }
+.member-status-suspended { color:#991b1b; background:#fee2e2; }
+.member-status-pending { color:#92400e; background:#fef3c7; }
+.member-admin-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.member-admin-actions button { border:1px solid #d1d5db; border-radius:8px; padding:8px 12px; background:#fff; color:#222; font:inherit; cursor:pointer; }
+.member-admin-actions button:disabled { opacity:.55; cursor:wait; }
+.member-admin-actions .btn-danger { color:#991b1b; border-color:#fecaca; background:#fff7f7; }
+#memberSearch { max-width:420px; width:100%; border:1px solid #d1d5db; border-radius:9px; padding:10px 12px; font:inherit; }
