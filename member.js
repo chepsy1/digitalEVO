@@ -296,6 +296,22 @@
     }
   });
 
+  // Remember only the WhatsApp number; never persist the password.
+  const rememberCheckbox = document.getElementById("remember-me");
+  const loginPhoneInput = document.getElementById("login-phone");
+  try {
+    const rememberedPhone = localStorage.getItem("digitalevo_member_remembered_phone");
+    if (rememberedPhone) {
+      loginPhoneInput.value = rememberedPhone;
+      rememberCheckbox.checked = true;
+    }
+  } catch (_) {}
+  rememberCheckbox.addEventListener("change", () => {
+    if (!rememberCheckbox.checked) {
+      try { localStorage.removeItem("digitalevo_member_remembered_phone"); } catch (_) {}
+    }
+  });
+
   document.getElementById("login-form").addEventListener("submit", async event => {
     event.preventDefault();
     if (!client) return setNotice("Layanan autentikasi belum siap. Muat ulang halaman.", true);
@@ -304,6 +320,10 @@
     try {
       const phone = normalizePhone(form.get("phone"));
       const password = String(form.get("password") || "");
+      try {
+        if (rememberCheckbox.checked) localStorage.setItem("digitalevo_member_remembered_phone", String(form.get("phone") || ""));
+        else localStorage.removeItem("digitalevo_member_remembered_phone");
+      } catch (_) {}
       const response = await fetch("/api/member-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
