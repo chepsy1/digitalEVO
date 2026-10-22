@@ -8,8 +8,10 @@
 - [ ] Confirm the preview uses the staging Supabase URL in browser network requests and server logs.
 - [ ] Apply supabase/member-wallet-foundation.sql only to staging; save the migration output and inspect RLS/grants/functions.
 - [ ] Apply `supabase/migrations/20261022_member_whatsapp_password_auth.sql` in staging after the member foundation migration. Verify member registration creates a confirmed internal-email identity server-side, sends no email, and requires no Phone Auth provider or OTP.
+- [ ] Apply `supabase/migrations/20261023_member_auth_rate_limits.sql` in staging before testing the latest `api/member-payment.js`; the endpoint now fails closed if this rate-limit RPC is unavailable.
 - [ ] Verify login exchanges WhatsApp + password for a valid session, duplicate phone registration is rejected, and no password is stored in application tables or logs.
-- [ ] Before public launch, implement and test persistent server-side rate limiting for registration and login. Decide a secure password recovery flow; do not invent an email/OTP reset path.
+- [ ] Verify registration rate limits (3 attempts per phone/hour and 10 per IP/hour) and login limits (10 attempts per phone/15 minutes and 30 per IP/15 minutes); ensure a 429 response is returned when limits are exceeded.
+- [ ] Decide a secure password recovery flow before public launch. Because internal emails are not deliverable and OTP/SMS is intentionally avoided, do not enable an email/OTP reset path or promise account recovery until a safe process is implemented.
 - [ ] Confirm member price editing remains protected by the existing admin authorization policy.
 
 ## 1. Registration and bonus
