@@ -62,16 +62,23 @@
     document.getElementById("payment-reference").textContent = "Referensi pembayaran: " + payment.paymentReference;
     const image = document.getElementById("payment-qr-image");
     const canvas = document.getElementById("payment-qr-canvas");
-    const imageUrl = payment.qrisUrl || payment.qrImage || "";
+    const qrContent = document.getElementById("payment-qr-content");
+    const qrImage = String(payment.qrImage || "");
+    const qrisUrl = String(payment.qrisUrl || "");
     canvas.hidden = true;
-    if (imageUrl && /^(https?:\/\/|data:image\/)/i.test(imageUrl)) {
+    image.hidden = true;
+    image.removeAttribute("src");
+
+    // Only treat qr_image (or an explicit data:image URL) as an image.
+    // qris_url is commonly a payment page URL, not an image file.
+    const imageUrl = /^data:image\//i.test(qrImage) ? qrImage :
+      (/^https?:\/\//i.test(qrImage) ? qrImage :
+      (/^data:image\//i.test(qrisUrl) ? qrisUrl : ""));
+    if (imageUrl) {
       image.src = imageUrl;
       image.hidden = false;
-    } else {
-      image.removeAttribute("src");
-      image.hidden = true;
     }
-    const qrContent = document.getElementById("payment-qr-content");
+
     qrContent.textContent = payment.qrContent || "";
     qrContent.hidden = !payment.qrContent;
     if (payment.qrContent && window.QRCode?.toCanvas) {
@@ -82,6 +89,8 @@
         qrContent.hidden = true;
       } catch (error) {
         console.error("QRIS canvas gagal dibuat:", error);
+        // Keep the raw payload available as a fallback if QR rendering fails.
+        qrContent.hidden = false;
       }
     }
     const link = document.getElementById("payment-open-link");
@@ -214,7 +223,7 @@
     if (!result.pending.qrisUrl && !result.pending.qrContent && !result.pending.qrImage) {
       setNotice("Pembayaran lama ditemukan, tetapi data gambar QRIS tidak tersedia. Tekan Periksa Pembayaran atau hubungi admin jika QRIS belum dibayar.", true);
     } else {
-      setNotice("Pembayaran yang masih menunggu berhasil dipulihkan. Anda dapat melanjutkan pembayaran atau memeriksa statusnya.");
+      setNotice("Ada pembayaran yang masih menunggu. Periksa detail QRIS di bawah atau tekan Periksa Pembayaran.");
     }
     return true;
   }
