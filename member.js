@@ -85,10 +85,22 @@
     if (!rendered && imageUrl) {
       image.src = imageUrl;
       image.hidden = false;
-    } else {
+      rendered = true;
+    } else if (!rendered && payment.qrContent) {
+      // Fallback image renderer in case the QRCode script/CDN fails to load.
+      // QRIS payload is payment data, not a credential.
+      image.src = "https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=2&data=" + encodeURIComponent(payment.qrContent);
+      image.hidden = false;
+      image.onerror = () => {
+        image.hidden = true;
+        image.removeAttribute("src");
+        qrContent.hidden = false;
+      };
+      rendered = true;
+    } else if (!imageUrl) {
       image.removeAttribute("src");
     }
-    if (!rendered && !imageUrl && payment.qrContent) qrContent.hidden = false;
+    if (!rendered && payment.qrContent) qrContent.hidden = false;
 
     if (/^https?:/.test(String(payment.qrisUrl || "").toLowerCase())) {
       link.href = payment.qrisUrl;
