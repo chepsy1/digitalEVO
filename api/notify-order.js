@@ -110,7 +110,9 @@ async function sendEmailNotification(order) {
         ? 'Shopee Video Views'
         : order.category === 'video_likes'
           ? 'Shopee Video Likes'
-          : order.category === 'product_likes'
+          : order.category === 'video_comments'
+            ? 'Shopee Video Custom Comments'
+            : order.category === 'product_likes'
             ? 'Shopee Produk Favorite/Likes'
             : (order.category || 'Pesanan');
 

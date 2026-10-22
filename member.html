@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Member DigitalEVO: login, deposit saldo, dan harga khusus member.">
+  <title>Member DigitalEVO</title>
+  <link rel="stylesheet" href="/member.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Kembali ke DigitalEVO"><span>digital</span><b>EVO</b></a>
+    <a class="back-link" href="/">Kembali ke toko</a>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <span class="eyebrow">DIGITALEVO MEMBERSHIP</span>
+      <h1>Transaksi Tanpa Login Tetap Bisa</h1>
+      <p>Anda <strong>tidak harus login</strong> untuk melakukan transaksi. Namun dengan memiliki akun, Anda akan mendapatkan keuntungan potongan harga dan dapat mendaftar sebagai reseller.</p>
+      <div class="benefit-row">
+        <span>Biaya daftar sekali seumur hidup Rp99.000</span>
+        <span>Bonus saldo awal setelah mendaftar Rp15.000</span>
+        <span>Akses Harga khusus member/reseller</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="panel-title">
+      <div class="tabs" role="tablist" aria-label="Akses member">
+        <button class="tab active" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="login-view">Login</button>
+        <button class="tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="register-view">Daftar Member</button>
+      </div>
+      <div class="notice" id="notice" role="status" aria-live="polite">Daftar atau login untuk mengakses layanan member.</div>
+      <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
+        <div class="dashboard-heading"><div><span class="eyebrow">AKUN MEMBER</span><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
+        <p id="member-phone-label" class="muted"></p>
+        <div class="wallet-card"><span>Saldo wallet</span><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran terverifikasi.</small></div>
+        <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
+        <section id="wallet-checkout" class="dashboard-action" hidden>
+          <h3>Belanja dengan saldo member</h3>
+          <p class="muted">Pilih produk dan isi data pesanan. Harga member ditentukan oleh admin.</p>
+          <form id="wallet-checkout-form">
+            <label for="wallet-product">Produk dan paket</label>
+            <select id="wallet-product" required><option value="">Memuat produk...</option></select>
+            <div id="wallet-order-fields"></div>
+            <p class="fine-print" id="wallet-price">Pilih produk untuk melihat harga.</p>
+            <button class="primary" type="submit">Bayar dengan Saldo</button>
+          </form>
+          <div id="wallet-order-result" class="fine-print" aria-live="polite"></div>
+        </section>
+        <form id="deposit-form" class="dashboard-action" hidden>
+          <label for="deposit-amount">Nominal deposit (Rp)</label>
+          <input id="deposit-amount" name="amount" type="number" min="1000" max="10000000" step="1000" placeholder="Contoh: 50000" required>
+          <button class="primary" type="submit">Buat QRIS Deposit</button>
+        </form>
+      </section>
+      <section id="payment-panel" class="payment-panel" hidden aria-live="polite">
+        <h3 id="payment-title">Pembayaran</h3><p id="payment-description" class="muted"></p>
+        <img id="payment-qr-image" alt="QRIS pembayaran" hidden>
+        <canvas id="payment-qr-canvas" aria-label="QRIS pembayaran" hidden></canvas>
+        <pre id="payment-qr-content" hidden></pre>
+        <p id="payment-reference" class="fine-print"></p>
+        <a id="payment-open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Buka QRIS pembayaran</a>
+        <button id="check-payment-button" class="primary" type="button">Periksa Pembayaran</button>
+      </section>
+      <div id="login-view" class="form-view" role="tabpanel" aria-labelledby="login-tab">
+        <div class="login-brand" aria-label="DigitalEVO"><span class="login-logo-word"><span>digital</span><strong>EVO</strong></span></div>
+        <h2 id="panel-title">LOGIN</h2>
+        <p class="muted">Masuk menggunakan nomor WhatsApp dan password.</p>
+        <form id="login-form">
+          <label for="login-phone">Nomor WhatsApp</label>
+          <input id="login-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Contoh: 081234567890" required>
+          <label for="login-password">Password</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
+          <label class="remember-row" for="remember-me"><input id="remember-me" name="rememberMe" type="checkbox"> <span>Remember me</span></label>
+          <button class="primary" type="submit">↪ LOGIN</button>
+        </form>
+        <p class="form-foot">Belum menjadi member? <button class="text-button" type="button" data-switch="register">Daftar sekarang</button></p>
+      </div>
+      <div id="register-view" class="form-view" role="tabpanel" aria-labelledby="register-tab" hidden>
+        <h2>Daftar Member</h2>
+        <p class="muted">Buat akun menggunakan nomor WhatsApp dan password.</p>
+        <div class="fee-card">
+          <div><span>Biaya keanggotaan sekali bayar</span><strong>Rp99.000</strong></div>
+          <div><span>Bonus saldo setelah pembayaran terverifikasi</span><strong>Rp15.000</strong></div>
+        </div>
+        <form id="register-form">
+          <label for="register-phone">Nomor WhatsApp</label>
+          <input id="register-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Contoh: 081234567890" required>
+          <label for="register-password">Buat password</label>
+          <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Minimal 8 karakter" required>
+          <label for="register-confirm">Ulangi password</label>
+          <input id="register-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Ulangi password" required>
+          <button class="primary" type="submit">Lanjut ke Pendaftaran</button>
+        </form>
+        <p class="fine-print">Akun member baru aktif dan bonus saldo diberikan setelah pembayaran pendaftaran berhasil diverifikasi server.</p>
+      </div>
+    </section>
+    <p class="security-note">Jangan bagikan password kepada siapa pun. Saldo dan transaksi harus diproses oleh server yang aman.</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <script src="/supabase-config.js" defer></script>
+  <script src="/member.js?v=20261023-member-redirect" defer></script>
+</body>
+</html>
