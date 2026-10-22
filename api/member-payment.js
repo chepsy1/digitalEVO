@@ -87,7 +87,7 @@ async function gatewayPaymentStatus(paymentReference, amount, startTime) {
 
 
 function normalizedMemberPhone(value) {
-  let phone = String(value || '').replace(/[\\s().-]/g, '');
+  let phone = String(value || '').replace(/[\s().-]/g, '');
   if (phone.startsWith('00')) phone = '+' + phone.slice(2);
   else if (phone.startsWith('0')) phone = '+62' + phone.slice(1);
   else if (phone.startsWith('62')) phone = '+' + phone;
@@ -96,11 +96,11 @@ function normalizedMemberPhone(value) {
 }
 
 function memberInternalEmail(phone) {
-  return phone.replace(/\\D/g, '') + '@members.digitalevo.store';
+  return phone.replace(/\D/g, '') + '@members.digitalevo.store';
 }
 
 async function memberAuthAction(req, res, action) {
-  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (!base || !serviceKey || !anonKey) {
@@ -110,7 +110,7 @@ async function memberAuthAction(req, res, action) {
 
   const phone = normalizedMemberPhone(req.body?.phone);
   const password = String(req.body?.password || '');
-  if (!/^\\+628[0-9]{7,12}$/.test(phone)) {
+  if (!/^\+628[0-9]{7,12}$/.test(phone)) {
     reply(res, 400, { error: 'Nomor WhatsApp Indonesia tidak valid. Gunakan format 08xxxxxxxxxx.' });
     return true;
   }
