@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Member DigitalEVO: login, deposit saldo, dan harga khusus member.">
+  <meta name="description" content="Login Member DigitalEVO dan katalog produk dengan harga khusus reseller.">
   <title>Member DigitalEVO</title>
   <link rel="stylesheet" href="/member.css">
 </head>
@@ -13,15 +13,10 @@
     <a class="back-link" href="/">Kembali ke toko</a>
   </header>
   <main class="shell">
-    <section class="intro">
-      <span class="eyebrow">DIGITALEVO MEMBERSHIP</span>
-      <h1>Transaksi Tanpa Login Tetap Bisa</h1>
-      <p>Anda <strong>tidak harus login</strong> untuk melakukan transaksi. Namun dengan memiliki akun, Anda akan mendapatkan keuntungan potongan harga dan dapat mendaftar sebagai reseller.</p>
-      <div class="benefit-row">
-        <span>Biaya daftar sekali seumur hidup Rp99.000</span>
-        <span>Bonus saldo awal setelah mendaftar Rp15.000</span>
-        <span>Akses Harga khusus member/reseller</span>
-      </div>
+    <section id="member-product-catalog" class="member-product-catalog" hidden aria-label="Katalog harga khusus member">
+      <h2>Produk Khusus Member</h2>
+      <p class="muted">Pilih produk untuk melihat paket dan harga member.</p>
+      <div id="member-product-grid" class="member-product-grid"></div>
     </section>
 
     <section class="panel" aria-labelledby="panel-title">
@@ -31,7 +26,7 @@
       </div>
       <div class="notice" id="notice" role="status" aria-live="polite">Daftar atau login untuk mengakses layanan member.</div>
       <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
-        <div class="dashboard-heading"><div><span class="eyebrow">AKUN MEMBER</span><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
+        <div class="dashboard-heading"><div><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
         <p id="member-phone-label" class="muted"></p>
         <div class="wallet-card"><span>Saldo wallet</span><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran terverifikasi.</small></div>
         <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
@@ -39,8 +34,8 @@
           <h3>Belanja dengan saldo member</h3>
           <p class="muted">Pilih produk dan isi data pesanan. Harga member ditentukan oleh admin.</p>
           <form id="wallet-checkout-form">
-            <label for="wallet-product">Produk dan paket</label>
-            <select id="wallet-product" required><option value="">Memuat produk...</option></select>
+            <label for="wallet-product">Produk dan paket terpilih</label>
+            <select id="wallet-product" required><option value="">Pilih produk dari katalog</option></select>
             <div id="wallet-order-fields"></div>
             <p class="fine-print" id="wallet-price">Pilih produk untuk melihat harga.</p>
             <button class="primary" type="submit">Bayar dengan Saldo</button>
