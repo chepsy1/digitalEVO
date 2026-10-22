@@ -615,7 +615,7 @@ function renderOrders() {
           ${tabOrders.map(order => `
             <tr>
               <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
-              <td>${order.account_name ? `<div><strong>Nama akun:</strong> ${escapeHtml(order.account_name)}</div>` : ''}${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
+              <td>${(['saldo member', 'member wallet'].includes(String(order.payment_method || '').trim().toLowerCase()) || String(order.transaction_id || '').startsWith('MEMBER-') ? '<div style="color:#dc2626;font-weight:800;font-size:12px;margin-bottom:4px;">Akun Member</div>' : '')}${order.account_name ? `<div><strong>Nama akun:</strong> ${escapeHtml(order.account_name)}</div>` : ''}${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
               <td class="order-shopee-link">${renderShopeeInput(order)}</td>
               <td>${escapeHtml(order.product_name || order.product || '-')}</td>
               <td>${Number(order.quantity || order.qty || 0).toLocaleString('id-ID')}</td>
