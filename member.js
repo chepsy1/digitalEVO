@@ -372,9 +372,14 @@
         setNotice(result.message || "Pembayaran belum terdeteksi. Jika baru membayar, tunggu sebentar lalu coba lagi.");
       } else {
         setNotice(result.type === "registration" ? "Pembayaran terverifikasi. Member aktif dan bonus saldo diproses." : "Deposit terverifikasi dan saldo berhasil diperbarui.");
-        await refreshStatus();
+        const refreshed = await refreshStatus();
         paymentPanel.hidden = true;
         activePaymentReference = null;
+        if (result.type === "registration" && refreshed?.profile?.status === "active") {
+          try { localStorage.setItem("digitalevo_member_welcome_popup", "1"); } catch (_) {}
+          window.location.assign("/?memberWelcome=1");
+          return;
+        }
       }
     } catch (error) {
       setNotice(error.message || "Gagal memeriksa pembayaran.", true);
