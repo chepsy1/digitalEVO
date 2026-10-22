@@ -125,6 +125,62 @@ async function checkMemberAuthRateLimit(action, phone, req) {
   return await response.json();
 }
 
+
+async function requireAdmin(req) {
+  const user = await currentUser(req);
+  if (!user) return { error: 'Sesi admin tidak valid. Silakan login kembali.', status: 401 };
+  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const response = await fetch(`${base}/rest/v1/rpc/is_admin`, { method: 'POST', headers: { apikey: process.env.SUPABASE_ANON_KEY, Authorization: String(req.headers.authorization || ''), 'Content-Type': 'application/json' }, body: '{}' });
+  if (!response.ok || await response.json().catch(() => false) !== true) return { error: 'Akses khusus admin diperlukan.', status: 403 };
+  return { user };
+}
+
+async function adminMemberAction(req, res, action) {
+  const authorization = String(req.headers.authorization || '');
+  if (!authorization.startsWith('Bearer ')) return reply(res, 401, { error: 'Silakan login sebagai admin.' });
+  const admin = await requireAdmin(req);
+  if (admin.error) return reply(res, admin.status, { error: admin.error });
+  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const memberId = String(req.body?.memberId || '');
+  if (action !== 'admin_list_members' && !UUID_RE.test(memberId)) return reply(res, 400, { error: 'ID member tidak valid.' });
+  if (action === 'admin_list_members') {
+    const response = await db('/rest/v1/member_profiles?select=user_id,whatsapp,status,activated_at,created_at,updated_at&order=created_at.desc&limit=1000');
+    const rows = await response.json().catch(() => []);
+    if (!response.ok) return reply(res, 500, { error: 'Gagal memuat daftar member.' });
+    return reply(res, 200, { success: true, members: rows });
+  }
+  const profileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(memberId)}&select=user_id,whatsapp,status&limit=1`);
+  const profiles = await profileResponse.json().catch(() => []);
+  if (!profileResponse.ok || !profiles?.[0]) return reply(res, 404, { error: 'Akun member tidak ditemukan.' });
+  const profile = profiles[0];
+  if (action === 'admin_set_member_status') {
+    const status = String(req.body?.status || '');
+    if (!['active', 'suspended'].includes(status)) return reply(res, 400, { error: 'Status member tidak valid.' });
+    const update = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(memberId)}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ status, updated_at: new Date().toISOString() }) });
+    if (!update.ok) return reply(res, 500, { error: 'Gagal memperbarui status member.' });
+    const authUpdate = await fetch(`${base}/auth/v1/admin/users/${encodeURIComponent(memberId)}`, { method: 'PUT', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ban_duration: status === 'suspended' ? '876000h' : 'none' }) });
+    if (!authUpdate.ok) return reply(res, 502, { error: 'Status profil berubah, tetapi status akses login gagal diperbarui. Periksa akun ini.' });
+    return reply(res, 200, { success: true });
+  }
+  if (action === 'admin_reset_member_password') {
+    const password = String(req.body?.password || '');
+    if (password.length < 8 || password.length > 128) return reply(res, 400, { error: 'Password baru harus 8–128 karakter.' });
+    const response = await fetch(`${base}/auth/v1/admin/users/${encodeURIComponent(memberId)}`, { method: 'PUT', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password, ban_duration: profile.status === 'suspended' ? '876000h' : 'none' }) });
+    if (!response.ok) return reply(res, 502, { error: 'Password gagal diperbarui. Coba lagi.' });
+    return reply(res, 200, { success: true });
+  }
+  if (action === 'admin_delete_member') {
+    for (const table of ['member_registration_payments', 'member_deposit_requests', 'member_wallet_transactions']) {
+      const detach = await db(`/rest/v1/${table}?user_id=eq.${encodeURIComponent(memberId)}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ user_id: null }) });
+      if (!detach.ok) return reply(res, 500, { error: 'Riwayat pembayaran belum aman untuk dihapus. Terapkan migrasi database pengelolaan member terlebih dahulu.' });
+    }
+    const deleted = await fetch(`${base}/auth/v1/admin/users/${encodeURIComponent(memberId)}`, { method: 'DELETE', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
+    if (!deleted.ok) return reply(res, 500, { error: 'Akun gagal dihapus. Riwayat transaksi tetap dipertahankan.' });
+    return reply(res, 200, { success: true });
+  }
+  return reply(res, 400, { error: 'Aksi admin tidak dikenal.' });
+}
+
 async function memberAuthAction(req, res, action) {
   const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -156,6 +212,13 @@ async function memberAuthAction(req, res, action) {
   }
 
   const email = memberInternalEmail(phone);
+  if (action === 'login') {
+    const lookup = await db(`/rest/v1/member_profiles?whatsapp=eq.${encodeURIComponent(phone)}&select=status&limit=1`);
+    const rows = await lookup.json().catch(() => []);
+    if (!lookup.ok) return reply(res, 503, { error: 'Status akun belum dapat diperiksa. Coba lagi.' });
+    if (rows?.[0]?.status === 'suspended') return reply(res, 403, { error: 'Akun Member Anda sedang dinonaktifkan. Hubungi admin DigitalEVO.' });
+    if (rows?.[0]?.status === 'deleted') return reply(res, 403, { error: 'Akun Member ini sudah dihapus.' });
+  }
   if (action === 'register') {
     const createResponse = await fetch(`${base}/auth/v1/admin/users`, {
       method: 'POST',
@@ -211,6 +274,7 @@ export default async function handler(req, res) {
   try {
     const action = String(req.body?.action || '');
     if (action === 'register' || action === 'login') return await memberAuthAction(req, res, action);
+    if (action.startsWith('admin_')) return await adminMemberAction(req, res, action);
     const user = await currentUser(req);
     if (!user) return reply(res, 401, { error: 'Silakan login sebagai member terlebih dahulu.' });
     const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
