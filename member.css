@@ -277,3 +277,9 @@ input:focus{outline:3px solid #ffbd0028;border-color:#f5b000}
   .member-product-category-grid .member-product-card h4 { font-size: 12px; }
   .member-product-card .member-price { font-size: 15px; }
 }
+
+
+/* Membership benefits: green bullet dots */
+#member-intro .benefit-row span{display:flex;align-items:flex-start;gap:10px;padding:0;border:0;border-radius:0;background:transparent;font-size:14px;font-weight:650;line-height:1.6}
+#member-intro .benefit-row span:before{content:"";display:block;flex:0 0 9px;width:9px;height:9px;margin-top:7px;border-radius:50%;background:#22a447;color:transparent;box-shadow:0 0 0 3px #22a4471a}
+#member-intro .benefit-row strong{margin-left:4px}
