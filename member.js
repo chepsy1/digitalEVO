@@ -209,6 +209,15 @@
 
   async function resumePendingPayment() {
     const result = await api("resume_pending");
+    if (result.paid) {
+      await refreshStatus();
+      paymentPanel.hidden = true;
+      activePaymentReference = null;
+      setNotice(result.type === "registration"
+        ? "Pembayaran lama terverifikasi. Member sudah diaktifkan."
+        : "Deposit lama terverifikasi dan saldo sudah diperbarui.");
+      return true;
+    }
     if (!result.pending) return false;
     await showPayment(result.pending);
     if (!result.pending.qrisUrl && !result.pending.qrContent && !result.pending.qrImage) {
