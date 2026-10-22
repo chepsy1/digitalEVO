@@ -1,3 +1,5 @@
+import { createHmac } from 'node:crypto';
+
 function reply(res, status, body) {
   return res.status(status).json(body);
 }
@@ -99,6 +101,30 @@ function memberInternalEmail(phone) {
   return phone.replace(/\D/g, '') + '@members.digitalevo.store';
 }
 
+function memberRateLimitHash(value) {
+  return createHmac('sha256', process.env.SUPABASE_SERVICE_ROLE_KEY)
+    .update(String(value || 'unknown'))
+    .digest('hex');
+}
+
+async function checkMemberAuthRateLimit(action, phone, req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const ip = forwarded || String(req.headers['x-real-ip'] || '').trim() || 'unknown';
+  const response = await db('/rest/v1/rpc/member_auth_rate_limit', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_action: action,
+      p_phone_hash: memberRateLimitHash(phone),
+      p_ip_hash: memberRateLimitHash(ip)
+    })
+  });
+  if (!response.ok) {
+    console.error('Member auth rate limit check failed:', response.status, await response.text());
+    throw new Error('Pemeriksaan keamanan login sedang tidak tersedia. Coba lagi nanti.');
+  }
+  return await response.json();
+}
+
 async function memberAuthAction(req, res, action) {
   const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -116,6 +142,16 @@ async function memberAuthAction(req, res, action) {
   }
   if (password.length < 8 || password.length > 128) {
     reply(res, 400, { error: 'Password harus terdiri dari 8 sampai 128 karakter.' });
+    return true;
+  }
+
+  const allowed = await checkMemberAuthRateLimit(action, phone, req);
+  if (allowed !== true) {
+    reply(res, 429, {
+      error: action === 'register'
+        ? 'Percobaan pendaftaran terlalu sering. Coba lagi setelah satu jam.'
+        : 'Percobaan login terlalu sering. Coba lagi dalam 15 menit.'
+    });
     return true;
   }
 
