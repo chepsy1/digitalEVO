@@ -12,7 +12,7 @@ Development remains isolated on `feature/member-login-deposit-wallet`; nothing h
 ## Agreed rules
 - Registration fee: Rp99.000, paid once.
 - Registration bonus: Rp15.000, credited once only after server-side payment verification.
-- Login credentials: WhatsApp number and password through Supabase Auth (never store raw passwords in a custom table).
+- Login credentials: WhatsApp number + password, handled by the existing member-payment server endpoint. The server creates a Supabase Auth identity with a confirmed internal email and returns a password session; no Phone Auth provider, OTP, email confirmation, or SMS provider is required. Password hashing remains managed by Supabase Auth; never store raw passwords in a custom table.
 - Deposit wallet is intended for all product categories.
 - Member prices are assigned manually per product by the shop admin; a special member price must be a positive whole rupiah amount, or left blank to use the promo price.
 - Existing regular checkout, QRIS, orders, and admin panel must remain intact.
