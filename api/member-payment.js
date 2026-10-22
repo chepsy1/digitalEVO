@@ -129,7 +129,7 @@ async function checkMemberAuthRateLimit(action, phone, req) {
 async function requireAdmin(req) {
   const user = await currentUser(req);
   if (!user) return { error: 'Sesi admin tidak valid. Silakan login kembali.', status: 401 };
-  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const response = await fetch(`${base}/rest/v1/rpc/is_admin`, { method: 'POST', headers: { apikey: process.env.SUPABASE_ANON_KEY, Authorization: String(req.headers.authorization || ''), 'Content-Type': 'application/json' }, body: '{}' });
   if (!response.ok || await response.json().catch(() => false) !== true) return { error: 'Akses khusus admin diperlukan.', status: 403 };
   return { user };
@@ -140,7 +140,7 @@ async function adminMemberAction(req, res, action) {
   if (!authorization.startsWith('Bearer ')) return reply(res, 401, { error: 'Silakan login sebagai admin.' });
   const admin = await requireAdmin(req);
   if (admin.error) return reply(res, admin.status, { error: admin.error });
-  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const memberId = String(req.body?.memberId || '');
   if (action !== 'admin_list_members' && !UUID_RE.test(memberId)) return reply(res, 400, { error: 'ID member tidak valid.' });
   if (action === 'admin_list_members') {
