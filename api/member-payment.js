@@ -365,6 +365,9 @@ export default async function handler(req, res) {
       const existingProfileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=status&limit=1`);
       const existingProfiles = await existingProfileResponse.json();
       if (!existingProfileResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa status member.' });
+      if (existingProfiles?.[0]?.status === 'suspended') {
+        return reply(res, 403, { error: 'Akun Member Anda sedang dinonaktifkan. Hubungi admin DigitalEVO.' });
+      }
       if (existingProfiles?.[0]?.status === 'active') return reply(res, 409, { error: 'Keanggotaan Anda sudah aktif. Anda tidak perlu membayar pendaftaran lagi.' });
 
       const pendingResponse = await db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=1`);
