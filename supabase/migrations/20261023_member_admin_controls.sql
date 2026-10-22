@@ -24,15 +24,24 @@ alter table public.member_registration_payments alter column user_id drop not nu
 alter table public.member_deposit_requests alter column user_id drop not null;
 alter table public.member_wallet_transactions alter column user_id drop not null;
 
-alter table public.member_registration_payments
-  add constraint member_registration_payments_user_id_fkey
-  foreign key (user_id) references public.member_profiles(user_id) on delete set null;
-alter table public.member_deposit_requests
-  add constraint member_deposit_requests_user_id_fkey
-  foreign key (user_id) references public.member_profiles(user_id) on delete set null;
-alter table public.member_wallet_transactions
-  add constraint member_wallet_transactions_user_id_fkey
-  foreign key (user_id) references public.member_profiles(user_id) on delete set null;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'member_registration_payments_user_id_fkey' and conrelid = 'public.member_registration_payments'::regclass) then
+    alter table public.member_registration_payments
+      add constraint member_registration_payments_user_id_fkey
+      foreign key (user_id) references public.member_profiles(user_id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'member_deposit_requests_user_id_fkey' and conrelid = 'public.member_deposit_requests'::regclass) then
+    alter table public.member_deposit_requests
+      add constraint member_deposit_requests_user_id_fkey
+      foreign key (user_id) references public.member_profiles(user_id) on delete set null;
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'member_wallet_transactions_user_id_fkey' and conrelid = 'public.member_wallet_transactions'::regclass) then
+    alter table public.member_wallet_transactions
+      add constraint member_wallet_transactions_user_id_fkey
+      foreign key (user_id) references public.member_profiles(user_id) on delete set null;
+  end if;
+end $$;
 
 -- Make sure the supported account status can be managed by the admin panel.
 alter table public.member_profiles drop constraint if exists member_profiles_status_check;
