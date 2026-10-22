@@ -66,7 +66,7 @@
     const link = document.getElementById("payment-open-link");
 
     // qrisUrl is commonly a payment/deep link, not an image. Never render it as <img>.
-    const imageUrl = payment.qrImage || (/^data:image\\//i.test(payment.qrisUrl || "") ? payment.qrisUrl : "");
+    const imageUrl = payment.qrImage || (String(payment.qrisUrl || "").toLowerCase().startsWith("data:image/") ? payment.qrisUrl : "");
     image.hidden = true;
     canvas.hidden = true;
     qrContent.textContent = payment.qrContent || "";
@@ -90,7 +90,7 @@
     }
     if (!rendered && !imageUrl && payment.qrContent) qrContent.hidden = false;
 
-    if (payment.qrisUrl && /^https?:\\/\\//i.test(payment.qrisUrl)) {
+    if (/^https?:/.test(String(payment.qrisUrl || "").toLowerCase())) {
       link.href = payment.qrisUrl;
       link.hidden = false;
     } else {
