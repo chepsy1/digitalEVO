@@ -20,7 +20,7 @@
     return phone;
   };
   // Internal non-deliverable email lets Supabase manage passwords without Phone OTP.
-  const internalEmail = value => normalizePhone(value).replace(/\D/g, "") + "@members.digitalevo.invalid";
+  const internalEmail = value => normalizePhone(value).replace(/\D/g, "") + "@members.digitalevo.store";
   const setNotice = (message, isError = false) => {
     notice.textContent = message;
     notice.classList.toggle("error", isError);
