@@ -3,6 +3,8 @@
   const views = { login: document.getElementById("login-view"), register: document.getElementById("register-view") };
   const notice = document.getElementById("notice");
   const dashboard = document.getElementById("member-dashboard");
+  const memberProductCatalog = document.getElementById("member-product-catalog");
+  const memberProductGrid = document.getElementById("member-product-grid");
   const paymentPanel = document.getElementById("payment-panel");
   const registrationAction = document.getElementById("registration-action");
   const depositForm = document.getElementById("deposit-form");
@@ -117,6 +119,46 @@
     video_views: "Shopee Video Views", video_likes: "Shopee Video Likes",
     video_comments: "Shopee Video Custom Comments", product_likes: "Shopee Produk Favorite/Likes"
   };
+  const productImage = p => {
+    const q = Number(p.qty);
+    const files = {
+      followers: ({100:"100.webp",200:"200.webp",300:"300.webp",500:"500.webp",1000:"1000.webp",1500:"1500.webp",2000:"2000.webp",3000:"3000.webp",5000:"5000.webp"})[q] || "100.webp",
+      account: "akun-premium-product.webp",
+      video_views: q >= 1000 ? "1000.webp" : "100.webp",
+      video_likes: ({100:"100.webp",200:"200.webp",500:"500.webp",1000:"1000.webp"})[q] || "100.webp",
+      video_comments: q >= 20 ? "200.webp" : "100.webp",
+      product_likes: q >= 500 ? "500.webp" : q >= 200 ? "200.webp" : "100.webp"
+    };
+    return "/assets/" + (files[p.category] || "100.webp");
+  };
+  function renderMemberProductCards() {
+    if (!memberProductGrid) return;
+    memberProductGrid.replaceChildren();
+    for (const p of memberProducts) {
+      const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
+      const card = document.createElement("article");
+      card.className = "member-product-card";
+      card.dataset.productId = String(p.id);
+      const img = document.createElement("img");
+      img.src = productImage(p); img.alt = categoryLabels[p.category] + " " + Number(p.qty).toLocaleString("id-ID");
+      img.loading = "lazy";
+      img.onerror = () => { img.onerror = null; img.src = "/assets/100.webp"; };
+      const info = document.createElement("div"); info.className = "member-product-info";
+      const title = document.createElement("h3");
+      title.textContent = categoryLabels[p.category] + " — " + Number(p.qty).toLocaleString("id-ID") + (p.category === "followers" ? " Followers" : "");
+      const regular = document.createElement("span"); regular.className = "regular-price"; regular.textContent = rupiah(p.price);
+      const member = document.createElement("span"); member.className = "member-price"; member.textContent = rupiah(price);
+      const button = document.createElement("button"); button.type = "button"; button.textContent = "Pilih Produk";
+      button.addEventListener("click", () => {
+        const select = document.getElementById("wallet-product");
+        select.value = String(p.id);
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        memberProductGrid.querySelectorAll(".member-product-card").forEach(el => el.classList.toggle("is-selected", el === card));
+        document.getElementById("wallet-checkout").scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+      info.append(title, regular, member, button); card.append(img, info); memberProductGrid.append(card);
+    }
+  }
   function renderOrderFields(category) {
     const host = document.getElementById("wallet-order-fields");
     host.replaceChildren();
@@ -156,6 +198,8 @@
         select.add(opt);
       }
       if (!memberProducts.length) select.replaceChildren(new Option("Produk belum tersedia", ""));
+      renderMemberProductCards();
+      if (memberProductCatalog) memberProductCatalog.hidden = !memberProducts.length;
       select.addEventListener("change", () => {
         const p = memberProducts.find(x => String(x.id) === select.value);
         document.getElementById("wallet-price").textContent = p ? "Harga member: " + rupiah(p.member_price == null ? p.price : p.member_price) : "Pilih produk untuk melihat harga.";
@@ -163,6 +207,7 @@
       });
     } catch (error) {
       select.replaceChildren(new Option("Produk belum dapat dimuat", ""));
+      if (memberProductCatalog) memberProductCatalog.hidden = true;
       setNotice("Daftar produk member belum tersedia. Pastikan migrasi member dan kolom harga member sudah diterapkan.", true);
     }
   }
@@ -392,6 +437,7 @@
   document.getElementById("logout-button").addEventListener("click", async () => {
     if (client) await client.auth.signOut();
     dashboard.hidden = true;
+    if (memberProductCatalog) memberProductCatalog.hidden = true;
     paymentPanel.hidden = true;
     activePaymentReference = null;
     setNotice("Anda sudah keluar dari akun member.");
