@@ -148,9 +148,10 @@ begin
   on conflict (user_id) do nothing;
 
   insert into public.member_profiles(user_id, whatsapp, status, activated_at, updated_at)
-  select u.id, u.phone, 'active', now(), now()
+  select u.id, coalesce(nullif(u.phone, ''), nullif(u.raw_user_meta_data->>'whatsapp', '')), 'active', now(), now()
   from auth.users u
-  where u.id = p_user_id and u.phone is not null
+  where u.id = p_user_id
+    and coalesce(nullif(u.phone, ''), nullif(u.raw_user_meta_data->>'whatsapp', '')) is not null
   on conflict (user_id) do update
     set status = 'active', activated_at = coalesce(public.member_profiles.activated_at, now()), updated_at = now();
 
