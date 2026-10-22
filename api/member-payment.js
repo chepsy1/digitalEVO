@@ -241,7 +241,7 @@ export default async function handler(req, res) {
     // Create a pending member profile for a verified Supabase Auth identity.
     if (action === 'create_registration') {
       const phone = String(user.phone || user.user_metadata?.whatsapp || '');
-      if (!/^\\+628[0-9]{7,12}$/.test(phone)) return reply(res, 400, { error: 'Profil akun tidak memiliki nomor WhatsApp yang valid.' });
+      if (!/^\+628[0-9]{7,12}$/.test(phone)) return reply(res, 400, { error: 'Profil akun tidak memiliki nomor WhatsApp yang valid.' });
       const existingProfileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=status&limit=1`);
       const existingProfiles = await existingProfileResponse.json();
       if (!existingProfileResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa status member.' });
