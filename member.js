@@ -125,10 +125,10 @@
     const files = {
       followers: ({100:"100.webp",200:"200.webp",300:"300.webp",500:"500.webp",1000:"1000.webp",1500:"1500.webp",2000:"2000.webp",3000:"3000.webp",5000:"5000.webp"})[q] || "100.webp",
       account: "akun-premium-product.webp",
-      video_views: q >= 1000 ? "1000.webp" : "100.webp",
-      video_likes: ({100:"100.webp",200:"200.webp",500:"500.webp",1000:"1000.webp"})[q] || "100.webp",
-      video_comments: q >= 20 ? "200.webp" : "100.webp",
-      product_likes: q >= 500 ? "500.webp" : q >= 200 ? "200.webp" : "100.webp"
+      video_views: "product-video-views.svg",
+      video_likes: "product-video-likes.svg",
+      video_comments: "product-video-comments.svg",
+      product_likes: "product-favorites.svg"
     };
     return "/assets/" + (files[p.category] || "100.webp");
   };
@@ -143,7 +143,7 @@
       const img = document.createElement("img");
       img.src = productImage(p); img.alt = categoryLabels[p.category] + " " + Number(p.qty).toLocaleString("id-ID");
       img.loading = "lazy";
-      img.onerror = () => { img.onerror = null; img.src = "/assets/100.webp"; };
+      img.onerror = () => { img.onerror = null; img.src = "/assets/product-fallback.svg"; };
       const info = document.createElement("div"); info.className = "member-product-info";
       const title = document.createElement("h3");
       title.textContent = categoryLabels[p.category] + " — " + Number(p.qty).toLocaleString("id-ID") + (p.category === "followers" ? " Followers" : "");
