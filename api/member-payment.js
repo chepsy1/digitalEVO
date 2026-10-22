@@ -85,13 +85,98 @@ async function gatewayPaymentStatus(paymentReference, amount, startTime) {
   return paid;
 }
 
+
+function normalizedMemberPhone(value) {
+  let phone = String(value || '').replace(/[\\s().-]/g, '');
+  if (phone.startsWith('00')) phone = '+' + phone.slice(2);
+  else if (phone.startsWith('0')) phone = '+62' + phone.slice(1);
+  else if (phone.startsWith('62')) phone = '+' + phone;
+  else if (!phone.startsWith('+')) phone = '+62' + phone;
+  return phone;
+}
+
+function memberInternalEmail(phone) {
+  return phone.replace(/\\D/g, '') + '@members.digitalevo.store';
+}
+
+async function memberAuthAction(req, res, action) {
+  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const anonKey = process.env.SUPABASE_ANON_KEY;
+  if (!base || !serviceKey || !anonKey) {
+    reply(res, 500, { error: 'Konfigurasi autentikasi member belum lengkap.' });
+    return true;
+  }
+
+  const phone = normalizedMemberPhone(req.body?.phone);
+  const password = String(req.body?.password || '');
+  if (!/^\\+628[0-9]{7,12}$/.test(phone)) {
+    reply(res, 400, { error: 'Nomor WhatsApp Indonesia tidak valid. Gunakan format 08xxxxxxxxxx.' });
+    return true;
+  }
+  if (password.length < 8 || password.length > 128) {
+    reply(res, 400, { error: 'Password harus terdiri dari 8 sampai 128 karakter.' });
+    return true;
+  }
+
+  const email = memberInternalEmail(phone);
+  if (action === 'register') {
+    const createResponse = await fetch(`${base}/auth/v1/admin/users`, {
+      method: 'POST',
+      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { whatsapp: phone, auth_method: 'digitalevo_whatsapp_password' }
+      })
+    });
+    if (!createResponse.ok) {
+      const detail = await createResponse.json().catch(() => ({}));
+      const message = String(detail?.msg || detail?.message || detail?.error_description || '');
+      if (createResponse.status === 422 || /already|registered|exists|duplicate/i.test(message)) {
+        reply(res, 409, { error: 'Nomor WhatsApp ini sudah terdaftar. Silakan masuk melalui tab Login.' });
+      } else {
+        console.error('Member account creation failed:', createResponse.status, message);
+        reply(res, 502, { error: 'Akun member belum berhasil dibuat. Tunggu sebentar lalu coba sekali lagi.' });
+      }
+      return true;
+    }
+  }
+
+  const tokenResponse = await fetch(`${base}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: anonKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const tokenData = await tokenResponse.json().catch(() => ({}));
+  if (!tokenResponse.ok || !tokenData?.access_token || !tokenData?.refresh_token) {
+    reply(res, tokenResponse.status === 400 || tokenResponse.status === 401 ? 401 : 502, {
+      error: action === 'login'
+        ? 'Nomor WhatsApp atau password tidak cocok.'
+        : 'Akun dibuat, tetapi sesi belum terbentuk. Coba masuk melalui tab Login.'
+    });
+    return true;
+  }
+
+  reply(res, 200, {
+    success: true,
+    access_token: tokenData.access_token,
+    refresh_token: tokenData.refresh_token,
+    expires_in: tokenData.expires_in,
+    token_type: tokenData.token_type || 'bearer'
+  });
+  return true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return reply(res, 405, { error: 'Method not allowed' });
 
   try {
+    const action = String(req.body?.action || '');
+    if (action === 'register' || action === 'login') return await memberAuthAction(req, res, action);
     const user = await currentUser(req);
     if (!user) return reply(res, 401, { error: 'Silakan login sebagai member terlebih dahulu.' });
-    const action = String(req.body?.action || '');
     const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
     if (!base || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.SUPABASE_ANON_KEY) {
       return reply(res, 500, { error: 'Konfigurasi server member belum lengkap.' });
@@ -155,8 +240,8 @@ export default async function handler(req, res) {
 
     // Create a pending member profile for a verified Supabase Auth identity.
     if (action === 'create_registration') {
-      if (!user.phone) return reply(res, 400, { error: 'Akun harus menggunakan autentikasi nomor WhatsApp.' });
-      const phone = String(user.phone);
+      const phone = String(user.phone || user.user_metadata?.whatsapp || '');
+      if (!/^\\+628[0-9]{7,12}$/.test(phone)) return reply(res, 400, { error: 'Profil akun tidak memiliki nomor WhatsApp yang valid.' });
       const existingProfileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=status&limit=1`);
       const existingProfiles = await existingProfileResponse.json();
       if (!existingProfileResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa status member.' });
