@@ -7,11 +7,13 @@
 - [ ] Configure a Vercel preview environment with staging SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, PAYMENT_GATEWAY_URL, and PAYMENT_GATEWAY_API_KEY. Use a gateway sandbox/test account if available.
 - [ ] Confirm the preview uses the staging Supabase URL in browser network requests and server logs.
 - [ ] Apply supabase/member-wallet-foundation.sql only to staging; save the migration output and inspect RLS/grants/functions.
-- [ ] Configure Supabase Phone Auth and decide whether OTP confirmation is enabled. If enabled, verify the complete OTP and recovery flow; do not claim password-only signup until this is explicitly configured and tested.
+- [ ] Apply `supabase/migrations/20261022_member_whatsapp_password_auth.sql` in staging after the member foundation migration. Verify member registration creates a confirmed internal-email identity server-side, sends no email, and requires no Phone Auth provider or OTP.
+- [ ] Verify login exchanges WhatsApp + password for a valid session, duplicate phone registration is rejected, and no password is stored in application tables or logs.
+- [ ] Before public launch, implement and test persistent server-side rate limiting for registration and login. Decide a secure password recovery flow; do not invent an email/OTP reset path.
 - [ ] Confirm member price editing remains protected by the existing admin authorization policy.
 
 ## 1. Registration and bonus
-- [ ] Register a new staging-only phone number and password.
+- [ ] Register a new staging-only WhatsApp number and password through the backend endpoint.
 - [ ] Confirm duplicate/invalid phone registration is handled clearly and passwords are never written to custom tables or logs.
 - [ ] Create registration QRIS for exactly Rp99.000; inspect gateway response shape, reference, QR rendering, and expiry.
 - [ ] Reload the page and sign in again before paying; the same pending QRIS/reference should be restored, not duplicated.
