@@ -252,7 +252,27 @@ export default async function handler(req, res) {
       if (!pending) return reply(res, 200, { success: true, pending: null });
       const isExpired = pending.expires_at && new Date(pending.expires_at).getTime() <= Date.now();
       if (isExpired) {
+        // QRIS expiry alone is not proof that the payment failed. Verify with the gateway first.
+        const paid = await gatewayPaymentStatus(
+          pending.payment_reference,
+          Number(pending.amount),
+          Number(pending.gateway_start_time) || Math.floor(new Date(pending.created_at).getTime() / 1000)
+        );
         const table = pending.type === 'registration' ? 'member_registration_payments' : 'member_deposit_requests';
+        if (paid) {
+          const update = await db(
+            `/rest/v1/${table}?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
+            { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'paid', paid_at: new Date().toISOString() }) }
+          );
+          if (!update.ok) return reply(res, 500, { error: 'Pembayaran terdeteksi lunas tetapi belum bisa disimpan. Coba periksa pembayaran kembali.' });
+          const rpc = pending.type === 'registration' ? 'member_activate_after_verified_registration' : 'member_credit_verified_deposit';
+          const credit = await db(`/rest/v1/rpc/${rpc}`, {
+            method: 'POST',
+            body: JSON.stringify({ p_user_id: user.id, p_payment_reference: pending.payment_reference })
+          });
+          if (!credit.ok) return reply(res, 500, { error: 'Pembayaran sudah terverifikasi, tetapi aktivasi/saldo belum selesai. Tekan Periksa Pembayaran kembali.' });
+          return reply(res, 200, { success: true, pending: null, paid: true, type: pending.type });
+        }
         const expireResponse = await db(
           `/rest/v1/${table}?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
           { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'expired' }) }
