@@ -138,3 +138,16 @@ input:focus{outline:3px solid #ffbd0028;border-color:#f5b000}
 .shell:has(#member-intro:not([hidden])) .panel{grid-column:2;grid-row:1}
 .shell:has(#member-product-catalog:not([hidden])) #member-product-catalog{grid-column:1;grid-row:1}
 @media(max-width:760px){#member-intro,#member-product-catalog,.panel{grid-column:1;grid-row:auto}}
+
+
+/* Final layout correction: keep the intro/catalog and account panel aligned */
+.shell{width:min(calc(100% - 40px),1320px);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;align-items:start}
+#member-intro{grid-column:1;grid-row:1;min-width:0}
+#member-product-catalog{grid-column:1;grid-row:1;min-width:0}
+.shell>.panel{grid-column:2;grid-row:1;min-width:0}
+.shell:has(#member-intro[hidden]):has(#member-product-catalog[hidden])>.panel{grid-column:1/-1;max-width:760px;width:100%;justify-self:center}
+#member-intro[hidden],#member-product-catalog[hidden]{display:none!important}
+@media(max-width:760px){
+  .shell,.shell:has(#member-product-catalog:not([hidden])){width:min(calc(100% - 32px),560px);grid-template-columns:minmax(0,1fr);gap:18px;margin:20px auto 36px}
+  #member-intro,#member-product-catalog,.shell>.panel{grid-column:1;grid-row:auto;width:100%;max-width:none}
+}
