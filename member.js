@@ -132,32 +132,86 @@
     };
     return "/assets/" + (files[p.category] || "100.webp");
   };
+  const memberCategoryOrder = ["followers", "video_views", "video_likes", "video_comments", "product_likes", "account"];
+  const memberCategoryTitles = {
+    followers: "Paket Followers",
+    video_views: "Paket Video View",
+    video_likes: "Paket Video Likes",
+    video_comments: "Paket Custom Comment",
+    product_likes: "Paket Produk Likes/Favorite",
+    account: "Paket Akun Shopee"
+  };
   function renderMemberProductCards() {
     if (!memberProductGrid) return;
     memberProductGrid.replaceChildren();
-    for (const p of memberProducts) {
-      const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
-      const card = document.createElement("article");
-      card.className = "member-product-card";
-      card.dataset.productId = String(p.id);
-      const img = document.createElement("img");
-      img.src = productImage(p); img.alt = categoryLabels[p.category] + " " + Number(p.qty).toLocaleString("id-ID");
-      img.loading = "lazy";
-      img.onerror = () => { img.onerror = null; img.src = "/assets/product-fallback.svg"; };
-      const info = document.createElement("div"); info.className = "member-product-info";
-      const title = document.createElement("h3");
-      title.textContent = categoryLabels[p.category] + " — " + Number(p.qty).toLocaleString("id-ID") + (p.category === "followers" ? " Followers" : "");
-      const regular = document.createElement("span"); regular.className = "regular-price"; regular.textContent = rupiah(p.price);
-      const member = document.createElement("span"); member.className = "member-price"; member.textContent = rupiah(price);
-      const button = document.createElement("button"); button.type = "button"; button.textContent = "Pilih Produk";
-      button.addEventListener("click", () => {
-        const select = document.getElementById("wallet-product");
-        select.value = String(p.id);
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-        memberProductGrid.querySelectorAll(".member-product-card").forEach(el => el.classList.toggle("is-selected", el === card));
-        document.getElementById("wallet-checkout").scrollIntoView({ behavior: "smooth", block: "nearest" });
-      });
-      info.append(title, regular, member, button); card.append(img, info); memberProductGrid.append(card);
+
+    const sortedProducts = [...memberProducts].sort((a, b) => {
+      const categoryDiff = memberCategoryOrder.indexOf(a.category) - memberCategoryOrder.indexOf(b.category);
+      if (categoryDiff !== 0) return categoryDiff;
+      return Number(a.qty) - Number(b.qty);
+    });
+
+    for (const category of memberCategoryOrder) {
+      const products = sortedProducts.filter(p => p.category === category);
+      if (!products.length) continue;
+
+      const group = document.createElement("section");
+      group.className = "member-product-group";
+      group.dataset.category = category;
+
+      const heading = document.createElement("h3");
+      heading.className = "member-product-group-title";
+      heading.textContent = memberCategoryTitles[category];
+      group.append(heading);
+
+      const cardsGrid = document.createElement("div");
+      cardsGrid.className = "member-product-category-grid";
+
+      for (const p of products) {
+        const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
+        const card = document.createElement("article");
+        card.className = "member-product-card";
+        card.dataset.productId = String(p.id);
+        const img = document.createElement("img");
+        img.src = productImage(p);
+        img.alt = categoryLabels[p.category] + " " + Number(p.qty).toLocaleString("id-ID");
+        img.loading = "lazy";
+        img.onerror = () => { img.onerror = null; img.src = "/assets/product-fallback.svg"; };
+
+        const info = document.createElement("div");
+        info.className = "member-product-info";
+        const title = document.createElement("h4");
+        const quantity = Number(p.qty).toLocaleString("id-ID");
+        const suffix = p.category === "followers" ? " Followers" :
+          p.category === "video_views" ? " Views" :
+          p.category === "video_likes" ? " Likes" :
+          p.category === "video_comments" ? " Custom Comments" :
+          p.category === "product_likes" ? " Favorites/Likes" : "";
+        title.textContent = categoryLabels[p.category] + " — " + quantity + suffix;
+
+        const regular = document.createElement("span");
+        regular.className = "regular-price";
+        regular.textContent = rupiah(p.price);
+        const member = document.createElement("span");
+        member.className = "member-price";
+        member.textContent = rupiah(price);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Pilih Produk";
+        button.addEventListener("click", () => {
+          const select = document.getElementById("wallet-product");
+          select.value = String(p.id);
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+          memberProductGrid.querySelectorAll(".member-product-card").forEach(el => el.classList.toggle("is-selected", el === card));
+          document.getElementById("wallet-checkout").scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+        info.append(title, regular, member, button);
+        card.append(img, info);
+        cardsGrid.append(card);
+      }
+
+      group.append(cardsGrid);
+      memberProductGrid.append(group);
     }
   }
   function renderOrderFields(category) {
