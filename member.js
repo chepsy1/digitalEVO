@@ -168,14 +168,13 @@
     };
     return "/assets/" + (files[p.category] || "100.webp");
   };
-  const memberCategoryOrder = ["followers", "video_views", "video_likes", "video_comments", "product_likes", "account"];
+  const memberCategoryOrder = ["followers", "video_views", "video_likes", "video_comments", "product_likes"];
   const memberCategoryTitles = {
     followers: "Paket Followers",
     video_views: "Paket Video View",
     video_likes: "Paket Video Likes",
     video_comments: "Paket Custom Comment",
-    product_likes: "Paket Produk Likes/Favorite",
-    account: "Paket Akun Shopee"
+    product_likes: "Paket Produk Likes/Favorite"
   };
   function renderMemberProductCards() {
     if (!memberProductGrid) return;
@@ -250,7 +249,7 @@
       memberProductGrid.append(group);
     }
   }
-  function renderOrderFields(category) {
+  function renderOrderFields(category, selectedProduct = null) {
     const host = document.getElementById("wallet-order-fields");
     host.replaceChildren();
     const addField = (id, label, type = "text", required = true, placeholder = "") => {
@@ -259,9 +258,27 @@
       elLabel.htmlFor = id; elLabel.textContent = label;
       const input = document.createElement(type === "textarea" ? "textarea" : "input");
       input.id = id; input.name = id; input.required = required; input.placeholder = placeholder;
-      if (type === "textarea") input.rows = 5;
+      if (type === "textarea") input.rows = 10;
       else input.type = type;
-      wrap.append(elLabel, input); host.append(wrap);
+      wrap.append(elLabel, input);
+      if (id === "member-comment-text") {
+        const requiredLines = Number(selectedProduct?.qty || 10);
+        input.dataset.requiredLines = String(requiredLines);
+        input.setAttribute("aria-describedby", "member-comment-counter");
+        const counter = document.createElement("small");
+        counter.id = "member-comment-counter";
+        counter.className = "comment-counter";
+        counter.textContent = "0/" + requiredLines + " komentar";
+        const updateCounter = () => {
+          const count = input.value.split(/\r?\n/).filter(line => line.trim().length > 0).length;
+          counter.textContent = count + "/" + requiredLines + " komentar";
+          counter.classList.toggle("is-valid", count === requiredLines);
+          counter.classList.toggle("is-invalid", count > requiredLines);
+        };
+        input.addEventListener("input", updateCounter);
+        wrap.append(counter);
+      }
+      host.append(wrap);
     };
     if (category === "account") {
       addField("member-account-name", "Nama akun/paket yang dipesan");
@@ -281,7 +298,7 @@
         .select("id,category,qty,price,member_price,sort_order")
         .order("sort_order", { ascending: true });
       if (error) throw error;
-      memberProducts = (data || []).filter(p => categoryLabels[p.category] && Number(p.qty) > 0 && Number(p.price) >= 0);
+      memberProducts = (data || []).filter(p => p.category !== "account" && categoryLabels[p.category] && Number(p.qty) > 0 && Number(p.price) >= 0);
       select.replaceChildren(new Option("Pilih produk dan paket", ""));
       for (const p of memberProducts) {
         const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
@@ -294,7 +311,7 @@
       select.addEventListener("change", () => {
         const p = memberProducts.find(x => String(x.id) === select.value);
         updateSelectedPackage(p);
-        renderOrderFields(p?.category || "");
+        renderOrderFields(p?.category || "", p || null);
       });
     } catch (error) {
       select.replaceChildren(new Option("Produk belum dapat dimuat", ""));
@@ -318,8 +335,10 @@
       order.customerWhatsapp = value("member-customer-whatsapp");
       order.shopeeLink = value("member-shopee-link");
       if (category === "video_comments") {
-        const lines = value("member-comment-text").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-        if (lines.length !== Number(product.qty) || lines.length > 20) return setNotice("Jumlah komentar harus tepat sesuai paket (maksimal 20).", true);
+        const commentValue = document.getElementById("member-comment-text")?.value || "";
+        const lines = commentValue.split(/\r?\n/).map(x => x.trim());
+        const expectedLines = Number(product.qty);
+        if (lines.length !== expectedLines || lines.some(line => !line)) return setNotice("Paket " + expectedLines + " komentar wajib diisi tepat " + expectedLines + " baris, satu komentar per baris. Tidak boleh kurang, lebih, atau ada baris kosong.", true);
         order.commentText = lines.join("\n");
       }
       if (category === "followers") {
@@ -393,7 +412,17 @@
     if (memberIntro) memberIntro.hidden = true;
     if (memberProductCatalog) memberProductCatalog.hidden = profile?.status !== "active";
     document.getElementById("wallet-balance").textContent = rupiah(result.balance);
-    document.getElementById("member-phone-label").textContent = profile?.whatsapp || "";
+    const phoneLabel = document.getElementById("member-phone-label");
+    phoneLabel.replaceChildren();
+    if (profile?.whatsapp) {
+      const icon = document.createElement("span");
+      icon.className = "whatsapp-mark";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "☎";
+      const phoneText = document.createElement("span");
+      phoneText.textContent = profile.whatsapp;
+      phoneLabel.append(icon, phoneText);
+    }
     const active = profile?.status === "active";
     document.getElementById("member-status-title").textContent = active ? "Member aktif" : "Menunggu pendaftaran";
     registrationAction.hidden = active;
