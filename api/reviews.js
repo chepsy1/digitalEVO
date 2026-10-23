@@ -20,12 +20,18 @@ module.exports = async (req, res) => {
   try {
     const selectBase = 'id,name,body,rating,store_url,photo_url,pinned,created_at';
     let response = await fetch(
-      `${base}/rest/v1/comments?select=${selectBase},photo_urls,admin_reply&status=eq.approved&order=pinned.desc,created_at.desc`,
+      `${base}/rest/v1/comments?select=${selectBase},photo_urls,admin_reply,sort_order&status=eq.approved&order=pinned.desc,sort_order.asc.nullslast,created_at.desc`,
       { headers }
     );
     if (!response.ok) {
       response = await fetch(
-        `${base}/rest/v1/comments?select=${selectBase},admin_reply&status=eq.approved&order=pinned.desc,created_at.desc`,
+        `${base}/rest/v1/comments?select=${selectBase},admin_reply,sort_order&status=eq.approved&order=pinned.desc,sort_order.asc.nullslast,created_at.desc`,
+        { headers }
+      );
+    }
+    if (!response.ok) {
+      response = await fetch(
+        `${base}/rest/v1/comments?select=${selectBase}&status=eq.approved&order=pinned.desc,sort_order.asc.nullslast,created_at.desc`,
         { headers }
       );
     }
