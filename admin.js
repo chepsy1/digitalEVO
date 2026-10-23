@@ -1957,12 +1957,12 @@ function renderAdminMemberHistory() {
   for (const dep of data.deposits || []) {
     if (dep.payment_status === 'paid') continue;
     const profile = profiles.get(String(dep.user_id)) || {};
-    rows.push({ phone: profile.whatsapp || 'Nomor tidak tersedia', date: dep.created_at, description: 'Permintaan deposit ' + formatRupiah(dep.amount), amount: 0, balance: balances.get(String(dep.user_id)) || 0, kind: 'Deposit ' + String(dep.payment_status || 'pending'), invoice: dep.payment_reference || '-', status: dep.payment_status || 'pending' });
+    rows.push({ phone: profile.whatsapp || 'Nomor tidak tersedia', date: dep.created_at, description: 'Permintaan deposit ' + formatRupiah(dep.amount), amount: 0, amountLabel: formatRupiah(dep.amount) + ' (belum masuk)', balance: balances.get(String(dep.user_id)) || 0, kind: 'Deposit ' + String(dep.payment_status || 'pending'), invoice: dep.payment_reference || '-', status: dep.payment_status || 'pending' });
   }
   for (const reg of data.registrations || []) {
     if (reg.payment_status === 'paid') continue;
     const profile = profiles.get(String(reg.user_id)) || {};
-    rows.push({ phone: profile.whatsapp || 'Nomor tidak tersedia', date: reg.created_at, description: 'Pendaftaran member ' + formatRupiah(reg.amount), amount: 0, balance: balances.get(String(reg.user_id)) || 0, kind: 'Pendaftaran ' + String(reg.payment_status || 'pending'), invoice: reg.payment_reference || '-', status: reg.payment_status || 'pending' });
+    rows.push({ phone: profile.whatsapp || 'Nomor tidak tersedia', date: reg.created_at, description: 'Pendaftaran member ' + formatRupiah(reg.amount), amount: 0, amountLabel: formatRupiah(reg.amount) + ' (belum dibayar)', balance: balances.get(String(reg.user_id)) || 0, kind: 'Pendaftaran ' + String(reg.payment_status || 'pending'), invoice: reg.payment_reference || '-', status: reg.payment_status || 'pending' });
   }
   rows.sort((a,b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
   const query = String($('memberHistorySearch')?.value || '').trim().toLowerCase();
@@ -1972,8 +1972,8 @@ function renderAdminMemberHistory() {
     box.innerHTML = '<p class="admin-empty">Belum ada transaksi member yang cocok.</p>';
     return;
   }
-  box.innerHTML = '<table class="admin-table member-history-admin-table"><thead><tr><th>Waktu</th><th>WhatsApp Member</th><th>Deskripsi / Produk</th><th>Jumlah Masuk/Keluar</th><th>Sisa Deposit</th><th>Jenis</th><th>Invoice / Referensi</th></tr></thead><tbody>' +
-    filtered.map(row => '<tr><td>' + escapeHtml(row.date ? dateID(row.date) : '-') + '</td><td>' + escapeHtml(row.phone) + '</td><td style="white-space:normal;min-width:220px">' + escapeHtml(row.description || '-') + '</td><td class="' + (row.amount < 0 ? 'member-ledger-debit' : 'member-ledger-credit') + '">' + escapeHtml((row.amount > 0 ? '+' : '') + formatRupiah(row.amount)) + '</td><td>' + escapeHtml(formatRupiah(row.balance)) + '</td><td>' + escapeHtml(row.kind) + '<br><small>' + escapeHtml(row.status) + '</small></td><td style="white-space:normal;min-width:150px">' + escapeHtml(row.invoice) + '</td></tr>').join('') +
+  box.innerHTML = '<table class="admin-table member-history-admin-table"><thead><tr><th>Waktu</th><th>WhatsApp Member</th><th>Deskripsi / Produk</th><th>Nominal Transaksi</th><th>Sisa Deposit</th><th>Jenis</th><th>Invoice / Referensi</th></tr></thead><tbody>' +
+    filtered.map(row => '<tr><td>' + escapeHtml(row.date ? dateID(row.date) : '-') + '</td><td>' + escapeHtml(row.phone) + '</td><td style="white-space:normal;min-width:220px">' + escapeHtml(row.description || '-') + '</td><td class="' + (row.amount < 0 ? 'member-ledger-debit' : 'member-ledger-credit') + '">' + escapeHtml(row.amountLabel || ((row.amount > 0 ? '+' : '') + formatRupiah(row.amount))) + '</td><td>' + escapeHtml(formatRupiah(row.balance)) + '</td><td>' + escapeHtml(row.kind) + '<br><small>' + escapeHtml(row.status) + '</small></td><td style="white-space:normal;min-width:150px">' + escapeHtml(row.invoice) + '</td></tr>').join('') +
     '</tbody></table>';
 }
 
