@@ -456,10 +456,10 @@
         });
       }
       for (const dep of result.deposits || []) {
-        if (dep.payment_status !== "paid") entries.push({ date: dep.created_at, render: () => addHistoryCard("Deposit " + String(dep.payment_status || "pending"), "Permintaan pengisian deposit · " + (dep.payment_reference || ""), dep.payment_status === "pending" ? 0 : 0, dep.created_at, "Deposit") });
+        if (dep.payment_status !== "paid") entries.push({ date: dep.created_at, render: () => addHistoryCard("Deposit " + String(dep.payment_status || "pending"), "Nominal: " + historyMoney(dep.amount) + " · " + (dep.payment_reference || ""), 0, dep.created_at, "Deposit") });
       }
       for (const reg of result.registrations || []) {
-        if (reg.payment_status !== "paid") entries.push({ date: reg.created_at, render: () => addHistoryCard("Pendaftaran member " + String(reg.payment_status || "pending"), "Biaya pendaftaran member", 0, reg.created_at, "Pendaftaran") });
+        if (reg.payment_status !== "paid") entries.push({ date: reg.created_at, render: () => addHistoryCard("Pendaftaran member " + String(reg.payment_status || "pending"), "Biaya pendaftaran member: " + historyMoney(reg.amount), 0, reg.created_at, "Pendaftaran") });
       }
       entries.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
       for (const entry of entries) entry.render();
