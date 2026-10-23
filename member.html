@@ -29,6 +29,14 @@
       <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
         <div class="dashboard-heading"><div><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
         <p id="member-phone-label" class="muted"></p>
+        <div class="member-history-widget">
+          <button id="member-history-toggle" class="member-history-toggle" type="button" aria-expanded="false" aria-controls="member-history-panel">Cek Pesanan <span aria-hidden="true">＋</span></button>
+          <section id="member-history-panel" class="member-history-panel" hidden aria-label="Riwayat pesanan dan saldo">
+            <div class="member-history-heading"><strong>Riwayat Transaksi</strong><button id="member-history-refresh" type="button">Muat ulang</button></div>
+            <p id="member-history-message" class="member-history-message">Riwayat pembelian dan pengisian saldo member.</p>
+            <div id="member-history-list" class="member-history-list"></div>
+          </section>
+        </div>
         <div class="wallet-card"><b class="wallet-title">Saldo Deposit</b><strong id="wallet-balance">Rp0</strong><small>Saldo bertambah setelah pembayaran deposit terverifikasi.</small></div>
         <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
         <section id="wallet-checkout" class="dashboard-action" hidden>
