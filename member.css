@@ -111,3 +111,9 @@ input:focus{outline:3px solid #ffbd0028;border-color:#f5b000}
 .payment-panel a{color:#a76a00}
 .security-note{color:#7b8493}
 @media(max-width:760px){.shell{grid-template-columns:1fr;max-width:500px;margin-top:20px;gap:18px}.intro{padding:22px}.panel{padding:22px}.login-brand{width:min(100%,240px);min-height:56px}.login-logo-word{font-size:38px}.intro h1{font-size:29px}}
+
+
+/* Member dashboard clarity and login state */
+.wallet-card .wallet-title { display:block; font-size:1rem; font-weight:900; color:#182033; }
+#member-phone-label { color:#182033; font-size:15px; font-weight:900; letter-spacing:.2px; overflow-wrap:anywhere; }
+#member-phone-label:empty { display:none; }
