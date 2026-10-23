@@ -1210,3 +1210,16 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 .member-admin-actions button:disabled { opacity:.55; cursor:wait; }
 .member-admin-actions .btn-danger { color:#991b1b; border-color:#fecaca; background:#fff7f7; }
 #memberSearch { max-width:420px; width:100%; border:1px solid #d1d5db; border-radius:9px; padding:10px 12px; font:inherit; }
+
+/* Member ledger and secure manual top-up controls */
+.member-admin-actions [data-member-action="topup"]{background:#16a34a;color:#fff;border-color:#16a34a}
+.member-admin-actions [data-member-action="topup"]:hover{background:#15803d}
+.member-history-admin-card{margin-top:18px}
+.member-history-admin-card .admin-head{align-items:flex-start}
+.member-history-admin-card .admin-head .btn{flex-shrink:0}
+.member-history-admin-table td{vertical-align:top;font-size:11px;white-space:normal}
+.member-history-admin-table th{font-size:9px}
+.member-history-admin-table .member-ledger-credit{color:#15803d;font-weight:800;white-space:nowrap}
+.member-history-admin-table .member-ledger-debit{color:#dc2626;font-weight:800;white-space:nowrap}
+.member-history-admin-table small{display:inline-block;margin-top:4px;color:#64748b;font-size:10px}
+@media(max-width:700px){.member-history-admin-card .admin-head{flex-direction:column}.member-history-admin-card .admin-head .btn{width:100%}}
