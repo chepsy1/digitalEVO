@@ -226,7 +226,7 @@
       await refreshStatus();
       event.currentTarget.reset();
       document.getElementById("wallet-order-fields").replaceChildren();
-      document.getElementById("wallet-price").textContent = "Pilih produk untuk melihat harga.";
+      document.getElementById("wallet-price").textContent = "";
     } catch (error) {
       setNotice(error.message || "Checkout saldo gagal.", true);
     } finally {
