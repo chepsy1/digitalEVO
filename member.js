@@ -368,7 +368,7 @@
       resultBox.textContent = "Pesanan berhasil dibuat. Invoice: " + (data.invoice || "tersimpan") + ". Total: " + rupiah(data.amount) + ". Saldo tersisa: " + rupiah(data.balance) + ".";
       setNotice("Pembelian dengan saldo member berhasil.");
       await refreshStatus();
-      event.currentTarget.reset();
+      document.getElementById("wallet-checkout-form")?.reset();
       document.getElementById("wallet-order-fields").replaceChildren();
       updateSelectedPackage(null);
     } catch (error) {
