@@ -54,6 +54,17 @@
       tab.setAttribute("aria-selected", String(active));
     });
   }
+  function setAuthFormsVisible(visible) {
+    tabs.forEach(tab => { tab.hidden = !visible; });
+    if (!visible) {
+      views.login.hidden = true;
+      views.register.hidden = true;
+      return;
+    }
+    const registerActive = document.getElementById("register-tab").classList.contains("active");
+    views.login.hidden = registerActive;
+    views.register.hidden = !registerActive;
+  }
   tabs.forEach(tab => tab.addEventListener("click", () => switchView(tab.id === "register-tab" ? "register" : "login")));
   document.querySelectorAll("[data-switch]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.switch)));
 
@@ -231,8 +242,8 @@
       addField("member-account-name", "Nama akun/paket yang dipesan");
       addField("member-account-contact", "Kontak penerima / WhatsApp");
     } else {
+      addField("member-shopee-link", category === "followers" ? "Link/username Shopee" : category === "product_likes" ? "Link produk Shopee" : category === "video_views" || category === "video_likes" || category === "video_comments" ? "Link video Shopee" : "Link/username Shopee", "text", true, "Tempel link atau username");
       addField("member-customer-whatsapp", "Nomor WhatsApp");
-      addField("member-shopee-link", category === "product_likes" ? "Link produk Shopee" : "Link video / username Shopee", "text", true, "Tempel link atau username");
       if (category === "video_comments") addField("member-comment-text", "Komentar (satu komentar per baris)", "textarea", true, "Tulis komentar sesuai jumlah paket");
       if (category === "followers") addField("member-account-photo", "Foto / screenshot akun Shopee (JPG, PNG, WEBP)", "file", true);
     }
@@ -257,7 +268,7 @@
       if (memberProductCatalog) memberProductCatalog.hidden = !memberProducts.length;
       select.addEventListener("change", () => {
         const p = memberProducts.find(x => String(x.id) === select.value);
-        document.getElementById("wallet-price").textContent = p ? "Harga member: " + rupiah(p.member_price == null ? p.price : p.member_price) : "Pilih produk untuk melihat harga.";
+        document.getElementById("wallet-price").textContent = p ? "Harga member: " + rupiah(p.member_price == null ? p.price : p.member_price) : "";
         renderOrderFields(p?.category || "");
       });
     } catch (error) {
@@ -315,7 +326,7 @@
       await refreshStatus();
       event.currentTarget.reset();
       document.getElementById("wallet-order-fields").replaceChildren();
-      document.getElementById("wallet-price").textContent = "Pilih produk untuk melihat harga.";
+      document.getElementById("wallet-price").textContent = "";
     } catch (error) {
       setNotice(error.message || "Checkout saldo gagal.", true);
     } finally {
@@ -348,6 +359,7 @@
     const result = await api("status");
     const profile = result.profile;
     dashboard.hidden = false;
+    setAuthFormsVisible(false);
     if (memberIntro) memberIntro.hidden = true;
     if (memberProductCatalog) memberProductCatalog.hidden = profile?.status !== "active";
     document.getElementById("wallet-balance").textContent = rupiah(result.balance);
@@ -454,6 +466,12 @@
     event.preventDefault();
     try {
       const amount = Number(new FormData(depositForm).get("amount"));
+      if (!Number.isSafeInteger(amount) || amount < 10000 || amount > 10000000) {
+        document.getElementById("deposit-amount").setCustomValidity("Minimum deposit adalah Rp10.000.");
+        document.getElementById("deposit-amount").reportValidity();
+        document.getElementById("deposit-amount").setCustomValidity("");
+        return setNotice("Nominal deposit minimum Rp10.000 dan maksimum Rp10.000.000.", true);
+      }
       setNotice("Menyiapkan QRIS deposit...");
       const payment = await api("create_deposit", { amount });
       await showPayment(payment);
@@ -494,6 +512,7 @@
   document.getElementById("logout-button").addEventListener("click", async () => {
     if (client) await client.auth.signOut();
     dashboard.hidden = true;
+    setAuthFormsVisible(true);
     if (memberIntro) memberIntro.hidden = false;
     if (memberProductCatalog) memberProductCatalog.hidden = true;
     paymentPanel.hidden = true;
