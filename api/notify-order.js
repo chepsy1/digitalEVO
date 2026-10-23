@@ -44,6 +44,9 @@ function buildEmailHtml(order) {
   const contact = order.customerWhatsapp || order.accountContact || '-';
   const commentText = order.commentText || order.comment_text || '';
   const amount = formatRupiah(order.amount || order.total);
+  const isMemberOrder = /saldo\s*member|member\s*wallet/i.test(String(order.paymentMethod || order.payment_method || '')) || /^MEMBER-/i.test(String(order.transaction || order.paymentId || ''));
+  const paymentLabel = isMemberOrder ? 'SALDO MEMBER' : (order.paymentMethod || order.payment_method || 'Pembayaran Pesanan Biasa');
+  const orderTypeLabel = isMemberOrder ? 'PESANAN MEMBER' : 'PESANAN BIASA';
 
   return `<!doctype html>
 <html lang="id">
@@ -58,11 +61,14 @@ function buildEmailHtml(order) {
       <div style="font-size:13px;opacity:.8;">DIGITALEVO.STORE</div>
       <h1 style="margin:7px 0 0;font-size:24px;">🔔 Pesanan Baru</h1>
       <div style="margin-top:7px;font-size:14px;opacity:.9;">Pembayaran telah terkonfirmasi.</div>
+      <div style="display:inline-block;margin-top:12px;padding:7px 12px;border-radius:999px;background:${isMemberOrder ? '#dbeafe' : '#ffedd5'};color:${isMemberOrder ? '#1d4ed8' : '#9a3412'};font-size:12px;font-weight:800;">${escapeHtml(orderTypeLabel)} · ${escapeHtml(paymentLabel)}</div>
     </div>
 
     <div style="background:#fff;padding:24px;border-radius:0 0 16px 16px;">
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        <tr><td style="padding:10px 0;color:#6b7280;">Nomor transaksi</td><td style="padding:10px 0;text-align:right;font-weight:700;">${escapeHtml(order.transaction || order.paymentId || '-')}</td></tr>
+        <tr><td style="padding:10px 0;color:#6b7280;">Jenis pesanan</td><td style="padding:10px 0;text-align:right;font-weight:800;color:${isMemberOrder ? '#1d4ed8' : '#c2410c'};">${escapeHtml(orderTypeLabel)}</td></tr>
+        <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Metode pembayaran</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(paymentLabel)}</td></tr>
+        <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Nomor transaksi</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(order.transaction || order.paymentId || '-')}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Produk</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(category)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Jumlah</td><td style="padding:10px 0;text-align:right;font-weight:700;border-top:1px solid #e5e7eb;">${escapeHtml(quantity)}</td></tr>
         <tr><td style="padding:10px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Username / Link Shopee</td><td style="padding:10px 0;text-align:right;font-weight:700;word-break:break-word;border-top:1px solid #e5e7eb;">${escapeHtml(target)}</td></tr>
@@ -192,7 +198,13 @@ export default async function handler(req, res) {
           'Content-Type': 'application/json',
           'X-API-Key': apiKey
         },
-        body: JSON.stringify(order)
+        body: JSON.stringify({
+          ...order,
+          // Prefix transaction for Telegram so the admin can distinguish wallet orders
+          // even if the gateway's Telegram template only displays the transaction field.
+          transaction: `${/saldo\\s*member|member\\s*wallet/i.test(String(order.paymentMethod || order.payment_method || '')) || /^MEMBER-/i.test(String(order.transaction || order.paymentId || '')) ? '🟦 [PESANAN SALDO MEMBER]' : '🟧 [PESANAN BIASA]'} ${order.transaction || order.paymentId || '-'}`,
+          orderType: /saldo\\s*member|member\\s*wallet/i.test(String(order.paymentMethod || order.payment_method || '')) || /^MEMBER-/i.test(String(order.transaction || order.paymentId || '')) ? 'PESANAN SALDO MEMBER' : 'PESANAN BIASA'
+        })
       });
 
       const raw = await response.text();
