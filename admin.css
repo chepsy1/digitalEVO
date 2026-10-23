@@ -1223,3 +1223,59 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
 .member-history-admin-table .member-ledger-debit{color:#dc2626;font-weight:800;white-space:nowrap}
 .member-history-admin-table small{display:inline-block;margin-top:4px;color:#64748b;font-size:10px}
 @media(max-width:700px){.member-history-admin-card .admin-head{flex-direction:column}.member-history-admin-card .admin-head .btn{width:100%}}
+
+
+/* Clickable WhatsApp member + financial summary popup */
+.member-phone-detail {
+  display: inline-block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #16803d;
+  font: inherit;
+  font-weight: 750;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: #9bd5ae;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.member-phone-detail:hover { color: #0d5c2a; }
+.member-summary-modal[hidden] { display: none !important; }
+.member-summary-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, .58);
+}
+.member-summary-dialog {
+  width: min(620px, 100%);
+  max-height: min(85vh, 760px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #172033;
+  box-shadow: 0 22px 70px rgba(0,0,0,.24);
+}
+.member-summary-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:20px; }
+.member-summary-head h2 { margin:5px 0 4px; font-size:1.25rem; }
+.member-summary-head p { margin:0; color:#64748b; }
+.member-summary-close { border:0; border-radius:9px; background:#f1f5f9; color:#334155; font-size:25px; line-height:1; width:36px; height:36px; cursor:pointer; }
+.member-summary-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.member-summary-stats article { min-width:0; padding:15px 13px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; }
+.member-summary-stats article span { display:block; margin-bottom:8px; color:#64748b; font-size:.8rem; }
+.member-summary-stats article strong { display:block; overflow-wrap:anywhere; font-size:1.1rem; color:#0f172a; }
+.member-summary-stats article small { display:block; margin-top:7px; color:#64748b; font-size:.7rem; }
+.member-summary-note { margin:16px 0 0; color:#64748b; font-size:.8rem; line-height:1.5; }
+@media (max-width:560px) {
+  .member-summary-dialog { padding:16px; }
+  .member-summary-stats { grid-template-columns:1fr; }
+  .member-summary-stats article { padding:12px; }
+  .member-summary-stats article span { margin-bottom:4px; }
+}
