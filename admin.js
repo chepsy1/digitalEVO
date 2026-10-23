@@ -1835,6 +1835,7 @@ function renderMemberAdminList(members) {
       '<small>Terdaftar: ' + escapeHtml(m.created_at ? dateID(m.created_at) : '-') + '</small></div>' +
       '<div class="member-admin-actions">' + statusAction +
       '<button type="button" data-member-action="reset">Reset password</button>' +
+      '<button type="button" data-member-action="topup">Isi Saldo Manual</button>' +
       '<button type="button" class="btn-danger" data-member-action="delete">Hapus akun</button></div></article>';
   }).join('');
   box.querySelectorAll('[data-member-action]').forEach(button => button.addEventListener('click', async () => {
@@ -1857,6 +1858,19 @@ function renderMemberAdminList(members) {
       if (password !== confirmation) { msg('membersMsg', 'Konfirmasi password tidak sama.'); return; }
       apiAction = 'admin_reset_member_password'; payload.password = password;
     }
+    if (action === 'topup') {
+      const phone = card.querySelector('.member-admin-top strong')?.textContent || 'member ini';
+      const rawAmount = prompt('Nominal saldo yang akan ditambahkan untuk ' + phone + ' (Rp1.000–Rp10.000.000):');
+      if (rawAmount === null) return;
+      const amount = Number(String(rawAmount).replace(/[.\\s]/g, '').replace(/,/g, ''));
+      if (!Number.isSafeInteger(amount) || amount < 1000 || amount > 10000000) { msg('membersMsg', 'Nominal harus Rp1.000 sampai Rp10.000.000 tanpa desimal.'); return; }
+      const description = prompt('Keterangan untuk riwayat saldo:', 'Pengisian saldo manual oleh admin');
+      if (description === null) return;
+      if (!confirm('Tambahkan ' + formatRupiah(amount) + ' ke saldo ' + phone + '? Tindakan ini akan tercatat di riwayat transaksi.')) return;
+      apiAction = 'admin_adjust_member_wallet';
+      payload.amount = amount;
+      payload.description = description.trim() || 'Pengisian saldo manual oleh admin';
+    }
     if (action === 'delete') {
       const phone = card.querySelector('.member-admin-top strong')?.textContent || 'member ini';
       if (!confirm('Hapus akun ' + phone + ' secara permanen? Riwayat transaksi dan pembayaran akan tetap disimpan tanpa tautan ke akun.')) return;
@@ -1866,8 +1880,8 @@ function renderMemberAdminList(members) {
     button.disabled = true;
     msg('membersMsg', 'Memproses permintaan...');
     try {
-      await memberAdminRequest(apiAction, payload);
-      msg('membersMsg', action === 'reset' ? 'Password member berhasil direset.' : action === 'delete' ? 'Akun dihapus. Riwayat pembayaran tetap disimpan.' : action === 'suspend' ? 'Member berhasil dinonaktifkan.' : 'Member berhasil diaktifkan kembali.');
+      const actionResult = await memberAdminRequest(apiAction, payload);
+      msg('membersMsg', action === 'reset' ? 'Password member berhasil direset.' : action === 'delete' ? 'Akun dihapus. Riwayat pembayaran tetap disimpan.' : action === 'topup' ? 'Saldo manual berhasil ditambahkan. Saldo baru: ' + formatRupiah(actionResult.balance) : action === 'suspend' ? 'Member berhasil dinonaktifkan.' : 'Member berhasil diaktifkan kembali.');
       await loadAdminMembers();
     } catch (error) {
       msg('membersMsg', error.message || 'Aksi gagal.');
@@ -1894,9 +1908,73 @@ async function loadAdminMembers() {
 function setupMemberAdmin() {
   $('refreshMembers')?.addEventListener('click', loadAdminMembers);
   $('memberSearch')?.addEventListener('input', () => {
-    // Render from the most recent server response without additional API calls.
     if (Array.isArray(window.__digitalEvoMembers)) renderMemberAdminList(window.__digitalEvoMembers);
   });
+  $('refreshMemberHistory')?.addEventListener('click', loadAdminMemberHistory);
+  $('memberHistorySearch')?.addEventListener('input', renderAdminMemberHistory);
+  loadAdminMemberHistory();
+}
+
+function formatRupiah(value) {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0));
+}
+function loadAdminMemberHistory() {
+  const box = $('memberHistoryTable');
+  if (!box) return;
+  box.innerHTML = '<p class="admin-empty">Memuat riwayat transaksi member...</p>';
+  memberAdminRequest('admin_list_member_history').then(result => {
+    window.__digitalEvoMemberHistory = result;
+    renderAdminMemberHistory();
+    msg('memberHistoryMsg', 'Riwayat transaksi member berhasil dimuat.');
+  }).catch(error => {
+    box.innerHTML = '<p class="admin-empty">Riwayat member gagal dimuat.</p>';
+    msg('memberHistoryMsg', error.message || 'Gagal memuat riwayat member.');
+  });
+}
+function renderAdminMemberHistory() {
+  const box = $('memberHistoryTable');
+  const data = window.__digitalEvoMemberHistory;
+  if (!box || !data) return;
+  const profiles = new Map((data.profiles || []).map(item => [String(item.user_id), item]));
+  const balances = new Map((data.wallets || []).map(item => [String(item.user_id), Number(item.balance || 0)]));
+  const orders = new Map((data.orders || []).map(item => [String(item.id), item]));
+  const rows = [];
+  for (const tx of data.transactions || []) {
+    const profile = profiles.get(String(tx.user_id)) || {};
+    const ref = String(tx.source_reference || '').match(/^member-order:([0-9a-f-]{36})$/i);
+    const order = ref ? orders.get(ref[1]) : null;
+    rows.push({
+      phone: profile.whatsapp || 'Nomor tidak tersedia',
+      date: tx.created_at,
+      description: [order?.product_name, tx.description, order?.shopee_link, order?.comment_text].filter(Boolean).join(' · '),
+      amount: Number(tx.amount || 0),
+      balance: balances.get(String(tx.user_id)) || 0,
+      kind: tx.transaction_type === 'purchase' ? 'Pembelian produk' : tx.transaction_type === 'deposit' ? 'Deposit berhasil' : tx.transaction_type === 'registration_bonus' ? 'Bonus pendaftaran' : tx.transaction_type === 'admin_adjustment' ? 'Isi saldo manual' : tx.transaction_type,
+      invoice: order?.transaction_id || tx.source_reference || '-',
+      status: order?.order_status || 'Tercatat'
+    });
+  }
+  for (const dep of data.deposits || []) {
+    if (dep.payment_status === 'paid') continue;
+    const profile = profiles.get(String(dep.user_id)) || {};
+    rows.push({ phone: profile.whatsapp || 'Nomor tidak tersedia', date: dep.created_at, description: 'Permintaan deposit ' + formatRupiah(dep.amount), amount: 0, balance: balances.get(String(dep.user_id)) || 0, kind: 'Deposit ' + String(dep.payment_status || 'pending'), invoice: dep.payment_reference || '-', status: dep.payment_status || 'pending' });
+  }
+  for (const reg of data.registrations || []) {
+    if (reg.payment_status === 'paid') continue;
+    const profile = profiles.get(String(reg.user_id)) || {};
+    rows.push({ phone: profile.whatsapp || 'Nomor tidak tersedia', date: reg.created_at, description: 'Pendaftaran member ' + formatRupiah(reg.amount), amount: 0, balance: balances.get(String(reg.user_id)) || 0, kind: 'Pendaftaran ' + String(reg.payment_status || 'pending'), invoice: reg.payment_reference || '-', status: reg.payment_status || 'pending' });
+  }
+  rows.sort((a,b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+  const query = String($('memberHistorySearch')?.value || '').trim().toLowerCase();
+  const filtered = rows.filter(row => [row.phone,row.description,row.invoice,row.kind,row.status].join(' ').toLowerCase().includes(query));
+  if ($('memberHistoryCount')) $('memberHistoryCount').textContent = filtered.length + ' catatan';
+  if (!filtered.length) {
+    box.innerHTML = '<p class="admin-empty">Belum ada transaksi member yang cocok.</p>';
+    return;
+  }
+  box.innerHTML = '<table class="admin-table member-history-admin-table"><thead><tr><th>Waktu</th><th>WhatsApp Member</th><th>Deskripsi / Produk</th><th>Jumlah Masuk/Keluar</th><th>Sisa Deposit</th><th>Jenis</th><th>Invoice / Referensi</th></tr></thead><tbody>' +
+    filtered.map(row => '<tr><td>' + escapeHtml(row.date ? dateID(row.date) : '-') + '</td><td>' + escapeHtml(row.phone) + '</td><td style="white-space:normal;min-width:220px">' + escapeHtml(row.description || '-') + '</td><td class="' + (row.amount < 0 ? 'member-ledger-debit' : 'member-ledger-credit') + '">' + escapeHtml((row.amount > 0 ? '+' : '') + formatRupiah(row.amount)) + '</td><td>' + escapeHtml(formatRupiah(row.balance)) + '</td><td>' + escapeHtml(row.kind) + '<br><small>' + escapeHtml(row.status) + '</small></td><td style="white-space:normal;min-width:150px">' + escapeHtml(row.invoice) + '</td></tr>').join('') +
+    '</tbody></table>';
 }
 
 /* =========================
