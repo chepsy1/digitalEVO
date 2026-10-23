@@ -529,6 +529,34 @@ function openOrderComments(orderId) {
   field.focus();
 }
 
+function isMemberOrder(order) {
+  return ['saldo member', 'member wallet'].includes(String(order?.payment_method || '').trim().toLowerCase()) ||
+    String(order?.transaction_id || '').startsWith('MEMBER-');
+}
+
+function memberInvoiceDisplay(order) {
+  const invoice = String(order?.transaction_id || order?.id || '-');
+  if (!isMemberOrder(order)) return escapeHtml(invoice);
+
+  const data = window.__digitalEvoMemberHistory;
+  const orderId = String(order?.id || '');
+  if (data && orderId) {
+    const ledger = (data.transactions || []).find(tx =>
+      tx.transaction_type === 'purchase' &&
+      String(tx.source_reference || '') === 'member-order:' + orderId
+    );
+    const profile = ledger && (data.profiles || []).find(item =>
+      String(item.user_id) === String(ledger.user_id)
+    );
+    const whatsapp = String(profile?.whatsapp || '').trim();
+    if (whatsapp) {
+      return '<span class="member-order-label">MEMBER-' + escapeHtml(whatsapp) + '</span>';
+    }
+  }
+
+  return '<span class="member-order-label">' + escapeHtml(invoice) + '</span>';
+}
+
 function renderShopeeInput(order) {
   const value = orderShopeeInput(order);
   if (!value) return '-';
@@ -614,7 +642,7 @@ function renderOrders() {
         <tbody>
           ${tabOrders.map(order => `
             <tr>
-              <td><strong>${escapeHtml(order.transaction_id || order.id || '-')}</strong></td>
+              <td><strong>${memberInvoiceDisplay(order)}</strong></td>
               <td>${(['saldo member', 'member wallet'].includes(String(order.payment_method || '').trim().toLowerCase()) || String(order.transaction_id || '').startsWith('MEMBER-') ? '<div style="color:#dc2626;font-weight:800;font-size:12px;margin-bottom:4px;">Akun Member</div>' : '')}${order.account_name ? `<div><strong>Nama akun:</strong> ${escapeHtml(order.account_name)}</div>` : ''}${escapeHtml(order.customer_whatsapp || order.account_contact || order.accountContact || '-')}</td>
               <td class="order-shopee-link">${renderShopeeInput(order)}</td>
               <td>${escapeHtml(order.product_name || order.product || '-')}</td>
@@ -690,7 +718,7 @@ function renderRecentOrders() {
         <tbody>
           ${recent.map(order => `
             <tr>
-              <td>${escapeHtml(order.transaction_id || '-')}</td>
+              <td>${memberInvoiceDisplay(order)}</td>
               <td>${escapeHtml(order.product_name || '-')}</td>
               <td>${rupiah(order.amount)}</td>
               <td>${orderStatus(order.payment_status)}</td>
@@ -1926,6 +1954,9 @@ function loadAdminMemberHistory() {
   memberAdminRequest('admin_list_member_history').then(result => {
     window.__digitalEvoMemberHistory = result;
     renderAdminMemberHistory();
+    renderOrders();
+    renderPayments();
+    renderRecentOrders();
     msg('memberHistoryMsg', 'Riwayat transaksi member berhasil dimuat.');
   }).catch(error => {
     box.innerHTML = '<p class="admin-empty">Riwayat member gagal dimuat.</p>';
