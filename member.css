@@ -310,3 +310,17 @@ input:focus{outline:3px solid #ffbd0028;border-color:#f5b000}
   font-weight:900;
   color:#182033;
 }
+
+
+/* Membership comment quantity validation and contact navigation */
+.topbar-links{display:flex;align-items:center;justify-content:flex-end;gap:clamp(14px,2.8vw,30px);flex-wrap:wrap}
+.topbar-links a{white-space:nowrap}
+.admin-contact-link{color:#242424;text-decoration:none;font-size:14px;font-weight:800;padding:8px 0}
+.admin-contact-link:hover,.back-link:hover{text-decoration:underline;text-underline-offset:4px}
+#member-phone-label{display:flex;align-items:center;gap:9px}
+.whatsapp-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 25px;width:25px;height:25px;border-radius:50%;background:#25D366;color:white;font-size:17px;line-height:1}
+#member-comment-text{min-height:190px;resize:vertical;white-space:pre-wrap}
+.comment-counter{display:block;margin-top:5px;font-size:13px;font-weight:800;color:#a66a00}
+.comment-counter.is-valid{color:#16803c}
+.comment-counter.is-invalid{color:#c62828}
+@media(max-width:480px){.topbar-links{gap:12px}.topbar-links a{font-size:12px}.brand{font-size:22px}}
