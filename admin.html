@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>digitalEVO — Admin Panel</title>
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="admin.css?v=20261023-member-prices-label">
+<link rel="stylesheet" href="admin.css?v=20261023-member-history">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 </head>
@@ -761,6 +761,18 @@
           <p>Tekan Muat Ulang untuk menampilkan daftar member.</p>
         </div>
       </section>
+      <section class="admin-card member-history-admin-card">
+        <div class="admin-head">
+          <div><span class="eyebrow">MEMBER CHECKOUT &amp; DEPOSIT</span><h2>Riwayat Pembelian dan Pengisian Saldo</h2><p>Semua transaksi saldo member, checkout produk, deposit, dan saldo manual untuk pengecekan admin.</p></div>
+          <button id="refreshMemberHistory" class="btn btn-secondary" type="button">Muat Ulang Riwayat</button>
+        </div>
+        <div class="admin-actions-row">
+          <input id="memberHistorySearch" type="search" placeholder="Cari WhatsApp, invoice, produk..." aria-label="Cari riwayat transaksi member">
+          <span id="memberHistoryCount" class="muted"></span>
+        </div>
+        <p id="memberHistoryMsg" class="admin-msg" role="status" aria-live="polite"></p>
+        <div id="memberHistoryTable" class="admin-table-wrap"><p class="admin-empty">Memuat riwayat transaksi member...</p></div>
+      </section>
     </section>
 
     <!-- SETTINGS -->
@@ -812,6 +824,6 @@
 
 </section>
 
-<script src="admin.js?v=20261023-member-prices-label"></script>
+<script src="admin.js?v=20261023-member-history"></script>
 </body>
 </html>
