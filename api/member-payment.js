@@ -142,7 +142,7 @@ async function adminMemberAction(req, res, action) {
   if (admin.error) return reply(res, admin.status, { error: admin.error });
   const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const memberId = String(req.body?.memberId || '');
-  if (action !== 'admin_list_members' && !UUID_RE.test(memberId)) return reply(res, 400, { error: 'ID member tidak valid.' });
+  if (!['admin_list_members', 'admin_list_member_history'].includes(action) && !UUID_RE.test(memberId)) return reply(res, 400, { error: 'ID member tidak valid.' });
   if (action === 'admin_list_members') {
     const response = await db('/rest/v1/member_profiles?select=user_id,whatsapp,status,activated_at,created_at,updated_at&order=created_at.desc&limit=1000');
     const rows = await response.json().catch(() => []);
