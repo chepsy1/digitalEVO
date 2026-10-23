@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     try {
       const appHost = String(
         process.env.PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.digitalevo.store'
-      ).trim().replace(/\\/+$/, '');
+      ).trim().replace(/\/+$/, '');
       const notifyResponse = await fetch(`${appHost}/api/notify-order`, {
         method: 'POST',
         headers: {
