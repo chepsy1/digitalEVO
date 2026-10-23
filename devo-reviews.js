@@ -38,8 +38,7 @@
     el.innerHTML=html;
     el.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{
       const target=Number(b.dataset.page);
-      if(target<=3){showExternalLinkPopup('',2000,()=>{if(target!==page){page=target;loadReviews();}});}
-      else if(links[target])showExternalLinkPopup(links[target]);
+      if(target<=6){showExternalLinkPopup('',2000,()=>{if(target!==page){page=target;loadReviews();}});}
     });
     el.querySelector('[data-next-page]')?.addEventListener('click',()=>showExternalLinkPopup(links.next));
   }
@@ -89,7 +88,7 @@
     });
   }
   async function loadReviews(){
-    try{page=Math.max(1,Number(page)||1);const apiPage=((page-1)%3)+1;const r=await fetch(`/api/reviews?page=${apiPage}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
+    try{page=Math.max(1,Number(page)||1);const apiPage=page;const r=await fetch(`/api/reviews?page=${apiPage}&limit=6`);const d=await r.json();if(!r.ok)throw Error(d.error||'Gagal memuat ulasan');
       window.devoReviewsTotal=Number(d.total)||0;totalPages=Math.max(1,Math.ceil(window.devoReviewsTotal/6));
       $('devoReviewCount').textContent=`Berdasarkan ${d.total||0} ulasan`; $('devoReviewScore').textContent=`${String(d.average||'5').replace(/\.0$/, '')}/5`;
       if(!d.items?.length){list.innerHTML='<p class="devo-review-message">Belum ada ulasan yang disetujui.</p>';renderPagination();return;}
