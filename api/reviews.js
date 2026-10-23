@@ -47,7 +47,7 @@ module.exports = async (req, res) => {
     const range = response.headers.get('content-range') || '';
     const match = range.match(/\\/(\\d+)$/);
     const actualCount = match ? Number(match[1]) : allItems.length;
-    const total = 163 + actualCount;
+    const total = 413 + actualCount;
     const average = ratings.length ? (ratings.reduce((sum, item) => sum + (Number(item.rating) || 5), 0) / ratings.length).toFixed(1) : '5.0';
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     return res.status(200).json({ items, total, average });
