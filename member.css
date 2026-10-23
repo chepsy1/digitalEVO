@@ -324,3 +324,12 @@ input:focus{outline:3px solid #ffbd0028;border-color:#f5b000}
 .comment-counter.is-valid{color:#16803c}
 .comment-counter.is-invalid{color:#c62828}
 @media(max-width:480px){.topbar-links{gap:12px}.topbar-links a{font-size:12px}.brand{font-size:22px}}
+
+
+/* Auth page header spacing and interaction reliability */
+.topbar{padding-left:clamp(24px,6vw,76px);padding-right:clamp(28px,7vw,84px);gap:18px}
+.topbar-links{margin-right:4px;gap:clamp(16px,3vw,32px)}
+.topbar-links a{display:inline-flex;align-items:center;min-height:40px;position:relative;z-index:1}
+.tabs .tab,.text-button{position:relative;z-index:1;pointer-events:auto;touch-action:manipulation}
+@media(max-width:760px){.topbar{padding-left:20px;padding-right:22px;gap:10px}}
+@media(max-width:420px){.topbar{padding-left:14px;padding-right:16px}.brand{font-size:22px}.topbar-links{gap:10px}.topbar-links a{font-size:11px}}
