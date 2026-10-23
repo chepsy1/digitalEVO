@@ -331,7 +331,7 @@ export default async function handler(req, res) {
       const orderIds = [...new Set(ledger.rows.map(t => String(t.source_reference || '').match(/^member-order:([0-9a-f-]{36})$/i)?.[1]).filter(Boolean))];
       let orders = [];
       if (orderIds.length) {
-        const response = await db('/rest/v1/orders?id=in.(' + orderIds.map(encodeURIComponent).join(',') + ')&select=id,transaction_id,product_name,category,quantity,amount,payment_status,order_status,created_at,paid_at&limit=500');
+        const response = await db('/rest/v1/orders?id=in.(' + orderIds.map(encodeURIComponent).join(',') + ')&select=id,transaction_id,customer_whatsapp,account_contact,account_name,shopee_link,comment_text,photo_url,photo_path,product_name,category,quantity,amount,payment_status,order_status,created_at,paid_at&limit=500');
         orders = await response.json().catch(() => []);
         if (!response.ok) return reply(res, 500, { error: 'Detail pesanan member gagal dimuat.' });
       }
