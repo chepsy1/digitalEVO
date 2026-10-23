@@ -426,7 +426,6 @@
     client = window.supabase.createClient(config.url, config.anonKey);
     client.auth.getSession().then(async ({ data }) => {
       if (data.session) {
-        setAuthFormsVisible(false);
         try {
           await refreshStatus();
           await resumePendingPayment();
