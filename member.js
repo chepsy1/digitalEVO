@@ -270,10 +270,12 @@
         counter.className = "comment-counter";
         counter.textContent = "0/" + requiredLines + " komentar";
         const updateCounter = () => {
-          const count = input.value.split(/\r?\n/).filter(line => line.trim().length > 0).length;
+          const lines = input.value.split(/\r?\n/);
+          const count = lines.filter(line => line.trim().length > 0).length;
+          const hasBlankLine = input.value.length > 0 && lines.some(line => !line.trim());
           counter.textContent = count + "/" + requiredLines + " komentar";
-          counter.classList.toggle("is-valid", count === requiredLines);
-          counter.classList.toggle("is-invalid", count > requiredLines);
+          counter.classList.toggle("is-valid", count === requiredLines && !hasBlankLine);
+          counter.classList.toggle("is-invalid", count > requiredLines || hasBlankLine);
         };
         input.addEventListener("input", updateCounter);
         wrap.append(counter);
@@ -415,10 +417,11 @@
     const phoneLabel = document.getElementById("member-phone-label");
     phoneLabel.replaceChildren();
     if (profile?.whatsapp) {
-      const icon = document.createElement("span");
-      icon.className = "whatsapp-mark";
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icon.setAttribute("viewBox", "0 0 32 32");
+      icon.setAttribute("class", "whatsapp-mark");
       icon.setAttribute("aria-hidden", "true");
-      icon.textContent = "☎";
+      icon.innerHTML = '<path fill="#25D366" d="M16 1a15 15 0 0 0-12.9 22.7L1 31l7.5-2A15 15 0 1 0 16 1Z"/><path fill="#fff" d="M23.1 18.7c-.4-.2-2.1-1-2.4-1.1-.3-.1-.6-.2-.8.2-.2.4-.9 1.1-1.1 1.3-.2.2-.4.3-.8.1-.4-.2-1.5-.6-2.8-1.8-1-.9-1.8-2-2-2.4-.2-.4 0-.6.2-.8l.6-.7c.2-.2.2-.4.4-.6.1-.2.1-.4 0-.6-.1-.2-.8-1.9-1.1-2.6-.3-.7-.6-.6-.8-.6h-.7c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.9s1.2 3.3 1.4 3.5c.2.2 2.4 3.7 5.9 5.2.8.3 1.4.5 1.9.6.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.5.2-1.7-.1-.2-.3-.3-.7-.5Z"/>');
       const phoneText = document.createElement("span");
       phoneText.textContent = profile.whatsapp;
       phoneLabel.append(icon, phoneText);
