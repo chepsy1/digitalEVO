@@ -422,8 +422,8 @@ export default async function handler(req, res) {
 
     if (action === 'create_deposit') {
       const amount = Number(req.body?.amount);
-      if (!Number.isSafeInteger(amount) || amount < 1000 || amount > 10000000) {
-        return reply(res, 400, { error: 'Nominal deposit harus Rp1.000 sampai Rp10.000.000.' });
+      if (!Number.isSafeInteger(amount) || amount < 10000 || amount > 10000000) {
+        return reply(res, 400, { error: 'Nominal deposit harus Rp10.000 sampai Rp10.000.000.' });
       }
       const profileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(user.id)}&select=status&limit=1`);
       const profiles = await profileResponse.json();
