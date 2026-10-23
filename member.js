@@ -404,6 +404,85 @@
     return true;
   }
 
+  const historyToggle = document.getElementById("member-history-toggle");
+  const historyPanel = document.getElementById("member-history-panel");
+  const historyList = document.getElementById("member-history-list");
+  const historyMessage = document.getElementById("member-history-message");
+  const historyMoney = value => rupiah(Number(value || 0));
+  function historyDate(value) {
+    if (!value) return "-";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "-" : date.toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" });
+  }
+  function addHistoryCard(title, detail, amount, date, type, invoice = "") {
+    const card = document.createElement("article");
+    card.className = "member-history-item";
+    const top = document.createElement("div");
+    top.className = "member-history-item-top";
+    const name = document.createElement("strong");
+    name.textContent = title;
+    const value = document.createElement("b");
+    value.className = Number(amount) < 0 ? "history-amount debit" : "history-amount credit";
+    value.textContent = (Number(amount) > 0 ? "+" : "") + historyMoney(amount);
+    top.append(name, value);
+    const description = document.createElement("p");
+    description.textContent = detail || "Transaksi member";
+    const meta = document.createElement("small");
+    meta.textContent = [invoice ? "Invoice " + invoice : "", historyDate(date), type].filter(Boolean).join(" · ");
+    card.append(top, description, meta);
+    historyList.append(card);
+  }
+  async function loadMemberHistory() {
+    if (!historyList || !historyMessage) return;
+    historyMessage.textContent = "Memuat riwayat transaksi...";
+    historyList.replaceChildren();
+    try {
+      const result = await api("history");
+      const orders = new Map((result.orders || []).map(order => [String(order.id), order]));
+      const entries = [];
+      for (const tx of result.transactions || []) {
+        const match = String(tx.source_reference || "").match(/^member-order:([0-9a-f-]{36})$/i);
+        const order = match ? orders.get(match[1]) : null;
+        entries.push({
+          date: tx.created_at,
+          render: () => addHistoryCard(
+            order?.product_name || (tx.transaction_type === "purchase" ? "Pembelian produk member" : tx.transaction_type === "deposit" ? "Pengisian deposit" : tx.transaction_type === "registration_bonus" ? "Bonus pendaftaran" : tx.transaction_type === "admin_adjustment" ? "Penyesuaian saldo oleh admin" : "Transaksi saldo"),
+            [tx.description, order?.shopee_link, order?.account_name, order?.comment_text].filter(Boolean).join(" · "),
+            tx.amount,
+            tx.created_at,
+            tx.transaction_type === "purchase" ? "Pembelian" : tx.transaction_type === "deposit" ? "Deposit berhasil" : tx.transaction_type === "registration_bonus" ? "Bonus" : tx.transaction_type === "admin_adjustment" ? "Isi saldo admin" : tx.transaction_type,
+            order?.transaction_id || ""
+          )
+        });
+      }
+      for (const dep of result.deposits || []) {
+        if (dep.payment_status !== "paid") entries.push({ date: dep.created_at, render: () => addHistoryCard("Deposit " + String(dep.payment_status || "pending"), "Permintaan pengisian deposit · " + (dep.payment_reference || ""), dep.payment_status === "pending" ? 0 : 0, dep.created_at, "Deposit") });
+      }
+      for (const reg of result.registrations || []) {
+        if (reg.payment_status !== "paid") entries.push({ date: reg.created_at, render: () => addHistoryCard("Pendaftaran member " + String(reg.payment_status || "pending"), "Biaya pendaftaran member", 0, reg.created_at, "Pendaftaran") });
+      }
+      entries.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+      for (const entry of entries) entry.render();
+      historyMessage.textContent = "Saldo saat ini: " + historyMoney(result.balance) + " · " + entries.length + " catatan";
+      if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.className = "member-history-empty";
+        empty.textContent = "Belum ada riwayat pembelian atau pengisian saldo.";
+        historyList.append(empty);
+      }
+    } catch (error) {
+      historyMessage.textContent = error.message || "Riwayat belum dapat dimuat.";
+    }
+  }
+  historyToggle?.addEventListener("click", async () => {
+    const open = historyPanel.hidden;
+    historyPanel.hidden = !open;
+    historyToggle.setAttribute("aria-expanded", String(open));
+    historyToggle.querySelector("span").textContent = open ? "−" : "＋";
+    if (open) await loadMemberHistory();
+  });
+  document.getElementById("member-history-refresh")?.addEventListener("click", loadMemberHistory);
+
   async function refreshStatus() {
     const result = await api("status");
     const profile = result.profile;
