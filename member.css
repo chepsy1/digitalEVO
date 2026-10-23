@@ -288,3 +288,25 @@ input:focus{outline:3px solid #ffbd0028;border-color:#f5b000}
 .wallet-card .wallet-title { display:block; font-size:1rem; font-weight:900; color:#182033; }
 #member-phone-label { color:#182033; font-size:15px; font-weight:900; letter-spacing:.2px; overflow-wrap:anywhere; }
 #member-phone-label:empty { display:none; }
+
+/* Selected member package and deposit heading */
+#wallet-product-label {
+  display:block;
+  color:#1769c2;
+  font-weight:900;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+#wallet-price {
+  color:#16803c;
+  font-weight:900;
+  font-size:15px;
+}
+#wallet-pay-button { font-weight:900; }
+.deposit-section-title {
+  margin:0 0 14px;
+  text-align:left;
+  font-size:18px;
+  font-weight:900;
+  color:#182033;
+}
