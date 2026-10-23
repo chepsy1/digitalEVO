@@ -13,7 +13,7 @@
     <section id="member-intro" class="intro"><span class="eyebrow">DIGITALEVO MEMBERSHIP</span><h1>Dapatkan Harga Diskon Khusus Member/Reseller</h1><p><strong>Anda tidak harus login untuk melakukan transaksi.</strong></p><p>Namun, dengan akun Member anda bisa mendapatkan keuntungan promo harga khusus.</p><div class="benefit-row"><span>Biaya daftar sekali seumur hidup <strong>Rp99.000</strong></span><span>Bonus saldo awal setelah mendaftar <strong>Rp15.000</strong></span><span>Akses harga khusus Member/reseller</span><span>Diskon hingga 50% dibeberapa produk.</span></div></section>
     <section id="member-product-catalog" class="member-product-catalog" hidden aria-label="Katalog harga khusus member">
       <h2>Produk Khusus Member</h2>
-      <p class="muted">Pilih produk untuk melihat paket dan harga member.</p>
+      <p class="muted">Paket produk dengan harga diskon untuk member dan reseller.</p>
       <div id="member-product-grid" class="member-product-grid"></div>
     </section>
 
@@ -26,23 +26,23 @@
       <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
         <div class="dashboard-heading"><div><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
         <p id="member-phone-label" class="muted"></p>
-        <div class="wallet-card"><span>Saldo wallet</span><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran terverifikasi.</small></div>
+        <div class="wallet-card"><b class="wallet-title">Saldo Deposit</b><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran deposit terverifikasi.</small></div>
         <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
         <section id="wallet-checkout" class="dashboard-action" hidden>
           <h3>Belanja dengan saldo member</h3>
-          <p class="muted">Pilih produk dan isi data pesanan. Harga member ditentukan oleh admin.</p>
+          <p class="muted">Paket produk dengan harga diskon untuk member dan reseller.</p>
           <form id="wallet-checkout-form">
-            <label for="wallet-product">Produk dan paket terpilih</label>
+            <label for="wallet-product">Paket produk</label>
             <select id="wallet-product" required><option value="">Pilih produk dari katalog</option></select>
             <div id="wallet-order-fields"></div>
-            <p class="fine-print" id="wallet-price">Pilih produk untuk melihat harga.</p>
+            <p class="fine-print" id="wallet-price" aria-live="polite"></p>
             <button class="primary" type="submit">Bayar dengan Saldo</button>
           </form>
           <div id="wallet-order-result" class="fine-print" aria-live="polite"></div>
         </section>
         <form id="deposit-form" class="dashboard-action" hidden>
           <label for="deposit-amount">Nominal deposit (Rp)</label>
-          <input id="deposit-amount" name="amount" type="number" min="1000" max="10000000" step="1000" placeholder="Contoh: 50000" required>
+          <input id="deposit-amount" name="amount" type="number" min="10000" max="10000000" step="1000" placeholder="Minimum Rp10.000" required>
           <button class="primary" type="submit">Buat QRIS Deposit</button>
         </form>
       </section>
@@ -93,6 +93,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="/supabase-config.js" defer></script>
-  <script src="/member.js?v=20261023-layout-fix" defer></script>
+  <script src="/member.js?v=20261023-member-updates" defer></script>
 </body>
 </html>
