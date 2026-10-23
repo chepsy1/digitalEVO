@@ -131,6 +131,31 @@
     video_views: "Shopee Video Views", video_likes: "Shopee Video Likes",
     video_comments: "Shopee Video Custom Comments", product_likes: "Shopee Produk Favorite/Likes"
   };
+  const productQuantityLabel = p => {
+    const qty = Number(p.qty).toLocaleString("id-ID");
+    const suffix = p.category === "followers" ? " Followers" :
+      p.category === "video_views" ? " Views" :
+      p.category === "video_likes" ? " Likes" :
+      p.category === "video_comments" ? " Custom Comments" :
+      p.category === "product_likes" ? " Favorites/Likes" : "";
+    return qty + suffix;
+  };
+  function updateSelectedPackage(p) {
+    const label = document.getElementById("wallet-product-label");
+    const priceLine = document.getElementById("wallet-price");
+    const payButton = document.getElementById("wallet-pay-button");
+    if (!p) {
+      label.textContent = "Paket produk";
+      priceLine.textContent = "";
+      payButton.textContent = "Bayar Dengan Saldo";
+      return;
+    }
+    const packageName = categoryLabels[p.category] + " — " + productQuantityLabel(p);
+    const price = p.member_price == null ? Number(p.price) : Number(p.member_price);
+    label.textContent = "Paket produk " + packageName;
+    priceLine.textContent = "Harga member: " + rupiah(price);
+    payButton.textContent = "Bayar " + rupiah(price) + " Dengan Saldo";
+  }
   const productImage = p => {
     const q = Number(p.qty);
     const files = {
@@ -268,7 +293,7 @@
       if (memberProductCatalog) memberProductCatalog.hidden = !memberProducts.length;
       select.addEventListener("change", () => {
         const p = memberProducts.find(x => String(x.id) === select.value);
-        document.getElementById("wallet-price").textContent = p ? "Harga member: " + rupiah(p.member_price == null ? p.price : p.member_price) : "";
+        updateSelectedPackage(p);
         renderOrderFields(p?.category || "");
       });
     } catch (error) {
@@ -326,11 +351,11 @@
       await refreshStatus();
       event.currentTarget.reset();
       document.getElementById("wallet-order-fields").replaceChildren();
-      document.getElementById("wallet-price").textContent = "";
+      updateSelectedPackage(null);
     } catch (error) {
       setNotice(error.message || "Checkout saldo gagal.", true);
     } finally {
-      if (button) { button.disabled = false; button.textContent = "Bayar dengan Saldo"; }
+      if (button) { button.disabled = false; updateSelectedPackage(memberProducts.find(p => String(p.id) === document.getElementById("wallet-product").value)); }
     }
   });
 
@@ -346,6 +371,11 @@
       return true;
     }
     if (!result.pending) return false;
+    if (result.pending.type === "deposit") {
+      paymentPanel.hidden = true;
+      activePaymentReference = null;
+      return false;
+    }
     await showPayment(result.pending);
     if (!result.pending.qrisUrl && !result.pending.qrContent && !result.pending.qrImage) {
       setNotice("Pembayaran lama ditemukan, tetapi data gambar QRIS tidak tersedia. Tekan Periksa Pembayaran atau hubungi admin jika QRIS belum dibayar.", true);
@@ -473,6 +503,8 @@
         return setNotice("Nominal deposit minimum Rp10.000 dan maksimum Rp10.000.000.", true);
       }
       setNotice("Menyiapkan QRIS deposit...");
+      paymentPanel.hidden = true;
+      activePaymentReference = null;
       const payment = await api("create_deposit", { amount });
       await showPayment(payment);
       setNotice("QRIS deposit berhasil dibuat. Bayar sesuai nominal, lalu periksa pembayaran.");
