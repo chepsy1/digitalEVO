@@ -304,7 +304,7 @@ export default async function handler(req, res) {
       if (!regResponse.ok) return reply(res, 500, { error: 'Gagal memulihkan pembayaran pendaftaran.' });
 
       const depResponse = await db(
-        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=1`
+        `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_status=eq.pending&select=id,amount,payment_reference,qris_url,qr_content,qr_image,expires_at,created_at,gateway_start_time&order=created_at.desc&limit=100`
       );
       const deposits = await depResponse.json();
       if (!depResponse.ok) return reply(res, 500, { error: 'Gagal memulihkan pembayaran deposit.' });
@@ -435,23 +435,31 @@ export default async function handler(req, res) {
       );
       const pendingRows = await pendingResponse.json();
       if (!pendingResponse.ok) return reply(res, 500, { error: 'Gagal memeriksa deposit yang masih menunggu.' });
-      const pending = pendingRows?.[0];
-      if (pending) {
-        const expired = pending.expires_at && new Date(pending.expires_at).getTime() <= Date.now();
-        if (expired) {
-          const expiredResponse = await db(
+      // Do not reuse an old QRIS. Before closing an old pending request, check
+      // whether it was already paid so a refresh cannot silently lose a deposit.
+      for (const pending of (pendingRows || [])) {
+        const alreadyPaid = await gatewayPaymentStatus(
+          pending.payment_reference,
+          Number(pending.amount),
+          Number(pending.gateway_start_time) || Math.floor(new Date(pending.created_at).getTime() / 1000)
+        );
+        if (alreadyPaid) {
+          const paidUpdate = await db(
             `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
-            { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'expired' }) }
+            { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'paid', paid_at: new Date().toISOString() }) }
           );
-          if (!expiredResponse.ok) return reply(res, 500, { error: 'Deposit lama belum bisa ditutup. Silakan coba lagi.' });
-        } else {
-          return reply(res, 200, {
-            success: true, type: 'deposit', amount: Number(pending.amount),
-            paymentReference: pending.payment_reference, qrisUrl: pending.qris_url,
-            qrContent: pending.qr_content, qrImage: pending.qr_image,
-            expiresAt: pending.expires_at, resumed: true
+          if (!paidUpdate.ok) return reply(res, 500, { error: 'Deposit sebelumnya terdeteksi dibayar, tetapi belum bisa diverifikasi. Silakan hubungi admin sebelum membuat QRIS baru.' });
+          const creditResponse = await db('/rest/v1/rpc/member_credit_verified_deposit', {
+            method: 'POST', body: JSON.stringify({ p_user_id: user.id, p_payment_reference: pending.payment_reference })
           });
+          if (!creditResponse.ok) return reply(res, 500, { error: 'Deposit sebelumnya sudah dibayar tetapi saldo belum dapat diperbarui. Hubungi admin sebelum membuat QRIS baru.' });
+          return reply(res, 409, { error: 'Deposit sebelumnya sudah terverifikasi dan saldo diperbarui. Muat ulang saldo sebelum membuat deposit baru.' });
         }
+        const expiredResponse = await db(
+          `/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&payment_reference=eq.${encodeURIComponent(pending.payment_reference)}&payment_status=eq.pending`,
+          { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'expired' }) }
+        );
+        if (!expiredResponse.ok) return reply(res, 500, { error: 'QRIS deposit sebelumnya belum bisa direset. Silakan coba lagi.' });
       }
 
       // Capture the gateway search window before QR creation so fast payments are not missed.
