@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Login Member DigitalEVO dan katalog produk dengan harga khusus reseller.">
   <title>Member DigitalEVO</title>
-  <link rel="stylesheet" href="/member.css?v=20261023-membership-copy">
+  <link rel="stylesheet" href="/member.css?v=20261023-member-comments-admin-links">
     <a class="brand" href="/" aria-label="Kembali ke DigitalEVO"><span>digital</span><b>EVO</b></a>
-    <a class="back-link" href="/">Kembali ke toko</a>
+    <nav class="topbar-links" aria-label="Navigasi member"><a class="back-link" href="/">Kembali ke toko</a><a class="admin-contact-link" href="https://wa.me/admin_digitalevo" target="_blank" rel="noopener noreferrer">Hubungi Admin</a></nav>
   </header>
   <main class="shell">
     <section id="member-intro" class="intro"><span class="eyebrow">DIGITALEVO MEMBERSHIP</span><h1>Dapatkan Harga Diskon Khusus Member/Reseller</h1><p><strong>Anda tidak harus login untuk melakukan transaksi.</strong></p><p>Namun, dengan akun Member anda bisa mendapatkan keuntungan promo harga khusus.</p><div class="benefit-row"><span>Biaya daftar sekali seumur hidup <strong>Rp99.000</strong></span><span>Bonus saldo awal setelah mendaftar <strong>Rp15.000</strong></span><span>Akses harga khusus Member/reseller</span><span>Diskon hingga 50% dibeberapa produk.</span></div></section>
@@ -26,7 +26,7 @@
       <section id="member-dashboard" class="member-dashboard" hidden aria-live="polite">
         <div class="dashboard-heading"><div><h2 id="member-status-title">Status member</h2></div><button id="logout-button" class="secondary" type="button">Keluar</button></div>
         <p id="member-phone-label" class="muted"></p>
-        <div class="wallet-card"><b class="wallet-title">Saldo Deposit</b><strong id="wallet-balance">Rp0</strong><small>Saldo hanya bertambah setelah pembayaran deposit terverifikasi.</small></div>
+        <div class="wallet-card"><b class="wallet-title">Saldo Deposit</b><strong id="wallet-balance">Rp0</strong><small>Saldo bertambah setelah pembayaran deposit terverifikasi.</small></div>
         <div id="registration-action" class="dashboard-action" hidden><p>Keanggotaan Anda belum aktif. Selesaikan pembayaran pendaftaran sekali bayar.</p><button id="registration-pay-button" class="primary" type="button">Bayar Pendaftaran Rp99.000</button></div>
         <section id="wallet-checkout" class="dashboard-action" hidden>
           <h3>Belanja dengan saldo member</h3>
@@ -94,6 +94,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="/supabase-config.js" defer></script>
-  <script src="/member.js?v=20261023-member-payment-refresh" defer></script>
+  <script src="/member.js?v=20261023-member-comments-admin-links" defer></script>
 </body>
 </html>
