@@ -1,6 +1,6 @@
 module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method tidak diizinkan.' });
-  const base = String(process.env.SUPABASE_URL || '').replace(/\\/+$/, '');
+  const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!base || !key) return res.status(503).json({ error: 'Konfigurasi review server belum lengkap.' });
   const page = Math.max(1, Math.min(10000, Number(req.query.page) || 1));
