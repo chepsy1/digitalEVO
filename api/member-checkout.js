@@ -63,19 +63,21 @@ export default async function handler(req, res) {
     const result = Array.isArray(data) ? data[0] : data;
     const checkout = result || { success: true };
 
-    // Notify the shop after the order and wallet debit have committed. Notification
-    // failures must not undo or misreport a successful purchase.
+    // Notify the shop after the order and wallet debit have committed.
+    // Prefer the canonical production domain so notifications do not silently
+    // depend on Vercel's deployment-specific VERCEL_URL value.
     try {
-      const appHost = String(process.env.VERCEL_URL || '').replace(/^https?:\/\//i, '').replace(/\/$/, '');
-      if (appHost && /^[a-zA-Z0-9.-]+(?::\d+)?$/.test(appHost)) {
-      const notifyResponse = await fetch(`https://${appHost}/api/notify-order`, {
+      const appHost = String(
+        process.env.PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.digitalevo.store'
+      ).trim().replace(/\\/+$/, '');
+      const notifyResponse = await fetch(`${appHost}/api/notify-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-internal-notify-key': serviceKey
         },
         body: JSON.stringify({
-          transaction: checkout.invoice || checkout.order_id || 'Pesanan Saldo Member',
+          transaction: checkout.invoice || checkout.transaction_id || checkout.order_id || 'Pesanan Saldo Member',
           category,
           qty,
           quantity: qty,
@@ -88,10 +90,25 @@ export default async function handler(req, res) {
           shopeeLink: order.shopeeLink || order.shopee_link || '',
           commentText: order.commentText || order.comment_text || '',
           photoUrl: order.photoUrl || order.photo_url || '',
-          photoName: order.photoName || order.photo_name || ''
+          photoName: order.photoName || order.photo_name || '',
+          paymentMethod: 'Saldo Member',
+          paymentTime: new Date().toISOString()
         })
       });
-      if (!notifyResponse.ok) console.error('Notifikasi pesanan saldo member gagal:', notifyResponse.status, await notifyResponse.text());
+      const notifyRaw = await notifyResponse.text();
+      let notifyResult = {};
+      try { notifyResult = notifyRaw ? JSON.parse(notifyRaw) : {}; }
+      catch { notifyResult = { raw: notifyRaw }; }
+
+      if (!notifyResponse.ok) {
+        console.error('Notifikasi pesanan saldo member gagal:', notifyResponse.status, notifyResult);
+      } else {
+        if (notifyResult.email?.success !== true) {
+          console.error('Email pesanan saldo member tidak terkirim:', notifyResult.email || 'Respons email tidak tersedia');
+        }
+        if (notifyResult.telegram?.success !== true) {
+          console.error('Telegram pesanan saldo member tidak terkirim:', notifyResult.telegram || 'Respons Telegram tidak tersedia');
+        }
       }
     } catch (notifyError) {
       console.error('Notifikasi pesanan saldo member gagal:', notifyError?.message || notifyError);
