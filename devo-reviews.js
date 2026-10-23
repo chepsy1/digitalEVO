@@ -31,7 +31,7 @@
   }
   function renderPagination(){
     const el=$('devoReviewPagination'); if(!el)return;
-    const links={4:'https://s.shopee.co.id/qkQooXUDF',5:'https://s.shopee.co.id/1gJXoWYwds',6:'https://s.shopee.co.id/113r1NLzNM',next:'https://s.shopee.co.id/20wODGa0rc'};
+    const links={4:'https://s.shopee.co.id/qkQooXUDF',5:'https://s.shopee.co.id/1gJXoWYwds',6:'https://s.shopee.co.id/113r1NLzNM',next:'https://www.digitalevo.store/member.html'};
     let html='';
     for(let n=1;n<=6;n++)html+='<button type="button" data-page="'+n+'" class="'+(page===n?'active':'')+'" '+(page===n?'aria-current="page"':'')+'>'+n+'</button>';
     html+='<span class="devo-review-page-dots" aria-hidden="true">…</span><button type="button" data-next-page aria-label="Halaman berikutnya">Next</button>';
