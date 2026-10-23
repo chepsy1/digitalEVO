@@ -149,10 +149,47 @@ async function adminMemberAction(req, res, action) {
     if (!response.ok) return reply(res, 500, { error: 'Gagal memuat daftar member.' });
     return reply(res, 200, { success: true, members: rows });
   }
+  if (action === 'admin_list_member_history') {
+    const [profilesRes, walletsRes, ledgerRes, depositsRes, registrationsRes] = await Promise.all([
+      db('/rest/v1/member_profiles?select=user_id,whatsapp,status&order=created_at.desc&limit=1000'),
+      db('/rest/v1/member_wallets?select=user_id,balance&limit=1000'),
+      db('/rest/v1/member_wallet_transactions?select=id,user_id,amount,transaction_type,source_reference,description,created_at&order=created_at.desc&limit=5000'),
+      db('/rest/v1/member_deposit_requests?select=id,user_id,amount,payment_reference,payment_status,paid_at,created_at&order=created_at.desc&limit=3000'),
+      db('/rest/v1/member_registration_payments?select=id,user_id,amount,payment_reference,payment_status,paid_at,created_at&order=created_at.desc&limit=2000')
+    ]);
+    const results = await Promise.all([profilesRes, walletsRes, ledgerRes, depositsRes, registrationsRes].map(async response => ({ ok: response.ok, rows: await response.json().catch(() => []) })));
+    if (results.some(x => !x.ok)) return reply(res, 500, { error: 'Gagal memuat riwayat transaksi member. Pastikan migrasi member sudah diterapkan.' });
+    const [profiles, wallets, transactions, deposits, registrations] = results.map(x => x.rows);
+    const orderIds = [...new Set(transactions.map(t => String(t.source_reference || '').match(/^member-order:([0-9a-f-]{36})$/i)?.[1]).filter(Boolean))];
+    let orders = [];
+    if (orderIds.length) {
+      const chunks = [];
+      for (let i = 0; i < orderIds.length; i += 80) {
+        const response = await db('/rest/v1/orders?id=in.(' + orderIds.slice(i, i + 80).map(encodeURIComponent).join(',') + ')&select=id,transaction_id,customer_whatsapp,account_contact,account_name,shopee_link,comment_text,product_name,category,quantity,amount,payment_status,order_status,payment_method,created_at,paid_at&limit=5000');
+        const rows = await response.json().catch(() => []);
+        if (!response.ok) return reply(res, 500, { error: 'Gagal memuat detail checkout member.' });
+        chunks.push(...rows);
+      }
+      orders = chunks;
+    }
+    return reply(res, 200, { success: true, profiles, wallets, transactions, deposits, registrations, orders });
+  }
   const profileResponse = await db(`/rest/v1/member_profiles?user_id=eq.${encodeURIComponent(memberId)}&select=user_id,whatsapp,status&limit=1`);
   const profiles = await profileResponse.json().catch(() => []);
   if (!profileResponse.ok || !profiles?.[0]) return reply(res, 404, { error: 'Akun member tidak ditemukan.' });
   const profile = profiles[0];
+  if (action === 'admin_adjust_member_wallet') {
+    const amount = Number(req.body?.amount);
+    const description = String(req.body?.description || 'Pengisian saldo manual oleh admin').trim().slice(0, 240);
+    if (!Number.isSafeInteger(amount) || amount < 1000 || amount > 10000000) return reply(res, 400, { error: 'Nominal isi saldo harus Rp1.000 sampai Rp10.000.000.' });
+    const credit = await db('/rest/v1/rpc/admin_adjust_member_wallet', {
+      method: 'POST',
+      body: JSON.stringify({ p_user_id: memberId, p_amount: amount, p_description: description })
+    });
+    const raw = await credit.text();
+    if (!credit.ok) return reply(res, 500, { error: 'Saldo manual gagal ditambahkan. Pastikan migrasi isi saldo manual sudah dijalankan.', details: raw });
+    return reply(res, 200, { success: true, balance: Number(raw) });
+  }
   if (action === 'admin_set_member_status') {
     const status = String(req.body?.status || '');
     if (!['active', 'suspended'].includes(status)) return reply(res, 400, { error: 'Status member tidak valid.' });
@@ -280,6 +317,25 @@ export default async function handler(req, res) {
     const base = String(process.env.SUPABASE_URL || '').replace(/\/+$/, '');
     if (!base || !process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.SUPABASE_ANON_KEY) {
       return reply(res, 500, { error: 'Konfigurasi server member belum lengkap.' });
+    }
+
+    if (action === 'history') {
+      const [ledgerResponse, walletResponse, depositResponse, registrationResponse] = await Promise.all([
+        db(`/rest/v1/member_wallet_transactions?user_id=eq.${encodeURIComponent(user.id)}&select=id,amount,transaction_type,source_reference,description,created_at&order=created_at.desc&limit=500`),
+        db(`/rest/v1/member_wallets?user_id=eq.${encodeURIComponent(user.id)}&select=balance&limit=1`),
+        db(`/rest/v1/member_deposit_requests?user_id=eq.${encodeURIComponent(user.id)}&select=id,amount,payment_reference,payment_status,paid_at,created_at&order=created_at.desc&limit=300`),
+        db(`/rest/v1/member_registration_payments?user_id=eq.${encodeURIComponent(user.id)}&select=id,amount,payment_reference,payment_status,paid_at,created_at&order=created_at.desc&limit=100`)
+      ]);
+      const [ledger, wallet, deposits, registrations] = await Promise.all([ledgerResponse, walletResponse, depositResponse, registrationResponse].map(async response => ({ ok: response.ok, rows: await response.json().catch(() => []) })));
+      if ([ledger, wallet, deposits, registrations].some(x => !x.ok)) return reply(res, 500, { error: 'Riwayat member belum dapat dimuat.' });
+      const orderIds = [...new Set(ledger.rows.map(t => String(t.source_reference || '').match(/^member-order:([0-9a-f-]{36})$/i)?.[1]).filter(Boolean))];
+      let orders = [];
+      if (orderIds.length) {
+        const response = await db('/rest/v1/orders?id=in.(' + orderIds.map(encodeURIComponent).join(',') + ')&select=id,transaction_id,product_name,category,quantity,amount,payment_status,order_status,created_at,paid_at&limit=500');
+        orders = await response.json().catch(() => []);
+        if (!response.ok) return reply(res, 500, { error: 'Detail pesanan member gagal dimuat.' });
+      }
+      return reply(res, 200, { success: true, balance: Number(wallet.rows?.[0]?.balance || 0), transactions: ledger.rows, deposits: deposits.rows, registrations: registrations.rows, orders });
     }
 
     if (action === 'status') {
