@@ -1831,13 +1831,14 @@ function renderMemberAdminList(members) {
         ? '<button type="button" data-member-action="activate">Aktifkan kembali</button>'
         : '';
     return '<article class="member-admin-card" data-member-id="' + id + '">' +
-      '<div class="member-admin-top"><div><strong>' + phone + '</strong><span class="member-status ' + badgeClass + '">' + escapeHtml(label) + '</span></div>' +
+      '<div class="member-admin-top"><div><button type="button" class="member-phone-detail" data-member-details="' + id + '" aria-label="Lihat ringkasan member ' + phone + '">' + phone + '</button><span class="member-status ' + badgeClass + '">' + escapeHtml(label) + '</span></div>' +
       '<small>Terdaftar: ' + escapeHtml(m.created_at ? dateID(m.created_at) : '-') + '</small></div>' +
       '<div class="member-admin-actions">' + statusAction +
       '<button type="button" data-member-action="reset">Reset password</button>' +
       '<button type="button" data-member-action="topup">Isi Saldo Manual</button>' +
       '<button type="button" class="btn-danger" data-member-action="delete">Hapus akun</button></div></article>';
   }).join('');
+  box.querySelectorAll('[data-member-details]').forEach(button => button.addEventListener('click', () => showMemberFinancialSummary(button.dataset.memberDetails)));
   box.querySelectorAll('[data-member-action]').forEach(button => button.addEventListener('click', async () => {
     const card = button.closest('[data-member-id]');
     const memberId = card?.dataset.memberId;
@@ -1931,6 +1932,47 @@ function loadAdminMemberHistory() {
     msg('memberHistoryMsg', error.message || 'Gagal memuat riwayat member.');
   });
 }
+function showMemberFinancialSummary(memberId) {
+  const data = window.__digitalEvoMemberHistory;
+  if (!data) {
+    msg('membersMsg', 'Riwayat transaksi masih dimuat. Coba klik nomor WhatsApp lagi sebentar.');
+    loadAdminMemberHistory();
+    return;
+  }
+  const profile = (data.profiles || []).find(item => String(item.user_id) === String(memberId));
+  if (!profile) {
+    msg('membersMsg', 'Ringkasan member tidak ditemukan. Muat ulang riwayat member.');
+    return;
+  }
+  const wallet = (data.wallets || []).find(item => String(item.user_id) === String(memberId));
+  const transactions = (data.transactions || []).filter(item => String(item.user_id) === String(memberId));
+  const deposits = (data.deposits || []).filter(item => String(item.user_id) === String(memberId) && item.payment_status === 'paid');
+  const totalPaidDeposits = deposits.reduce((sum, item) => sum + Math.max(0, Number(item.amount || 0)), 0);
+  const totalManualTopups = transactions
+    .filter(item => item.transaction_type === 'admin_adjustment' && Number(item.amount || 0) > 0)
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const totalDeposit = totalPaidDeposits + totalManualTopups;
+  const purchaseTransactions = transactions.filter(item => item.transaction_type === 'purchase');
+  const totalPurchases = purchaseTransactions.reduce((sum, item) => sum + Math.abs(Number(item.amount || 0)), 0);
+  const fmt = value => formatRupiah(value);
+  let modal = $('memberFinancialSummaryModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'memberFinancialSummaryModal';
+    modal.className = 'member-summary-modal';
+    modal.innerHTML = '<div class="member-summary-dialog" role="dialog" aria-modal="true" aria-labelledby="memberSummaryTitle"><div class="member-summary-head"><div><span class="eyebrow">RINGKASAN MEMBER</span><h2 id="memberSummaryTitle">Informasi Saldo Member</h2><p id="memberSummaryPhone"></p></div><button type="button" class="member-summary-close" aria-label="Tutup ringkasan">×</button></div><div class="member-summary-stats"><article><span>Saldo Sekarang</span><strong id="memberSummaryBalance">Rp0</strong></article><article><span>Total Deposit</span><strong id="memberSummaryDeposits">Rp0</strong><small>Deposit berhasil + saldo manual</small></article><article><span>Total Pembelian</span><strong id="memberSummaryPurchases">Rp0</strong><small id="memberSummaryPurchaseCount">0 transaksi</small></article></div><p class="member-summary-note">Total deposit menghitung deposit QRIS yang berhasil dan pengisian saldo manual. Bonus pendaftaran tidak dihitung sebagai deposit.</p></div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', event => { if (event.target === modal || event.target.closest('.member-summary-close')) modal.hidden = true; });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !modal.hidden) modal.hidden = true; });
+  }
+  $('memberSummaryPhone').textContent = profile.whatsapp || 'Nomor WhatsApp tidak tersedia';
+  $('memberSummaryBalance').textContent = fmt(wallet?.balance || 0);
+  $('memberSummaryDeposits').textContent = fmt(totalDeposit);
+  $('memberSummaryPurchases').textContent = fmt(totalPurchases);
+  $('memberSummaryPurchaseCount').textContent = purchaseTransactions.length + ' transaksi pembelian';
+  modal.hidden = false;
+}
+
 function renderAdminMemberHistory() {
   const box = $('memberHistoryTable');
   const data = window.__digitalEvoMemberHistory;
