@@ -1279,3 +1279,7 @@ body.admin-body{background:var(--admin-bg);color:var(--admin-text);font-family:I
   .member-summary-stats article { padding:12px; }
   .member-summary-stats article span { margin-bottom:4px; }
 }
+
+
+/* Member invoices are highlighted in blue in order/payment tables. */
+.member-order-label{color:#2563eb;font-weight:800;}
