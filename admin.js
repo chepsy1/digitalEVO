@@ -790,7 +790,7 @@ function renderPayments() {
         <tbody>
           ${orders.map(order => `
             <tr>
-              <td>${escapeHtml(order.transaction_id || '-')}</td>
+              <td>${memberInvoiceDisplay(order)}</td>
               <td>${rupiah(order.amount)}</td>
               <td>${orderStatus(order.payment_status)}</td>
               <td>${dateID(order.paid_at)}</td>
