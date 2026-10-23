@@ -32,15 +32,16 @@
           <h3>Belanja dengan saldo member</h3>
           <p class="muted">Paket produk dengan harga diskon untuk member dan reseller.</p>
           <form id="wallet-checkout-form">
-            <label for="wallet-product">Paket produk</label>
+            <label id="wallet-product-label" for="wallet-product">Paket produk</label>
             <select id="wallet-product" required><option value="">Pilih produk dari katalog</option></select>
             <div id="wallet-order-fields"></div>
             <p class="fine-print" id="wallet-price" aria-live="polite"></p>
-            <button class="primary" type="submit">Bayar dengan Saldo</button>
+            <button id="wallet-pay-button" class="primary" type="submit">Bayar Dengan Saldo</button>
           </form>
           <div id="wallet-order-result" class="fine-print" aria-live="polite"></div>
         </section>
         <form id="deposit-form" class="dashboard-action" hidden>
+          <h3 class="deposit-section-title">ISI SALDO DEPOSITO</h3>
           <label for="deposit-amount">Nominal deposit (Rp)</label>
           <input id="deposit-amount" name="amount" type="number" min="10000" max="10000000" step="1000" placeholder="Minimum Rp10.000" required>
           <button class="primary" type="submit">Buat QRIS Deposit</button>
@@ -93,6 +94,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script src="/supabase-config.js" defer></script>
-  <script src="/member.js?v=20261023-member-updates" defer></script>
+  <script src="/member.js?v=20261023-member-payment-refresh" defer></script>
 </body>
 </html>
