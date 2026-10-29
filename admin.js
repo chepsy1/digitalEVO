@@ -1272,6 +1272,11 @@ function renderProducts(category, box) {
       </div>
 
       <label>
+        Nama produk
+        <input class="f-product-name" maxlength="200" value="${escapeAttr(product.name || '')}" placeholder="Nama produk di halaman utama">
+      </label>
+
+      <label>
         Jumlah
         <input class="f-qty" type="number" min="0" value="${Number(product.qty || 0)}">
       </label>
@@ -1332,6 +1337,7 @@ async function saveProduct(row, button) {
   const current = products.find(p => String(p.id) === String(id));
   if (!current) return;
 
+  const name = String(row.querySelector('.f-product-name')?.value || '').trim();
   const qty = Number(row.querySelector('.f-qty')?.value || 0);
   const original = Number(row.querySelector('.f-original')?.value || 0);
   const price = Number(row.querySelector('.f-price')?.value || 0);
@@ -1339,7 +1345,7 @@ async function saveProduct(row, button) {
   const memberPrice = memberPriceRaw === '' ? null : Number(memberPriceRaw);
   const sold = row.querySelector('.f-sold')?.value || '';
 
-  if (![qty, original, price].every(Number.isFinite) || qty < 0 || original < 0 || price < 0 ||
+  if (!name || name.length > 200 || ![qty, original, price].every(Number.isFinite) || qty < 0 || original < 0 || price < 0 ||
       (memberPrice !== null && (!Number.isSafeInteger(memberPrice) || memberPrice <= 0))) {
     alert('Jumlah dan harga harus berupa angka yang valid.');
     return;
@@ -1355,6 +1361,7 @@ async function saveProduct(row, button) {
     .from('products')
     .update({
       category: current.category,
+      name,
       qty,
       original,
       price,
