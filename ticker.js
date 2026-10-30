@@ -2,38 +2,6 @@
   const track = document.getElementById("deTickerTrack");
   if (!track) return;
 
-  // Digit terakhir prefix nomor random sesuai bobot:
-  // 5=20%, 1=20%, 8=15%, 2=15%, 7=15%, 9=15%.
-  const phonePrefixes = [
-    { prefix: "5", weight: 20 },
-    { prefix: "1", weight: 20 },
-    { prefix: "8", weight: 15 },
-    { prefix: "2", weight: 15 },
-    { prefix: "7", weight: 15 },
-    { prefix: "9", weight: 15 }
-  ];
-
-  function weightedRandom(list) {
-    const totalWeight = list.reduce((sum, item) => sum + item.weight, 0);
-    let random = Math.random() * totalWeight;
-
-    for (const item of list) {
-      random -= item.weight;
-      if (random < 0) return item.label ?? item.prefix;
-    }
-
-    return list[list.length - 1].label ?? list[list.length - 1].prefix;
-  }
-
-  function generatePhone() {
-    const digit = weightedRandom(phonePrefixes);
-    const maskedMiddle = "******";
-    const randomLastThree = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
-
-    // Contoh: +6285******123
-    return `+628${digit}${maskedMiddle}${randomLastThree}`;
-  }
-
   const normalPackages = [
     { label: "500 Followers", weight: 24 },
     { label: "100 Followers", weight: 22 },
@@ -45,62 +13,53 @@
     { label: "5000 Followers", weight: 10 }
   ];
 
-  const accountPackages = [
-    { label: "Akun 10000 Followers", weight: 4 },
-    { label: "Akun 20000 Followers", weight: 3 },
-    { label: "Akun 30000 Followers", weight: 2 },
-    { label: "Akun 50000 Followers", weight: 1 }
-  ];
-
-  // Peluang kemunculan produk video di ticker (persentase dari seluruh item).
-  const videoPackages = [
-    { label: "Shopee Video 500 Views", weight: 7 },
-    { label: "Shopee Video 1000 Views", weight: 5 },
-    { label: "Shopee Video 100 Likes", weight: 7 },
-    { label: "Shopee Video 200 Likes", weight: 7 },
-    { label: "Shopee Video 500 Likes", weight: 7 },
-    { label: "Shopee Video 1000 Likes", weight: 3 }
-  ];
-
-  function getRandomProduct() {
-    const roll = Math.random() * 100;
-    let cumulative = 0;
-    for (const item of videoPackages) {
-      cumulative += item.weight;
-      if (roll < cumulative) return item.label;
+  function weightedRandom(list) {
+    const total = list.reduce((sum, item) => sum + item.weight, 0);
+    let roll = Math.random() * total;
+    for (const item of list) {
+      roll -= item.weight;
+      if (roll < 0) return item.label;
     }
-
-    // 64% sisanya tetap memakai format produk ticker yang sudah ada.
-    if (Math.random() < 0.10) {
-      return weightedRandom(accountPackages);
-    }
-    return weightedRandom(normalPackages);
+    return list[list.length - 1].label;
   }
 
-  function generateTime() {
-    const random = Math.random() * 100;
+  // Kuota tetap sesuai daftar: total 45 item khusus + 455 paket followers.
+  const fixedPackages = [
+    ...Array(4).fill("10 (Custom) Comments"),
+    ...Array(2).fill("20 (Custom) Comments"),
+    ...Array(4).fill("100 Favorite/Likes"),
+    ...Array(5).fill("200 Favorite/Likes"),
+    ...Array(1).fill("500 Favorite/Likes"),
+    ...Array(5).fill("Shopee Followers — 10.000 Followers"),
+    ...Array(6).fill("Shopee Video 2000 Views"),
+    ...Array(6).fill("Shopee Video 5000 Views"),
+    ...Array(6).fill("Shopee Video 7000 Views"),
+    ...Array(6).fill("Shopee Video 10000 Views")
+  ];
 
-    if (random < 7) {
-      return `${Math.floor(Math.random() * 59) + 1} menit yang lalu`;
-    }
+  const products = [
+    ...fixedPackages,
+    ...Array.from({ length: 455 }, () => weightedRandom(normalPackages))
+  ];
 
-    if (random < 37) {
-      if (Math.random() < 0.60) {
-        return `${Math.floor(Math.random() * 21) + 3} jam yang lalu`;
-      }
-      return `${Math.floor(Math.random() * 2) + 1} jam yang lalu`;
-    }
+  // Acak posisi seluruh 500 item.
+  for (let i = products.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [products[i], products[j]] = [products[j], products[i]];
+  }
 
-    return `${Math.floor(Math.random() * 7) + 2} hari yang lalu`;
+  // Lima entri memakai nomor contoh tersamarkan; bukan nomor pelanggan.
+  const displayNames = Array(5).fill("+6283******xxx")
+    .concat(Array(495).fill("DigitalEVO"));
+  for (let i = displayNames.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [displayNames[i], displayNames[j]] = [displayNames[j], displayNames[i]];
   }
 
   function cartIcon() {
     return `<span class="de-ticker-cart" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none"
-        stroke="#ee4d2d"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ee4d2d"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="9" cy="20" r="1.5"></circle>
         <circle cx="18" cy="20" r="1.5"></circle>
         <path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H6"></path>
@@ -109,40 +68,19 @@
   }
 
   function generateItems() {
-    let html = "";
-
-    for (let i = 0; i < 500; i++) {
-      const phone = generatePhone();
-      const productLabel = getRandomProduct();
-      const time = generateTime();
-      const orderText = `memesan <strong>${productLabel}</strong>`;
-
-      html += `<div class="de-ticker-item">
+    return products.map((productLabel, index) => `
+      <div class="de-ticker-item">
         ${cartIcon()}
         <span class="de-ticker-content">
           <span class="de-ticker-top">
-            <span class="de-ticker-link">${phone}</span>
+            <span class="de-ticker-link">${displayNames[index]}</span>
           </span>
           <span class="de-ticker-bottom">
-            <span class="de-ticker-order">${orderText}</span>
-            <span class="de-ticker-time">
-              <span class="de-ticker-clock" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none"
-                  stroke="#8a9298"
-                  stroke-width="2"
-                  stroke-linecap="round">
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <path d="M12 7v5l3 2"></path>
-                </svg>
-              </span>
-              ${time}
-            </span>
+            <span class="de-ticker-order">pilihan paket <strong>${productLabel}</strong></span>
           </span>
         </span>
-      </div>`;
-    }
-
-    return html;
+      </div>
+    `).join("");
   }
 
   const items = generateItems();
