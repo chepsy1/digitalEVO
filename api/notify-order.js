@@ -155,6 +155,54 @@ async function sendEmailNotification(order) {
   };
 }
 
+
+async function sendPingEmailNotification(order = {}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const to = process.env.NOTIFY_EMAIL;
+  const from = process.env.RESEND_FROM;
+
+  if (!apiKey || !to || !from) {
+    return {
+      configured: false,
+      success: false,
+      error: 'Email belum dikonfigurasi. Isi RESEND_API_KEY, NOTIFY_EMAIL, dan RESEND_FROM di Vercel.'
+    };
+  }
+
+  const message = escapeHtml(order.message || 'Tes koneksi email DigitalEVO berhasil.');
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject: 'PING DigitalEVO - Tes Email',
+      html: `<div style="font-family:Arial,sans-serif;padding:24px;color:#111827;"><h2>PING DigitalEVO</h2><p>${message}</p><p>Waktu: ${escapeHtml(formatDate(new Date().toISOString()))}</p></div>`
+    })
+  });
+
+  const raw = await response.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = { raw };
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || `Resend error (${response.status})`);
+  }
+
+  return {
+    configured: true,
+    success: true,
+    id: data?.id || null
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
@@ -163,7 +211,10 @@ export default async function handler(req, res) {
   // Hanya server internal setelah pembayaran terverifikasi yang boleh memicu
   // email/Telegram. Kunci ini tidak pernah dikirim ke browser.
   const internalKey = String(req.headers['x-internal-notify-key'] || '');
-  if (!internalKey || internalKey !== String(process.env.SUPABASE_SERVICE_ROLE_KEY || '')) {
+  const expectedInternalKey = String(
+    process.env.INTERNAL_NOTIFY_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+  if (!internalKey || !expectedInternalKey || internalKey !== expectedInternalKey) {
     return res.status(401).json({ success: false, error: 'Unauthorized.' });
   }
 
@@ -173,6 +224,24 @@ export default async function handler(req, res) {
     email: { success: false },
     telegram: { success: false }
   };
+
+  // PING hanya menguji Resend ke alamat NOTIFY_EMAIL dan tidak memicu Telegram.
+  if (String(order.type || '').toLowerCase() === 'ping') {
+    try {
+      result.email = await sendPingEmailNotification(order);
+    } catch (error) {
+      result.email = {
+        configured: true,
+        success: false,
+        error: error?.message || 'Gagal mengirim email PING'
+      };
+    }
+    result.telegram = { success: false, skipped: true, reason: 'PING email only' };
+    return res.status(result.email.success ? 200 : 502).json({
+      success: result.email.success,
+      ...result
+    });
+  }
 
   // Email dibuat independen dari Telegram supaya notifikasi email tetap masuk
   // walaupun layanan Telegram/gateway sedang bermasalah.
